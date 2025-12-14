@@ -4,7 +4,6 @@
   "version": "3.8",
   "description": "إكستنشن لتتبع الحسابات والـ IPs المُنسوخة، مع إشعارات VIP وإدارة ملاحظات. آمن ومفيد للمستخدمين.",
   "author": "Jimmy229922",
-  "homepage_url": "https://github.com/Jimmy229922/chrome-extension-tracker",
   "permissions": [
     "storage",
     "clipboardRead",
