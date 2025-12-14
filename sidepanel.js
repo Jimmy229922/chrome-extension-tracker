@@ -34,6 +34,11 @@ const criticalAccountNoteInput = document.getElementById('critical-account-note'
 const criticalAddIpBtn = document.getElementById('critical-add-ip');
 const criticalAddAccountBtn = document.getElementById('critical-add-account');
 const criticalClearCustomBtn = document.getElementById('critical-clear-custom');
+// Delete confirm modal elements
+const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+const deleteConfirmMessage = document.getElementById('delete-confirm-message');
+const deleteConfirmCancel = document.getElementById('delete-confirm-cancel');
+const deleteConfirmOk = document.getElementById('delete-confirm-ok');
 // Filters removed from UI; will read from chrome.storage.sync
 let statusFilterValue = 'all';
 let dateFilterValue = 'all';
@@ -119,6 +124,32 @@ document.querySelector('.toast-close').addEventListener('click', () => {
     currentToast = null;
   }
 });
+
+// Delete confirm modal functions
+let deleteCallback = null;
+
+function showDeleteConfirm(message, callback) {
+  deleteConfirmMessage.textContent = message;
+  deleteCallback = callback;
+  deleteConfirmModal.style.display = 'flex';
+}
+
+function hideDeleteConfirm() {
+  deleteConfirmModal.style.display = 'none';
+  deleteCallback = null;
+}
+
+// Modal event listeners
+if (deleteConfirmCancel) {
+  deleteConfirmCancel.addEventListener('click', hideDeleteConfirm);
+}
+
+if (deleteConfirmOk) {
+  deleteConfirmOk.addEventListener('click', () => {
+    if (deleteCallback) deleteCallback();
+    hideDeleteConfirm();
+  });
+}
 
 
 const modal = document.getElementById('history-modal');
@@ -632,11 +663,11 @@ function renderCriticalWatchlist() {
       remove.innerHTML = '🗑️';
       remove.title = 'حذف';
       remove.addEventListener('click', () => {
-        if (confirm('هل أنت متأكد من حذف هذا الـ IP من قائمة VIP؟')) {
+        showDeleteConfirm('هل أنت متأكد من حذف هذا الـ IP من قائمة VIP؟', () => {
           const next = { ...criticalWatchlistState, ips: criticalWatchlistState.ips.filter(v => !(v && typeof v === 'object' && v.ip === ip)) };
           void saveCriticalWatchlist(next);
           showToast('VIP', 'تم حذف الـ IP من القائمة.', 'default');
-        }
+        });
       });
 
       li.appendChild(value);
@@ -695,11 +726,11 @@ function renderCriticalWatchlist() {
       remove.innerHTML = '🗑️';
       remove.title = 'حذف';
       remove.addEventListener('click', () => {
-        if (confirm('هل أنت متأكد من حذف هذا الحساب من قائمة VIP؟')) {
+        showDeleteConfirm('هل أنت متأكد من حذف هذا الحساب من قائمة VIP؟', () => {
           const next = { ...criticalWatchlistState, accounts: criticalWatchlistState.accounts.filter(v => !(v && typeof v === 'object' && v.account === acc)) };
           void saveCriticalWatchlist(next);
           showToast('VIP', 'تم حذف الحساب من القائمة.', 'default');
-        }
+        });
       });
 
       li.appendChild(value);
