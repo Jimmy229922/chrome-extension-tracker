@@ -203,8 +203,8 @@ function tryPlaySound() {
             utterance.lang = arabicVoice.lang;
             console.log('✅ Using Arabic voice:', arabicVoice.name, 'lang:', arabicVoice.lang, 'for text:', text);
           } else {
-            utterance.lang = 'en-US'; // Fallback to English
-            console.log('❌ No Arabic voice found, using English fallback for text:', text);
+            utterance.lang = 'ar'; // Try Arabic even without specific voice
+            console.log('❌ No Arabic voice found, trying Arabic lang anyway for text:', text);
           }
           utterance.rate = 0.8; // Slower rate
           utterance.pitch = 1;
