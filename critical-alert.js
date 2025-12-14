@@ -188,24 +188,32 @@ function tryPlaySound() {
       // Then, text-to-speech after 1 second
       setTimeout(() => {
         console.log('Attempting to speak:', text);
-        console.log('Available voices:', speechSynthesis.getVoices().map(v => v.lang + ' - ' + v.name));
-        const utterance = new SpeechSynthesisUtterance(text);
-        // Try to find an Arabic voice
-        const voices = speechSynthesis.getVoices();
-        const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
-        if (arabicVoice) {
-          utterance.voice = arabicVoice;
-          utterance.lang = arabicVoice.lang;
-          console.log('Using Arabic voice:', arabicVoice.name);
+        const speakWithVoices = () => {
+          const voices = speechSynthesis.getVoices();
+          console.log('Available voices:', voices.map(v => v.lang + ' - ' + v.name));
+          const utterance = new SpeechSynthesisUtterance(text);
+          // Try to find an Arabic voice
+          const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
+          if (arabicVoice) {
+            utterance.voice = arabicVoice;
+            utterance.lang = arabicVoice.lang;
+            console.log('✅ Using Arabic voice:', arabicVoice.name, 'for text:', text);
+          } else {
+            utterance.lang = 'en-US'; // Fallback to English
+            console.log('❌ No Arabic voice found, using English fallback for text:', text);
+          }
+          utterance.rate = 0.8; // Slower rate
+          utterance.pitch = 1;
+          utterance.volume = 0.8;
+          speechSynthesis.speak(utterance);
+          console.log('Speech synthesis started');
+        };
+
+        if (speechSynthesis.getVoices().length === 0) {
+          speechSynthesis.onvoiceschanged = speakWithVoices;
         } else {
-          utterance.lang = 'en-US'; // Fallback to English
-          console.log('No Arabic voice found, using English');
+          speakWithVoices();
         }
-        utterance.rate = 0.8; // Slower rate
-        utterance.pitch = 1;
-        utterance.volume = 0.8;
-        speechSynthesis.speak(utterance);
-        console.log('Speech synthesis started');
       }, 1000); // 1 second delay after beep
 
     } catch (e) {
