@@ -16,8 +16,7 @@
     "downloads"
   ],
   "host_permissions": [
-    "https://ipwhois.app/",
-    "https://code.responsivevoice.org/"
+    "https://ipwhois.app/"
   ],
   "side_panel": {
     "default_path": "sidepanel.html"

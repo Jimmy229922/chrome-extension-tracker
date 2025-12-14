@@ -137,7 +137,7 @@ function tryPlaySound() {
       if (payload && payload.items && payload.items.length > 0) {
         const firstItem = payload.items[0];
         if (firstItem.type === 'IP') {
-          text = 'عنوان IP مهم';
+          text = 'اي بي مهم';
         } else if (firstItem.type === 'AC') {
           text = 'حساب مهم';
         } else {
@@ -148,7 +148,7 @@ function tryPlaySound() {
         const ips = parseIpsFromQuery();
         const accounts = parseAccountsFromQuery();
         if (ips.length > 0) {
-          text = 'عنوان IP مهم';
+          text = 'اي بي مهم';
         } else if (accounts.length > 0) {
           text = 'حساب مهم';
         } else {
@@ -207,13 +207,7 @@ function tryPlaySound() {
             console.log('❌ No Arabic voice found, trying Arabic lang anyway for text:', text);
           }
           console.log('Utterance settings: lang=', utterance.lang, 'rate=', utterance.rate, 'pitch=', utterance.pitch, 'volume=', utterance.volume);
-          if (typeof responsiveVoice !== 'undefined') {
-            console.log('Using ResponsiveVoice for Arabic TTS');
-            responsiveVoice.speak(text, 'Arabic Female', { rate: 0.8, pitch: 1, volume: 0.8 });
-          } else {
-            console.log('ResponsiveVoice not loaded, using Web Speech API');
-            speechSynthesis.speak(utterance);
-          }
+          speechSynthesis.speak(utterance);
           console.log('Speech synthesis started');
         };
 
