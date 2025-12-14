@@ -629,7 +629,8 @@ function renderCriticalWatchlist() {
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'critical-remove-btn';
-      remove.textContent = 'حذف';
+      remove.innerHTML = '🗑️';
+      remove.title = 'حذف';
       remove.addEventListener('click', () => {
         const next = { ...criticalWatchlistState, ips: criticalWatchlistState.ips.filter(v => !(v && typeof v === 'object' && v.ip === ip)) };
         void saveCriticalWatchlist(next);
@@ -688,7 +689,8 @@ function renderCriticalWatchlist() {
       const remove = document.createElement('button');
       remove.type = 'button';
       remove.className = 'critical-remove-btn';
-      remove.textContent = 'حذف';
+      remove.innerHTML = '🗑️';
+      remove.title = 'حذف';
       remove.addEventListener('click', () => {
         const next = { ...criticalWatchlistState, accounts: criticalWatchlistState.accounts.filter(v => !(v && typeof v === 'object' && v.account === acc)) };
         void saveCriticalWatchlist(next);
