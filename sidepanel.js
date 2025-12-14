@@ -783,7 +783,9 @@ if (criticalAccountNoteInput) {
 
 if (criticalClearCustomBtn) {
   criticalClearCustomBtn.addEventListener('click', () => {
-    void saveCriticalWatchlist({ ips: [], accounts: [] });
+    // Keep notes for default IPs, remove custom ones
+    const defaultNotes = (criticalWatchlistState.ips || []).filter(v => v && typeof v === 'object' && DEFAULT_CRITICAL_IPS.includes(v.ip));
+    void saveCriticalWatchlist({ ips: defaultNotes, accounts: [] });
     showToast('VIP', 'تم مسح القائمة المضافة.', 'default');
   });
 }

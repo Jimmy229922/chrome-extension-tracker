@@ -154,8 +154,33 @@
         letter-spacing: 0.3px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .itemActions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .editBtn, .deleteBtn {
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--text);
+        padding: 6px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .editBtn:hover {
+        background: rgba(59, 130, 246, 0.2);
+      }
+
+      .deleteBtn:hover {
+        background: rgba(239, 68, 68, 0.2);
       }
 
       .copyBtn {

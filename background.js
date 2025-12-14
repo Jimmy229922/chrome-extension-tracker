@@ -5,7 +5,6 @@ let lastNotificationId = null; // Track the last notification ID
 let toastQueue = []; // Queue toast messages when side panel not open
 let trackingPaused = false; // Pause clipboard tracking state
 let latestWalletAddress = null; // Track the last detected wallet address
-let disableCriticalAlerts = true; // Always disable critical alerts for VIP items
 const accountNumberRegex = /^\d{6,7}$/;
 const emailRegex = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const walletRegex = /^\s*T[a-zA-Z0-9]{33}\s*$/;
@@ -622,7 +621,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     const criticalHits = getCriticalMatchesFromText(clipboardText);
-    if ((criticalHits.ips.length || criticalHits.accounts.length) && !disableCriticalAlerts) {
+    if (criticalHits.ips.length || criticalHits.accounts.length) {
       setCriticalAlertBadge(criticalHits).catch(err => {
         console.warn('Failed to set critical alert badge:', err);
       });
@@ -796,6 +795,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     })();
     return true; // Crucial for asynchronous response
+  } else if (message.type === 'openSidePanel') {
+    chrome.sidePanel.open({ windowId: sender.tab ? sender.tab.windowId : chrome.windows.WINDOW_ID_CURRENT }).catch(() => {});
+    return false;
   }
 });
 
@@ -1381,3 +1383,20 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 setupOffscreenDocument('offscreen.html');
 restoreCriticalIpBadge();
 loadCriticalWatchlistFromSync().catch(() => {});
+
+// Notification click handlers
+chrome.notifications.onClicked.addListener((notificationId) => {
+  if (notificationId.startsWith('trades-anomaly-')) {
+    // Open critical alert popup on notification click
+    openCriticalAlertPopup({}).catch(err => console.warn('Failed to open popup on notification click:', err));
+  }
+});
+
+chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+  if (notificationId.startsWith('trades-anomaly-')) {
+    if (buttonIndex === 0) {
+      // Open report page
+      chrome.tabs.create({ url: chrome.runtime.getURL('report.html') });
+    }
+  }
+});

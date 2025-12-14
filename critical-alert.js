@@ -72,6 +72,61 @@ async function copyText(text) {
   }
 }
 
+async function updateItemNote(item, newNote) {
+  const CRITICAL_WATCHLIST_STORAGE_KEY = 'criticalWatchlist';
+  try {
+    const data = await chrome.storage.sync.get(CRITICAL_WATCHLIST_STORAGE_KEY);
+    const watchlist = data[CRITICAL_WATCHLIST_STORAGE_KEY] || { ips: [], accounts: [] };
+    const trimmedNote = typeof newNote === 'string' ? newNote.trim() : '';
+
+    if (item.type === 'IP') {
+      const ips = Array.isArray(watchlist.ips) ? watchlist.ips : [];
+      const updatedIps = ips.map(v => {
+        if (v && typeof v === 'object' && v.ip === item.value) {
+          return { ...v, note: trimmedNote };
+        }
+        return v;
+      });
+      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, ips: updatedIps } });
+      showToast('تم تحديث الملاحظة');
+    } else if (item.type === 'AC') {
+      const accounts = Array.isArray(watchlist.accounts) ? watchlist.accounts : [];
+      const updatedAccounts = accounts.map(v => {
+        if (v && typeof v === 'object' && v.account === item.value) {
+          return { ...v, note: trimmedNote };
+        }
+        return v;
+      });
+      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, accounts: updatedAccounts } });
+      showToast('تم تحديث الملاحظة');
+    }
+  } catch (e) {
+    showToast('فشل في تحديث الملاحظة');
+  }
+}
+
+async function removeItemFromWatchlist(item) {
+  const CRITICAL_WATCHLIST_STORAGE_KEY = 'criticalWatchlist';
+  try {
+    const data = await chrome.storage.sync.get(CRITICAL_WATCHLIST_STORAGE_KEY);
+    const watchlist = data[CRITICAL_WATCHLIST_STORAGE_KEY] || { ips: [], accounts: [] };
+
+    if (item.type === 'IP') {
+      const ips = Array.isArray(watchlist.ips) ? watchlist.ips : [];
+      const filteredIps = ips.filter(v => !(v && typeof v === 'object' && v.ip === item.value));
+      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, ips: filteredIps } });
+      showToast('تم حذف العنصر');
+    } else if (item.type === 'AC') {
+      const accounts = Array.isArray(watchlist.accounts) ? watchlist.accounts : [];
+      const filteredAccounts = accounts.filter(v => !(v && typeof v === 'object' && v.account === item.value));
+      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, accounts: filteredAccounts } });
+      showToast('تم حذف العنصر');
+    }
+  } catch (e) {
+    showToast('فشل في حذف العنصر');
+  }
+}
+
 function tryPlaySound() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
