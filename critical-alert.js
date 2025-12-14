@@ -186,18 +186,22 @@ function tryPlaySound() {
       }
 
       // Then, text-to-speech after 1 second
+      console.log('Setting timeout for TTS in 1 second');
       setTimeout(() => {
-        console.log('Attempting to speak:', text);
+        console.log('Timeout triggered, attempting to speak:', text);
         const speakWithVoices = () => {
+          console.log('speakWithVoices called');
           const voices = speechSynthesis.getVoices();
-          console.log('Available voices:', voices.map(v => v.lang + ' - ' + v.name));
+          console.log('Available voices count:', voices.length);
+          console.log('Available voices:', voices.map(v => `${v.lang} - ${v.name} - ${v.default ? 'default' : 'not default'}`));
           const utterance = new SpeechSynthesisUtterance(text);
+          console.log('Utterance created with text:', utterance.text);
           // Try to find an Arabic voice
           const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
           if (arabicVoice) {
             utterance.voice = arabicVoice;
             utterance.lang = arabicVoice.lang;
-            console.log('✅ Using Arabic voice:', arabicVoice.name, 'for text:', text);
+            console.log('✅ Using Arabic voice:', arabicVoice.name, 'lang:', arabicVoice.lang, 'for text:', text);
           } else {
             utterance.lang = 'en-US'; // Fallback to English
             console.log('❌ No Arabic voice found, using English fallback for text:', text);
@@ -205,13 +209,19 @@ function tryPlaySound() {
           utterance.rate = 0.8; // Slower rate
           utterance.pitch = 1;
           utterance.volume = 0.8;
+          console.log('Utterance settings: lang=', utterance.lang, 'rate=', utterance.rate, 'pitch=', utterance.pitch, 'volume=', utterance.volume);
           speechSynthesis.speak(utterance);
           console.log('Speech synthesis started');
         };
 
         if (speechSynthesis.getVoices().length === 0) {
-          speechSynthesis.onvoiceschanged = speakWithVoices;
+          console.log('No voices loaded yet, setting onvoiceschanged');
+          speechSynthesis.onvoiceschanged = () => {
+            console.log('onvoiceschanged triggered');
+            speakWithVoices();
+          };
         } else {
+          console.log('Voices already loaded, speaking immediately');
           speakWithVoices();
         }
       }, 1000); // 1 second delay after beep
