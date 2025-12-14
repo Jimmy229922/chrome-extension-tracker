@@ -1286,7 +1286,8 @@ async function openCriticalAlertPopup(hits) {
     type: 'popup',
     focused: true,
     width: CRITICAL_POPUP_WIDTH,
-    height: CRITICAL_POPUP_HEIGHT
+    height: CRITICAL_POPUP_HEIGHT,
+    alwaysOnTop: true
   };
   if (typeof left === 'number') createData.left = left;
   if (typeof top === 'number') createData.top = top;

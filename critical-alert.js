@@ -134,9 +134,10 @@ function tryPlaySound() {
     const audioCtx = new AudioContext();
     const now = audioCtx.currentTime;
     const beeps = [
-      { freq: 1040, start: 0, duration: 0.12, gain: 0.42 },
-      { freq: 780, start: 0.15, duration: 0.12, gain: 0.38 },
-      { freq: 1040, start: 0.30, duration: 0.18, gain: 0.42 }
+      { freq: 1200, start: 0, duration: 0.15, gain: 0.5 },
+      { freq: 1000, start: 0.18, duration: 0.15, gain: 0.45 },
+      { freq: 1400, start: 0.36, duration: 0.2, gain: 0.5 },
+      { freq: 800, start: 0.58, duration: 0.1, gain: 0.4 }
     ];
 
     beeps.forEach(b => {
