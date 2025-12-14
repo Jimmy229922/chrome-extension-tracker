@@ -1617,6 +1617,7 @@ body.dark-mode h1 {
 .setting-control {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
   margin-bottom: 8px;
 }
@@ -1643,8 +1644,8 @@ body.dark-mode .setting-item h2 {
 }
 
 .setting-control label {
-  flex-grow: 1;
-  margin-right: 15px;
+  flex-grow: 0;
+  margin-right: auto;
   font-weight: 600;
   color: #2c3e50;
   font-size: 1.05em;
@@ -1670,7 +1671,7 @@ body.dark-mode .setting-description {
 .setting-item .switch.dark-mode-switch {
   position: relative;
   display: inline-block;
-  width: 58px;
+  width: 50px;
   height: 30px;
   margin: 0;
 }
@@ -1713,7 +1714,7 @@ body.dark-mode .setting-description {
 }
 
 .setting-item .switch.dark-mode-switch input:checked + .slider:before {
-  transform: translateX(28px);
+  transform: translateX(20px);
   background: linear-gradient(135deg, #ffffff 0%, #ffd89b 100%);
   box-shadow: 0 2px 12px rgba(255, 216, 155, 0.6);
 }
