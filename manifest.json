@@ -2,7 +2,9 @@
   "manifest_version": 3,
   "name": "Account Copy Tracker (Side Panel)",
   "version": "3.6",
-  "description": "Tracks copied account numbers in a side panel.",
+  "description": "إكستنشن لتتبع الحسابات والـ IPs المُنسوخة، مع إشعارات VIP وإدارة ملاحظات. آمن ومفيد للمستخدمين.",
+  "author": "Jimmy229922",
+  "homepage_url": "https://github.com/Jimmy229922/chrome-extension-tracker",
   "permissions": [
     "storage",
     "clipboardRead",
