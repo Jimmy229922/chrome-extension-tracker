@@ -313,18 +313,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const latestVersion = release.tag_name;
           const currentVersion = chrome.runtime.getManifest().version;
           if (latestVersion !== currentVersion) {
-            // Find the .crx asset
-            const crxAsset = release.assets.find(asset => asset.name.endsWith('.crx'));
-            if (crxAsset) {
-              chrome.downloads.download({
-                url: crxAsset.browser_download_url,
-                filename: crxAsset.name,
-                saveAs: false
-              });
-              alert('بدأ تنزيل التحديث. بعد التنزيل، اسحب الملف إلى chrome://extensions/ للتثبيت.');
-            } else {
-              alert('لم يتم العثور على ملف التحديث. اذهب إلى GitHub يدوياً.');
-            }
+            alert(`يوجد إصدار جديد: ${latestVersion}. اذهب إلى GitHub لتنزيل التحديث.`);
+            window.open('https://github.com/Jimmy229922/chrome-extension-tracker', '_blank');
           } else {
             alert('أنت تستخدم أحدث إصدار.');
           }
