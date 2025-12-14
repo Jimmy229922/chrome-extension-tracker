@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearHistoryDays = document.getElementById('clear-history-days');
   const maxAccounts = document.getElementById('max-accounts');
   const timestampFormat = document.getElementById('timestamp-format');
-  const disableCriticalAlerts = document.getElementById('disable-critical-alerts');
   // Options page filter controls and counter
   const resultCounter = document.getElementById('result-counter');
   const optAccStatus = document.getElementById('opt-acc-status');
@@ -64,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load saved settings
-  chrome.storage.sync.get(['darkMode', 'clearHistoryEnabled', 'clearHistoryDays', 'maxAccounts', 'timestampFormat', 'disableCriticalAlerts', 'filters', 'tooltipsEnabled', 'onboardingCompleted', 'onboardingStep'], (data) => {
+  chrome.storage.sync.get(['darkMode', 'clearHistoryEnabled', 'clearHistoryDays', 'maxAccounts', 'timestampFormat', 'filters', 'tooltipsEnabled', 'onboardingCompleted', 'onboardingStep'], (data) => {
     darkModeToggle.checked = data.darkMode || false;
     applyDarkModeToOptions(darkModeToggle.checked);
 
@@ -72,7 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
     clearHistoryDays.value = data.clearHistoryDays || 30;
     maxAccounts.value = data.maxAccounts || 50;
     timestampFormat.value = data.timestampFormat || 'locale';
-    disableCriticalAlerts.checked = data.disableCriticalAlerts || false;
 
     clearHistoryDays.disabled = !clearHistoryToggle.checked;
 
@@ -117,10 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   timestampFormat.addEventListener('change', () => {
     chrome.storage.sync.set({ timestampFormat: timestampFormat.value });
-  });
-
-  disableCriticalAlerts.addEventListener('change', () => {
-    chrome.storage.sync.set({ disableCriticalAlerts: disableCriticalAlerts.checked });
   });
 
   // --- Options Filters Logic (Settings page) ---

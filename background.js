@@ -5,7 +5,7 @@ let lastNotificationId = null; // Track the last notification ID
 let toastQueue = []; // Queue toast messages when side panel not open
 let trackingPaused = false; // Pause clipboard tracking state
 let latestWalletAddress = null; // Track the last detected wallet address
-let disableCriticalAlerts = false; // Disable critical alerts setting
+let disableCriticalAlerts = true; // Always disable critical alerts for VIP items
 const accountNumberRegex = /^\d{6,7}$/;
 const emailRegex = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const walletRegex = /^\s*T[a-zA-Z0-9]{33}\s*$/;
@@ -1381,15 +1381,3 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 setupOffscreenDocument('offscreen.html');
 restoreCriticalIpBadge();
 loadCriticalWatchlistFromSync().catch(() => {});
-
-// Load disableCriticalAlerts setting
-chrome.storage.sync.get(['disableCriticalAlerts'], (data) => {
-  disableCriticalAlerts = data.disableCriticalAlerts || false;
-});
-
-// Listen for changes to disableCriticalAlerts
-chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && changes.disableCriticalAlerts) {
-    disableCriticalAlerts = changes.disableCriticalAlerts.newValue || false;
-  }
-});
