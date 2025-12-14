@@ -206,11 +206,14 @@ function tryPlaySound() {
             utterance.lang = 'ar'; // Try Arabic even without specific voice
             console.log('❌ No Arabic voice found, trying Arabic lang anyway for text:', text);
           }
-          utterance.rate = 0.8; // Slower rate
-          utterance.pitch = 1;
-          utterance.volume = 0.8;
           console.log('Utterance settings: lang=', utterance.lang, 'rate=', utterance.rate, 'pitch=', utterance.pitch, 'volume=', utterance.volume);
-          speechSynthesis.speak(utterance);
+          if (typeof responsiveVoice !== 'undefined') {
+            console.log('Using ResponsiveVoice for Arabic TTS');
+            responsiveVoice.speak(text, 'Arabic Female', { rate: 0.8, pitch: 1, volume: 0.8 });
+          } else {
+            console.log('ResponsiveVoice not loaded, using Web Speech API');
+            speechSynthesis.speak(utterance);
+          }
           console.log('Speech synthesis started');
         };
 
