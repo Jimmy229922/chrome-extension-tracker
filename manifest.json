@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Account Copy Tracker (Side Panel)",
-  "version": "3.5",
+  "version": "3.6",
   "description": "Tracks copied account numbers in a side panel.",
   "permissions": [
     "storage",
