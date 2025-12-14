@@ -307,7 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
       checkUpdatesBtn.disabled = true;
       checkUpdatesBtn.textContent = 'جاري التحقق...';
       try {
-        const response = await fetch('https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest');
+        const response = await fetch('https://api.github.com/repos/Jimmy229922/chrome-extension-tracker/releases/latest');
         if (response.ok) {
           const release = await response.json();
           const latestVersion = release.tag_name;
