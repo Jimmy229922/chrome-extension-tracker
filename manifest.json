@@ -13,7 +13,8 @@
     "offscreen",
     "notifications",
     "tabs",
-    "windows"
+    "windows",
+    "downloads"
   ],
   "host_permissions": [
     "https://ipwhois.app/"
