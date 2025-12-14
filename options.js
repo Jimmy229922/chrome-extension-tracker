@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const optClearFilters = document.getElementById('opt-clear-filters');
   // Preferences
   const tooltipsToggle = document.getElementById('tooltips-toggle');
+  const alertSoundText = document.getElementById('alert-sound-text');
   // Onboarding elements
   const onboardingOverlay = document.getElementById('onboarding-overlay');
   const onboardingNext = document.getElementById('onboarding-next');
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load saved settings
-  chrome.storage.sync.get(['darkMode', 'clearHistoryEnabled', 'clearHistoryDays', 'maxAccounts', 'timestampFormat', 'filters', 'tooltipsEnabled', 'onboardingCompleted', 'onboardingStep'], (data) => {
+  chrome.storage.sync.get(['darkMode', 'clearHistoryEnabled', 'clearHistoryDays', 'maxAccounts', 'timestampFormat', 'filters', 'tooltipsEnabled', 'onboardingCompleted', 'onboardingStep', 'alertSoundText'], (data) => {
     darkModeToggle.checked = data.darkMode || false;
     applyDarkModeToOptions(darkModeToggle.checked);
 
@@ -83,6 +84,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Preferences
   tooltipsToggle.checked = data.tooltipsEnabled !== false; // default true
+
+  alertSoundText.value = data.alertSoundText || '';
 
     // Initial compute for result counter
     computeAndRenderOptionsCounter();
@@ -115,6 +118,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   timestampFormat.addEventListener('change', () => {
     chrome.storage.sync.set({ timestampFormat: timestampFormat.value });
+  });
+
+  alertSoundText.addEventListener('input', () => {
+    chrome.storage.sync.set({ alertSoundText: alertSoundText.value });
   });
 
   // --- Options Filters Logic (Settings page) ---

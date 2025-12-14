@@ -128,34 +128,50 @@ async function removeItemFromWatchlist(item) {
 }
 
 function tryPlaySound() {
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!AudioContext) return;
-    const audioCtx = new AudioContext();
-    const now = audioCtx.currentTime;
-    const beeps = [
-      { freq: 1200, start: 0, duration: 0.15, gain: 0.5 },
-      { freq: 1000, start: 0.18, duration: 0.15, gain: 0.45 },
-      { freq: 1400, start: 0.36, duration: 0.2, gain: 0.5 },
-      { freq: 800, start: 0.58, duration: 0.1, gain: 0.4 }
-    ];
+  chrome.storage.sync.get(['alertSoundText'], (data) => {
+    const text = data.alertSoundText || 'الحساب خطير';
+    try {
+      // First, play the beep sound
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (AudioContext) {
+        const audioCtx = new AudioContext();
+        const now = audioCtx.currentTime;
+        const beeps = [
+          { freq: 1200, start: 0, duration: 0.15, gain: 0.5 },
+          { freq: 1000, start: 0.18, duration: 0.15, gain: 0.45 },
+          { freq: 1400, start: 0.36, duration: 0.2, gain: 0.5 },
+          { freq: 800, start: 0.58, duration: 0.1, gain: 0.4 }
+        ];
 
-    beeps.forEach(b => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.type = 'square';
-      osc.frequency.value = b.freq;
-      gain.gain.setValueAtTime(0.001, now + b.start);
-      gain.gain.linearRampToValueAtTime(b.gain, now + b.start + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + b.start + b.duration);
-      osc.start(now + b.start);
-      osc.stop(now + b.start + b.duration + 0.02);
-    });
-  } catch (e) {
-    // ignore (audio may be blocked without user gesture)
-  }
+        beeps.forEach(b => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.type = 'square';
+          osc.frequency.value = b.freq;
+          gain.gain.setValueAtTime(0.001, now + b.start);
+          gain.gain.linearRampToValueAtTime(b.gain, now + b.start + 0.01);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + b.start + b.duration);
+          osc.start(now + b.start);
+          osc.stop(now + b.start + b.duration + 0.02);
+        });
+      }
+
+      // Then, text-to-speech after a short delay
+      setTimeout(() => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'ar-SA'; // Arabic
+        utterance.rate = 1.2;
+        utterance.pitch = 1;
+        utterance.volume = 0.8;
+        speechSynthesis.speak(utterance);
+      }, 1000); // 1 second delay after beep
+
+    } catch (e) {
+      // ignore (audio may be blocked without user gesture)
+    }
+  });
 }
 
 function renderItems({ ips, accounts }) {
