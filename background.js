@@ -1286,14 +1286,15 @@ async function openCriticalAlertPopup(hits) {
     type: 'popup',
     focused: true,
     width: CRITICAL_POPUP_WIDTH,
-    height: CRITICAL_POPUP_HEIGHT,
-    alwaysOnTop: true
+    height: CRITICAL_POPUP_HEIGHT
   };
   if (typeof left === 'number') createData.left = left;
   if (typeof top === 'number') createData.top = top;
 
   try {
+    console.log('Creating critical alert popup with data:', createData);
     const win = await chrome.windows.create(createData);
+    console.log('Critical alert popup created:', win);
     criticalAlertWindowId = win && typeof win.id === 'number' ? win.id : null;
     criticalAlertTabId = win && Array.isArray(win.tabs) && win.tabs[0] && typeof win.tabs[0].id === 'number' ? win.tabs[0].id : null;
   } catch (e) {
