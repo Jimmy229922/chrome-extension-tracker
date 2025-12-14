@@ -128,8 +128,35 @@ async function removeItemFromWatchlist(item) {
 }
 
 function tryPlaySound() {
-  chrome.storage.sync.get(['alertSoundText'], (data) => {
-    const text = data.alertSoundText || 'الحساب خطير';
+  chrome.storage.sync.get(['alertSoundText'], async (data) => {
+    let text = data.alertSoundText || '';
+
+    // If no custom text, determine based on type
+    if (!text) {
+      const payload = await readPayloadFromStorage();
+      if (payload && payload.items && payload.items.length > 0) {
+        const firstItem = payload.items[0];
+        if (firstItem.type === 'IP') {
+          text = 'عنوان IP مهم';
+        } else if (firstItem.type === 'AC') {
+          text = 'حساب مهم';
+        } else {
+          text = 'الحساب خطير';
+        }
+      } else {
+        // Fallback from query params
+        const ips = parseIpsFromQuery();
+        const accounts = parseAccountsFromQuery();
+        if (ips.length > 0) {
+          text = 'عنوان IP مهم';
+        } else if (accounts.length > 0) {
+          text = 'حساب مهم';
+        } else {
+          text = 'الحساب خطير';
+        }
+      }
+    }
+
     try {
       // First, play the beep sound
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -158,18 +185,20 @@ function tryPlaySound() {
         });
       }
 
-      // Then, text-to-speech after a short delay
+      // Then, text-to-speech after 1 second
       setTimeout(() => {
+        console.log('Attempting to speak:', text);
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ar-SA'; // Arabic
-        utterance.rate = 1.2;
+        utterance.lang = 'ar'; // Arabic
+        utterance.rate = 0.8; // Slower rate
         utterance.pitch = 1;
         utterance.volume = 0.8;
         speechSynthesis.speak(utterance);
+        console.log('Speech synthesis started');
       }, 1000); // 1 second delay after beep
 
     } catch (e) {
-      // ignore (audio may be blocked without user gesture)
+      console.error('Error in tryPlaySound:', e);
     }
   });
 }
