@@ -10,7 +10,8 @@
     "sidePanel",
     "offscreen",
     "notifications",
-    "tabs"
+    "tabs",
+    "windows"
   ],
   "host_permissions": [
     "https://ipwhois.app/"
