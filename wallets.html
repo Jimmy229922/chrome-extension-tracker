@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سجل المحافظ</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="csp-guard.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .wallet-item {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: box-shadow 0.2s;
+        }
+        .wallet-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .wallet-info {
+            flex-grow: 1;
+        }
+        .wallet-address {
+            font-family: monospace;
+            font-size: 1.1em;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .wallet-note {
+            color: #666;
+            font-size: 0.95em;
+        }
+        .empty-state {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>سجل المحافظ المحفوظة</h1>
+        <div class="header-actions">
+            <button id="clear-wallets" class="btn btn-danger">مسح السجل</button>
+        </div>
+        <div id="wallets-list">
+            <!-- Wallets will be inserted here -->
+        </div>
+    </div>
+    <script src="wallets.js"></script>
+</body>
+</html>

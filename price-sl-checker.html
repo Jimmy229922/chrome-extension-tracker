@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>فاحص السعر والـ Stop Loss</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="csp-guard.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      direction: rtl;
+      margin: 0;
+      padding: 20px;
+      color: #2c3e50;
+    }
+
+    body.dark-mode {
+      background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+      color: #ecf0f1;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: #2980b9;
+      margin: 0 0 10px 0;
+    }
+
+    body.dark-mode .header h1 {
+      color: #3498db;
+    }
+
+    .header p {
+      color: #7f8c8d;
+      margin: 0;
+    }
+
+    body.dark-mode .header p {
+      color: #95a5a6;
+    }
+
+    .input-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode .input-section {
+      background: #34495e;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .textarea-wrapper {
+      position: relative;
+    }
+
+    #trades-textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 15px;
+      border: 2px solid #ecf0f1;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      resize: vertical;
+      background: white;
+      color: #2c3e50;
+    }
+
+    body.dark-mode #trades-textarea {
+      background: #2c3e50;
+      color: #ecf0f1;
+      border-color: #5d6d7b;
+    }
+
+    #trades-textarea:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 10px rgba(41, 128, 185, 0.3);
+    }
+
+    .char-count {
+      font-size: 12px;
+      color: #95a5a6;
+      margin-top: 5px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+    }
+
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #7f8c8d;
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #229954;
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      border-top: 4px solid #3498db;
+      transition: all 0.3s ease;
+    }
+
+    body.dark-mode .stat-card {
+      background: #34495e;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    body.dark-mode .stat-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    .stat-card.equal {
+      border-top-color: #f39c12;
+    }
+
+    .stat-card.zero-profit {
+      border-top-color: #17a2b8;
+    }
+
+    .stat-card.paired {
+      border-top-color: #9b59b6;
+    }
+
+    .stat-icon {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #2980b9;
+    }
+
+    .stat-card.equal .stat-icon {
+      color: #f39c12;
+    }
+
+    .stat-card.zero-profit .stat-icon {
+      color: #17a2b8;
+    }
+
+    .stat-card.paired .stat-icon {
+      color: #9b59b6;
+    }
+
+    .stat-number {
+      font-size: 32px;
+      font-weight: 700;
+      color: #2c3e50;
+      margin: 10px 0;
+    }
+
+    body.dark-mode .stat-number {
+      color: #ecf0f1;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    body.dark-mode .stat-label {
+      color: #95a5a6;
+    }
+
+    .filters {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 10px 16px;
+      border: 2px solid #ecf0f1;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      color: #2c3e50;
+    }
+
+    body.dark-mode .filter-btn {
+      background: #2c3e50;
+      border-color: #5d6d7b;
+      color: #ecf0f1;
+    }
+
+    .filter-btn.active {
+      background: #3498db;
+      border-color: #3498db;
+      color: white;
+    }
+
+    .filter-btn:hover {
+      border-color: #3498db;
+      transform: translateY(-2px);
+    }
+
+    .results-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    body.dark-mode .results-section {
+      background: #34495e;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 15px;
+      margin: -20px -20px 20px -20px;
+      background: #f8f9fa;
+      border-radius: 12px 12px 0 0;
+      border-bottom: 2px solid #ecf0f1;
+      user-select: none;
+    }
+
+    body.dark-mode .section-header {
+      background: #2c3e50;
+      border-bottom-color: #5d6d7b;
+    }
+
+    .section-header:hover {
+      background: #ecf0f1;
+    }
+
+    body.dark-mode .section-header:hover {
+      background: #2c3e50;
+    }
+
+    .section-header h2 {
+      margin: 0;
+      font-size: 16px;
+      color: #2c3e50;
+      flex: 1;
+    }
+
+    body.dark-mode .section-header h2 {
+      color: #ecf0f1;
+    }
+
+    .section-header i {
+      color: #7f8c8d;
+      font-size: 20px;
+    }
+
+    .section-icon {
+      font-size: 20px;
+      color: #2980b9;
+    }
+
+    .section-header.equal .section-icon {
+      color: #f39c12;
+    }
+
+    .section-header.zero-profit .section-icon {
+      color: #17a2b8;
+    }
+
+    .section-header.paired .section-icon {
+      color: #9b59b6;
+    }
+
+    .toggle-icon {
+      transition: transform 0.3s ease;
+      font-size: 18px;
+    }
+
+    .toggle-icon.closed {
+      transform: rotate(-90deg);
+    }
+
+    .section-content {
+      overflow: visible;
+      transition: max-height 0.3s ease;
+    }
+
+    .section-content.collapsed {
+      display: none;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+    }
+
+    .badge-today {
+      display: inline-block;
+      margin-right: 6px;
+      padding: 2px 8px;
+      background: linear-gradient(135deg, #2ecc71, #27ae60);
+      color: #fff;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      vertical-align: middle;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    body.dark-mode .badge-today {
+      background: linear-gradient(135deg, #27ae60, #1e8449);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.35);
+    }
+
+    /* Parsing status indicator */
+    .parse-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      color: #34495e;
+      font-weight: 600;
+    }
+
+    .parse-status.hidden {
+      display: none;
+    }
+
+    .parse-status .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #dce4ec;
+      border-top-color: #2980b9;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .parse-duration {
+      color: #7f8c8d;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    body.dark-mode .parse-status {
+      color: #ecf0f1;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Limit pairs table height to show ~10 pairs with scroll */
+    .section-header.paired + .section-content .table-wrapper {
+      max-height: 650px;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead {
+      background: #f8f9fa;
+      border-bottom: 2px solid #ecf0f1;
+    }
+
+    body.dark-mode thead {
+      background: #2c3e50;
+      border-bottom-color: #5d6d7b;
+    }
+
+    th {
+      padding: 12px;
+      text-align: right;
+      font-weight: 600;
+      color: #2c3e50;
+      border: 1px solid #ecf0f1;
+    }
+
+    body.dark-mode th {
+      color: #ecf0f1;
+      border-color: #5d6d7b;
+    }
+
+    td {
+      padding: 12px;
+      border: 1px solid #ecf0f1;
+      color: #2c3e50;
+    }
+
+    body.dark-mode td {
+      border-color: #5d6d7b;
+      color: #ecf0f1;
+    }
+
+    tr.equal-highlight {
+      background: linear-gradient(90deg, rgba(243, 156, 18, 0.12), rgba(243, 156, 18, 0.06));
+      border-left: 4px solid #e67e22;
+    }
+
+    body.dark-mode tr.equal-highlight {
+      background: linear-gradient(90deg, rgba(243, 156, 18, 0.2), rgba(243, 156, 18, 0.1));
+      border-left: 4px solid #f1c40f;
+    }
+
+    tr.zero-profit-highlight {
+      background-color: rgba(23, 162, 184, 0.1);
+    }
+
+    body.dark-mode tr.zero-profit-highlight {
+      background-color: rgba(23, 162, 184, 0.15);
+    }
+
+    tr.pair-a {
+      background-color: rgba(52, 152, 219, 0.08);
+    }
+
+    body.dark-mode tr.pair-a {
+      background-color: rgba(52, 152, 219, 0.12);
+    }
+
+    tr.pair-b {
+      background-color: rgba(155, 89, 182, 0.08);
+    }
+
+    body.dark-mode tr.pair-b {
+      background-color: rgba(155, 89, 182, 0.12);
+    }
+
+    tr.pair-row {
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    tr.pair-row:hover {
+      opacity: 0.9;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    tr.pair-b {
+      border-bottom: 8px solid transparent !important;
+      background-clip: padding-box;
+    }
+
+    tr.pair-b td {
+      padding-bottom: 20px;
+    }
+
+    tbody tr.pair-b + tr {
+      padding-top: 15px;
+    }
+
+    .type-buy {
+      color: #27ae60;
+      font-weight: 600;
+    }
+
+    .type-sell {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .no-data {
+      text-align: center;
+      padding: 40px;
+      color: #95a5a6;
+      font-size: 16px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #f39c12;
+      color: white;
+    }
+
+    .badge.recent {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    .time-diff {
+      color: #9b59b6;
+      font-weight: 600;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideDown {
+      from {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 فاحص السعر والـ Stop Loss</h1>
+      <p>اكتشف الصفقات المشبوهة والأنماط المريبة</p>
+    </div>
+
+    <div class="input-section">
+      <div class="input-group">
+        <div class="textarea-wrapper">
+          <textarea id="trades-textarea" placeholder="الصق بيانات الصفقات هنا (Tab-separated أو Space-separated)..."></textarea>
+          <div class="char-count"><span id="char-count">0</span> حرف</div>
+        </div>
+        
+        <div class="controls">
+          <button class="btn btn-primary" id="parse-btn">
+            <i class="fas fa-play"></i> تحليل البيانات
+          </button>
+          <button class="btn btn-secondary" id="clear-btn">
+            <i class="fas fa-trash"></i> مسح
+          </button>
+          <button class="btn btn-success" id="copy-all-btn" style="display:none;">
+            <i class="fas fa-copy"></i> نسخ النتائج
+          </button>
+        </div>
+
+        <div id="parse-status" class="parse-status hidden">
+          <span class="spinner"></span>
+          <span id="parse-status-text">جاري التحليل...</span>
+          <span class="parse-duration" id="parse-duration"></span>
+        </div>
+
+        <div id="time-window-control" style="display: none; margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+          <label style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+            <span style="font-weight: 600; min-width: 200px;">مدة البحث عن الأزواج المتقاربة:</span>
+            <input type="number" id="time-window-input" value="5" min="1" max="1440" style="width: 80px; padding: 8px; border: 2px solid #ecf0f1; border-radius: 6px; font-size: 14px;">
+            <span style="color: #7f8c8d;">دقيقة</span>
+          </label>
+          <small style="color: #95a5a6;">حدد عدد الدقائق لاعتبار الصفقتين كزوج متقارب</small>
+          <button class="btn btn-primary" id="update-pairs-btn" style="margin-top: 10px; width: 100%;">
+            <i class="fas fa-sync"></i> إعادة تحليل الأزواج
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="stats-section" class="hidden">
+      <div class="stats-grid" id="stats-grid"></div>
+
+      <div class="filters" id="filters"></div>
+
+      <div id="results-container"></div>
+    </div>
+  </div>
+
+  <script src="price-sl-checker.js"></script>
+</body>
+</html>

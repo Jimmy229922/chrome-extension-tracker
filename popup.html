@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Account Copy Tracker</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="csp-guard.js"></script>
+</head>
+<body>
+  <div class="toggle-container">
+    <label class="switch">
+      <input type="checkbox" id="toggle-switch">
+      <span class="slider round"></span>
+    </label>
+    <label class="toggle-label">Enable Account Tracking</label>
+  </div>
+  <h1>Copied Accounts</h1>
+  <ul id="account-list"></ul>
+  <button id="clear-history">Clear History</button>
+  <button id="open-wallets" style="margin-top: 10px; width: 100%; padding: 10px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">سجل المحافظ</button>
+  <script src="popup.js"></script>
+</body>
+</html>

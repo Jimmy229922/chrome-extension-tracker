@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Tracker</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="csp-guard.js"></script>
+</head>
+<body>
+  <!-- Custom Toast Notification -->
+  <div id="toast-notification" class="toast-notification">
+    <div class="toast-icon"></div>
+    <div class="toast-content">
+      <div class="toast-title"></div>
+      <div class="toast-message"></div>
+    </div>
+    <button class="toast-close">×</button>
+  </div>
+
+  <div class="header">
+  <h1>Tracker <span id="paused-indicator" style="display:none;font-size:0.55em;padding:4px 8px;border-radius:8px;background:#ff6b6b;color:#fff;vertical-align:middle;box-shadow:0 2px 6px rgba(0,0,0,0.2);letter-spacing:.5px">موقوف</span></h1>
+    <div class="tab-container">
+      <button id="accounts-tab" class="tab-button active">Accounts</button>
+      <button id="ips-tab" class="tab-button">IP</button>
+      <button id="critical-tab" class="tab-button">VIP</button>
+      <button id="wallets-tab" class="tab-button">Wallets</button>
+      <button id="profit-tab" class="tab-button">Profit Calculator</button>
+    </div>
+    <div class="tracking-toggle-wrapper">
+      <label class="switch">
+        <input type="checkbox" id="pause-tracking-toggle">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label" id="toggle-label-text">تشغيل المراقبة</span>
+    </div>
+    <div class="tag-filter-bar" id="tag-filter-bar" style="display:none;">
+      <button class="tag-filter-btn active" data-filter="all">الكل</button>
+      <button class="tag-filter-btn" data-filter="suspicious">🔴 مشبوه</button>
+      <button class="tag-filter-btn" data-filter="safe">🟢 آمن</button>
+      <button class="tag-filter-btn" data-filter="under-review">🟡 قيد المراجعة</button>
+      <button class="tag-filter-btn" data-filter="flagged">🚩 محظور</button>
+    </div>
+    <input type="text" id="search-bar" placeholder="Search accounts...">
+    <div class="header-buttons">
+      <button id="clear-history">Clear History</button>
+      <button id="open-settings">Settings</button>
+    </div>
+  </div>
+
+  <ul id="account-list" class="data-list active"></ul>
+  <ul id="ip-list" class="data-list"></ul>
+  
+  <!-- VIP / Critical Watchlist Section -->
+  <div id="critical-section" class="data-list" style="display: none;" dir="rtl">
+    <div class="critical-watchlist-container">
+      <div class="critical-watchlist-card">
+        <h2 style="margin:0 0 8px;">قائمة VIP</h2>
+        <p style="margin:0;line-height:1.8;">
+          أي IP أو رقم حساب (6 أو 7 أرقام) تضيفه هنا، لو اتنسخ هيظهر نفس تنبيه الـ Popup فورًا.
+        </p>
+      </div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">إضافة IP</h3>
+        <div class="critical-watchlist-form">
+          <input id="critical-ip-input" type="text" placeholder="مثال: 8.8.8.8" autocomplete="off" />
+          <input id="critical-ip-note" type="text" placeholder="اكتب ملاحظة تظهر في التنبيه" autocomplete="off" />
+          <button id="critical-add-ip" type="button" class="critical-add-btn">إضافة</button>
+        </div>
+      </div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">إضافة رقم حساب (6 أو 7 أرقام)</h3>
+        <div class="critical-watchlist-form">
+          <input id="critical-account-input" type="text" placeholder="مثال: 123456 أو 1234567" autocomplete="off" />
+          <input id="critical-account-note" type="text" placeholder="اكتب ملاحظة تظهر في التنبيه" autocomplete="off" />
+          <button id="critical-add-account" type="button" class="critical-add-btn">إضافة</button>
+        </div>
+      </div>
+
+      <div class="critical-divider" aria-hidden="true"></div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">عناوين IP المحفوظة</h3>
+        <h4 style="margin:0 0 10px;opacity:0.85;">الـ IPs الأساسية (مقفولة)</h4>
+        <ul id="critical-default-ip-list" class="critical-watchlist-list"></ul>
+        <h4 style="margin:14px 0 10px;opacity:0.85;">IPs المضافة</h4>
+        <ul id="critical-custom-ip-list" class="critical-watchlist-list"></ul>
+      </div>
+
+      <div class="critical-divider" aria-hidden="true"></div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">أرقام الحسابات المحفوظة</h3>
+        <ul id="critical-account-list" class="critical-watchlist-list"></ul>
+      </div>
+
+      <div class="critical-watchlist-actions">
+        <button id="critical-clear-custom" type="button" class="critical-clear-btn">مسح القائمة المضافة</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="wallets-section" class="data-list" style="display: none;">
+    <div style="padding: 10px 0; display: flex; justify-content: flex-end;">
+      <button id="clear-all-wallets-btn" style="background-color: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.9em; display: flex; align-items: center; gap: 5px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        مسح جميع المحافظ
+      </button>
+    </div>
+    <div id="wallets-container"></div>
+  </div>
+  
+  <!-- Profit Calculator Section -->
+  <div id="profit-section" class="data-list" style="display: none;">
+    <div class="profit-calculator-container">
+      <div class="profit-input-area">
+        <label for="trades-input">الصق الصفقات هنا:</label>
+        <div class="input-buttons">
+          <button id="paste-from-clipboard-btn" class="paste-btn">📋 لصق من Clipboard</button>
+          <button id="clear-input-btn" class="clear-input-btn">🗑️ مسح</button>
+        </div>
+        <textarea id="trades-input" placeholder="الصق الصفقات هنا بالشكل التالي:
+2025.11.26 15:00:54	115578299	Buy	0.11	XAUUSD	4155.58	0	0	2025.11.26 15:04:20	4158.85	MOBILE	0	0	0	35.97"></textarea>
+        <button id="calculate-profit-btn" class="calculate-btn">احسب الـ Profit</button>
+      </div>
+      
+      <div class="profit-results" id="profit-results" style="display: none;">
+        <div class="profit-summary">
+          <h3>ملخص الصفقات</h3>
+          <div class="profit-stat">
+            <span class="stat-label">عدد الصفقات:</span>
+            <span class="stat-value" id="trades-count">0</span>
+          </div>
+          <div class="profit-stat">
+            <span class="stat-label">إجمالي حجم اللوت:</span>
+            <span class="stat-value" id="total-lots">0.00</span>
+          </div>
+          <div class="profit-stat">
+            <span class="stat-label">صفقات رابحة:</span>
+            <span class="stat-value" id="winning-trades" style="color: #10b981;">0</span>
+          </div>
+          <div class="profit-stat">
+            <span class="stat-label">صفقات خاسرة:</span>
+            <span class="stat-value" id="losing-trades" style="color: #ef4444;">0</span>
+          </div>
+          <div class="profit-stat total-profit">
+            <span class="stat-label">إجمالي الـ Profit:</span>
+            <span class="stat-value" id="total-profit">0.00</span>
+          </div>
+        </div>
+        
+        <div class="trades-details">
+          <h4>تفاصيل الصفقات</h4>
+          <div id="trades-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <template id="account-item-template">
+    <li>
+      <svg class="pin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <button class="account-name"></button>
+      <span class="account-tag-badge" style="display:none;"></span>
+      <div class="timestamp-history"></div>
+      <span class="timestamp"></span>
+      <button class="copy-button">Copy</button>
+      <button class="delete-button">Delete</button>
+      <div class="tag-selector-container">
+        <button class="tag-button" title="تصنيف الحساب">🏷️</button>
+        <div class="tag-dropdown" style="display:none;">
+          <div class="tag-option" data-tag="suspicious">🔴 مشبوه</div>
+          <div class="tag-option" data-tag="safe">🟢 آمن</div>
+          <div class="tag-option" data-tag="under-review">🟡 قيد المراجعة</div>
+          <div class="tag-option" data-tag="flagged">🚩 محظور</div>
+          <div class="tag-option" data-tag="none">❌ إزالة التصنيف</div>
+        </div>
+      </div>
+      <div class="notes-container">
+        <span class="note-text"></span>
+        <input type="text" class="note-input" style="display: none;">
+        <div class="note-buttons">
+          <button class="add-note-button">Add Note</button>
+          <button class="save-note-button" style="display: none;">Save</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <template id="ip-item-template">
+    <li>
+      <span class="highlight-badge" style="display:none;"></span>
+      <div class="ip-info">
+        <span class="ip-address"></span>
+        <span class="ip-country"></span>
+        <span class="ip-region" style="font-size:0.85em;color:#666;"></span>
+      </div>
+      <span class="timestamp"></span>
+      <button class="copy-button">Copy</button>
+      <button class="delete-button">Delete</button>
+      <button class="info-button icon-btn info-pill" title="عرض تفاصيل IP" aria-label="عرض تفاصيل IP">
+        <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"></circle>
+          <line x1="16.5" y1="16.5" x2="22" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+        </svg>
+      </button>
+    </li>
+  </template>
+
+  <div class="footer">
+  </div>
+
+  <div id="history-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>Account History</h2>
+      <div id="history-content"></div>
+    </div>
+  </div>
+
+  <div id="ip-details-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button">&times;</span>
+      <h2>تفاصيل IP</h2>
+      <div id="ip-details-content"></div>
+    </div>
+  </div>
+
+  <!-- Suspicious Activity Report Modal -->
+  <div id="suspicious-modal" class="modal">
+    <div class="modal-content suspicious-content" dir="rtl">
+      <span class="close-button" id="suspicious-close">&times;</span>
+      <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">⚠️ تقرير النشاط المشبوه</h2>
+      <div id="suspicious-list"></div>
+    </div>
+  </div>
+
+  <!-- VIP Note Edit Modal (in-extension, no browser prompt) -->
+  <div id="note-edit-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="note-edit-close">&times;</span>
+      <h2 id="note-edit-title">تعديل الملاحظة</h2>
+
+      <div class="note-edit-meta">
+        <div class="note-edit-meta-row">
+          <span class="note-edit-meta-label">النوع:</span>
+          <span class="note-edit-meta-value" id="note-edit-kind">IP</span>
+        </div>
+        <div class="note-edit-meta-row">
+          <span class="note-edit-meta-label">القيمة:</span>
+          <span class="note-edit-meta-value note-edit-mono" id="note-edit-value"></span>
+        </div>
+      </div>
+
+      <label class="note-edit-label" for="note-edit-input">الملاحظة (اتركها فاضية لمسح الملاحظة):</label>
+      <textarea id="note-edit-input" class="note-edit-input" rows="4" placeholder="اكتب الملاحظة هنا..."></textarea>
+
+      <div class="note-edit-actions">
+        <button type="button" id="note-edit-cancel" class="note-edit-cancel">إلغاء</button>
+        <button type="button" id="note-edit-save" class="note-edit-save">حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

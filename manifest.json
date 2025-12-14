@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "Account Copy Tracker (Side Panel)",
+  "version": "3.0",
+  "description": "Tracks copied account numbers in a side panel.",
+  "permissions": [
+    "storage",
+    "clipboardRead",
+    "clipboardWrite",
+    "sidePanel",
+    "offscreen",
+    "notifications",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://ipwhois.app/"
+  ],
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {},
+  "options_page": "options.html",
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [ "images/magnifying_glass.png" ],
+      "matches": [ "<all_urls>" ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

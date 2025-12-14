@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>إعدادات متتبع الحسابات</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <script src="csp-guard.js"></script>
+</head>
+<body>
+  <h1>إعدادات متتبع الحسابات</h1>
+  
+  <!-- عدّاد النتائج بعد الفلترة -->
+  <div id="result-counter" style="margin: 10px 0 20px; font-weight:600; font-size: 1.05em; color:#2c3e50;"></div>
+
+  <div class="setting-item">
+    <div class="setting-control">
+      <label for="dark-mode-toggle">الوضع الداكن:</label>
+      <label class="switch dark-mode-switch">
+        <input type="checkbox" id="dark-mode-toggle">
+        <span class="slider round"></span>
+      </label>
+    </div>
+    <p class="setting-description">يغير مظهر الصفحة إلى ألوان داكنة لتوفير الطاقة وتقليل الإجهاد البصري.</p>
+  </div>
+
+  <div class="setting-item">
+    <div class="setting-control">
+      <label for="clear-history-toggle">مسح السجل بعد:</label>
+      <input type="number" id="clear-history-days" value="30" min="1">
+      <span>يوم</span>
+      <input type="checkbox" id="clear-history-toggle">
+    </div>
+    <p class="setting-description">يحدد عدد الأيام قبل مسح السجل تلقائيًا للحفاظ على الخصوصية.</p>
+  </div>
+
+  <div class="setting-item">
+    <div class="setting-control">
+      <label for="max-accounts">الحد الأقصى للحسابات المعروضة:</label>
+      <input type="number" id="max-accounts" value="50" min="1">
+    </div>
+    <p class="setting-description">يحدد العدد الأقصى للحسابات التي تظهر في القائمة لتحسين الأداء.</p>
+  </div>
+
+  <div class="setting-item">
+    <div class="setting-control">
+      <label for="timestamp-format">تنسيق عرض الوقت:</label>
+      <select id="timestamp-format">
+        <option value="locale">افتراضي</option>
+        <option value="short-time">وقت قصير</option>
+        <option value="long-time">وقت طويل</option>
+        <option value="date-time">تاريخ ووقت</option>
+        <option value="hide">إخفاء الوقت والتاريخ</option>
+      </select>
+    </div>
+    <p class="setting-description">يحدد كيفية عرض التواريخ والأوقات في التطبيق.</p>
+  </div>
+
+  <!-- فلاتر البيانات (في الإعدادات) -->
+  <div class="setting-item" dir="rtl">
+    <h2 style="margin:10px 0 8px;">فلاتر البيانات</h2>
+    <p class="setting-description">تسمح بتصفية البيانات حسب الحالة والزمن لتسهيل البحث والعرض.</p>
+    <!-- فلاتر الحسابات -->
+    <h3 style="margin:8px 0;">الحسابات</h3>
+    <div class="options-filter-bar">
+      <div class="opt-filter-group">
+        <label for="opt-acc-status">الحالة:</label>
+        <select id="opt-acc-status">
+          <option value="all">الكل</option>
+          <option value="pinned">مثبّت</option>
+          <option value="duplicate">مكرر</option>
+          <option value="noted">بملاحظة</option>
+        </select>
+      </div>
+      <div class="opt-filter-group">
+        <label for="opt-acc-date">الزمن:</label>
+        <select id="opt-acc-date">
+          <option value="all">كل الوقت</option>
+          <option value="today">اليوم</option>
+          <option value="24h">آخر 24 ساعة</option>
+          <option value="7d">آخر 7 أيام</option>
+        </select>
+      </div>
+    </div>
+    <!-- فلاتر IP -->
+    <h3 style="margin:12px 0 8px;">عناوين IP</h3>
+    <div class="options-filter-bar">
+      <div class="opt-filter-group">
+        <label for="opt-ip-status">الحالة:</label>
+        <select id="opt-ip-status">
+          <option value="all">الكل</option>
+          <option value="duplicate">مكرر</option>
+        </select>
+      </div>
+      <div class="opt-filter-group">
+        <label for="opt-ip-date">الزمن:</label>
+        <select id="opt-ip-date">
+          <option value="all">كل الوقت</option>
+          <option value="today">اليوم</option>
+          <option value="24h">آخر 24 ساعة</option>
+          <option value="7d">آخر 7 أيام</option>
+        </select>
+      </div>
+      <div class="opt-filter-group">
+        <button id="opt-clear-filters" class="opt-clear-filters-btn">مسح الفلاتر</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- التلميحات -->
+  <div class="setting-item" dir="rtl">
+    <h2 style="margin:10px 0 8px;">التفضيلات</h2>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+      <div>
+        <label for="tooltips-toggle">تفعيل التلميحات (Tooltips):</label>
+        <label class="switch">
+          <input type="checkbox" id="tooltips-toggle">
+          <span class="slider round"></span>
+        </label>
+      </div>
+    </div>
+    <p class="setting-description">تفعيل التلميحات لمساعدة المستخدمين الجدد في فهم الواجهة.</p>
+  </div>
+
+  <div class="setting-item ip-lookup-section">
+    <h2>البحث عن IP</h2>
+    <p class="setting-description">أداة للبحث عن معلومات حول عنوان IP محدد.</p>
+    <div class="ip-search-container">
+      <input type="text" id="ip-input" placeholder="أدخل عنوان IP (مثال: 8.8.8.8)">
+      <button id="lookup-ip-button">🔍 بحث</button>
+    </div>
+    <div id="ip-lookup-results"></div>
+  </div>
+
+  <!-- شاشة إرشادية لأول تشغيل (Onboarding) -->
+  <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="onb-title">
+    <div class="onb-modal" style="background:#fff;border-radius:16px;max-width:760px;width:94%;padding:0;box-shadow:0 18px 60px rgba(0,0,0,0.35);overflow:hidden;" dir="rtl">
+      <div class="onb-header" style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;">
+        <div>
+          <h2 id="onb-title" style="margin:0;font-size:1.3rem;">جولة تعريفية</h2>
+          <div id="onb-subtitle" style="opacity:.9;font-size:.9rem;">6 خطوات سريعة لتبدأ</div>
+        </div>
+        <button id="onb-close" aria-label="إغلاق" title="إغلاق" style="background:transparent;border:none;color:#fff;font-size:1.4rem;cursor:pointer;">×</button>
+      </div>
+      <div class="onb-progress" style="display:flex;gap:8px;justify-content:center;padding:12px 16px;background:#f7f7fb;">
+        <div class="onb-progress-bar" style="width:100%;height:4px;background:#d1d5db;border-radius:2px;overflow:hidden;">
+          <div class="onb-progress-fill" style="height:100%;background:#667eea;width:0%;transition:width 0.3s ease;"></div>
+        </div>
+      </div>
+      <div class="onb-body" style="padding:20px 22px;">
+        <h3 id="onb-step-title" style="margin:0 0 10px;font-size:1.15rem;color:#333;">—</h3>
+        <p id="onb-step-desc" style="margin:0;color:#555;line-height:1.7;">—</p>
+      </div>
+      <div class="onb-footer" style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:#fafafa;border-top:1px solid #eee;">
+        <div>
+          <button id="onboarding-prev" class="btn-secondary" style="margin-inline-end:8px;">السابق</button>
+          <button id="onboarding-next" class="btn-primary">التالي</button>
+          <button id="onboarding-done" class="btn-primary" style="display:none;">تم</button>
+          <button id="onboarding-try" class="btn-primary" style="display:none;">جرب الآن</button>
+        </div>
+        <button id="onboarding-skip" class="btn-secondary">تخطي</button>
+      </div>
+    </div>
+    <!-- (Onboarding is simple text modal; spotlight removed) -->
+  </div>
+
+  <!-- زر لإعادة إظهار الإرشادات -->
+  <div class="setting-item" dir="rtl">
+    <button id="reopen-onboarding" class="btn-secondary">📘 عرض الإرشادات مرة أخرى</button>
+    <p class="setting-description">يعيد عرض الجولة التعريفية للمبتدئين.</p>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
