@@ -691,16 +691,17 @@ body.dark-mode .critical-watchlist-badge {
   padding: 8px 12px;
   border-radius: 10px;
   border: 1px solid rgba(0, 0, 0, 0.10);
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(231, 76, 60, 0.12);
   cursor: pointer;
   font-weight: 700;
   font-size: 14px;
+  color: #e74c3c;
 }
 
 body.dark-mode .critical-remove-btn {
   border-color: rgba(255, 255, 255, 0.14);
-  background: rgba(0, 0, 0, 0.18);
-  color: #ecf0f1;
+  background: rgba(231, 76, 60, 0.18);
+  color: #ff6b6b;
 }
 
 .critical-edit-btn {
