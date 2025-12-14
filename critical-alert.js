@@ -188,8 +188,19 @@ function tryPlaySound() {
       // Then, text-to-speech after 1 second
       setTimeout(() => {
         console.log('Attempting to speak:', text);
+        console.log('Available voices:', speechSynthesis.getVoices().map(v => v.lang + ' - ' + v.name));
         const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'ar'; // Arabic
+        // Try to find an Arabic voice
+        const voices = speechSynthesis.getVoices();
+        const arabicVoice = voices.find(v => v.lang.startsWith('ar'));
+        if (arabicVoice) {
+          utterance.voice = arabicVoice;
+          utterance.lang = arabicVoice.lang;
+          console.log('Using Arabic voice:', arabicVoice.name);
+        } else {
+          utterance.lang = 'en-US'; // Fallback to English
+          console.log('No Arabic voice found, using English');
+        }
         utterance.rate = 0.8; // Slower rate
         utterance.pitch = 1;
         utterance.volume = 0.8;
