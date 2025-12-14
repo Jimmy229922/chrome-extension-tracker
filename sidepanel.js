@@ -632,8 +632,11 @@ function renderCriticalWatchlist() {
       remove.innerHTML = '🗑️';
       remove.title = 'حذف';
       remove.addEventListener('click', () => {
-        const next = { ...criticalWatchlistState, ips: criticalWatchlistState.ips.filter(v => !(v && typeof v === 'object' && v.ip === ip)) };
-        void saveCriticalWatchlist(next);
+        if (confirm('هل أنت متأكد من حذف هذا الـ IP من قائمة VIP؟')) {
+          const next = { ...criticalWatchlistState, ips: criticalWatchlistState.ips.filter(v => !(v && typeof v === 'object' && v.ip === ip)) };
+          void saveCriticalWatchlist(next);
+          showToast('VIP', 'تم حذف الـ IP من القائمة.', 'default');
+        }
       });
 
       li.appendChild(value);
@@ -692,8 +695,11 @@ function renderCriticalWatchlist() {
       remove.innerHTML = '🗑️';
       remove.title = 'حذف';
       remove.addEventListener('click', () => {
-        const next = { ...criticalWatchlistState, accounts: criticalWatchlistState.accounts.filter(v => !(v && typeof v === 'object' && v.account === acc)) };
-        void saveCriticalWatchlist(next);
+        if (confirm('هل أنت متأكد من حذف هذا الحساب من قائمة VIP؟')) {
+          const next = { ...criticalWatchlistState, accounts: criticalWatchlistState.accounts.filter(v => !(v && typeof v === 'object' && v.account === acc)) };
+          void saveCriticalWatchlist(next);
+          showToast('VIP', 'تم حذف الحساب من القائمة.', 'default');
+        }
       });
 
       li.appendChild(value);
