@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const onbDots = document.querySelectorAll('.onb-dot');
   const onbProgressFill = document.querySelector('.onb-progress-fill');
   const reopenOnboarding = document.getElementById('reopen-onboarding');
+  const checkUpdatesBtn = document.getElementById('check-updates');
   let onboardingStep = 1;
   const onboardingSteps = [
     {
@@ -300,6 +301,34 @@ document.addEventListener('DOMContentLoaded', () => {
   if (onboardingSkip) onboardingSkip.addEventListener('click', skipOnboarding);
   if (onboardingClose) onboardingClose.addEventListener('click', skipOnboarding);
   if (reopenOnboarding) reopenOnboarding.addEventListener('click', () => { onboardingStep = 1; chrome.storage.sync.set({ onboardingCompleted: false, onboardingStep }); showOnboarding(); });
+
+  if (checkUpdatesBtn) {
+    checkUpdatesBtn.addEventListener('click', async () => {
+      checkUpdatesBtn.disabled = true;
+      checkUpdatesBtn.textContent = 'جاري التحقق...';
+      try {
+        const response = await fetch('https://api.github.com/repos/YOUR_USERNAME/YOUR_REPO/releases/latest');
+        if (response.ok) {
+          const release = await response.json();
+          const latestVersion = release.tag_name;
+          const currentVersion = chrome.runtime.getManifest().version;
+          if (latestVersion !== currentVersion) {
+            if (confirm(`يوجد إصدار جديد: ${latestVersion}. هل تريد الذهاب إلى صفحة التحميل؟`)) {
+              window.open(release.html_url, '_blank');
+            }
+          } else {
+            alert('أنت تستخدم أحدث إصدار.');
+          }
+        } else {
+          alert('تعذر التحقق من التحديثات. تحقق من اتصال الإنترنت.');
+        }
+      } catch (error) {
+        alert('خطأ في التحقق من التحديثات: ' + error.message);
+      }
+      checkUpdatesBtn.disabled = false;
+      checkUpdatesBtn.textContent = '🔄 التحقق من التحديثات';
+    });
+  }
 
   // Focus trap utilities
   let lastFocusedBeforeTrap = null;
