@@ -1618,6 +1618,7 @@ body.dark-mode h1 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 20px;
   width: 100%;
   margin-bottom: 8px;
 }
@@ -1671,8 +1672,8 @@ body.dark-mode .setting-description {
 .setting-item .switch.dark-mode-switch {
   position: relative;
   display: inline-block;
-  width: 50px;
-  height: 30px;
+  width: 80px;
+  height: 36px;
   margin: 0;
 }
 
@@ -1698,8 +1699,8 @@ body.dark-mode .setting-description {
 .setting-item .switch.dark-mode-switch .slider:before {
   position: absolute;
   content: "";
-  height: 24px;
-  width: 24px;
+  height: 30px;
+  width: 30px;
   left: 3px;
   bottom: 3px;
   background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%);
@@ -1714,7 +1715,7 @@ body.dark-mode .setting-description {
 }
 
 .setting-item .switch.dark-mode-switch input:checked + .slider:before {
-  transform: translateX(20px);
+  transform: translateX(44px);
   background: linear-gradient(135deg, #ffffff 0%, #ffd89b 100%);
   box-shadow: 0 2px 12px rgba(255, 216, 155, 0.6);
 }
