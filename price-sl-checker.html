@@ -9,7 +9,11 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      background: 
+          radial-gradient(circle at 10% 20%, rgba(218, 165, 32, 0.1) 0%, transparent 20%),
+          radial-gradient(circle at 90% 80%, rgba(192, 192, 192, 0.1) 0%, transparent 20%),
+          linear-gradient(135deg, #fdfbf7 0%, #ebedee 100%);
+      background-attachment: fixed;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       direction: rtl;
       margin: 0;
@@ -18,7 +22,12 @@
     }
 
     body.dark-mode {
-      background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%);
+      background: 
+          radial-gradient(2px 2px at 20px 30px, rgba(255, 215, 0, 0.15), rgba(0,0,0,0)),
+          radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.1), rgba(0,0,0,0)),
+          linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
+      background-attachment: fixed;
+      background-size: 200px 200px, 200px 200px, 100% 100%;
       color: #ecf0f1;
     }
 
@@ -633,7 +642,7 @@
     }
   </style>
 </head>
-<body>
+<body class="dark-mode">
   <div class="container">
     <div class="header">
       <h1>📊 فاحص السعر والـ Stop Loss</h1>

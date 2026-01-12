@@ -779,11 +779,8 @@ function copyFilteredData(trades, pairs) {
     copyText += t.raw + '\n';
   });
   
-  navigator.clipboard.writeText(copyText).then(() => {
-    showToast('تم نسخ البيانات بنجاح ✓', 'تم نسخ جميع الصفقات الصحيحة');
-  }).catch(() => {
-    showToast('خطأ في النسخ', true);
-  });
+  chrome.runtime.sendMessage({ type: 'writeClipboardText', text: copyText });
+  showToast('تم نسخ البيانات بنجاح ✓', 'تم نسخ جميع الصفقات الصحيحة');
 }
 
 /**

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تقرير تحويل الحسابات</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="csp-guard.js"></script>
+  <style>
+    body {
+      background: 
+          radial-gradient(circle at 10% 20%, rgba(218, 165, 32, 0.1) 0%, transparent 20%),
+          radial-gradient(circle at 90% 80%, rgba(192, 192, 192, 0.1) 0%, transparent 20%),
+          linear-gradient(135deg, #fdfbf7 0%, #ebedee 100%);
+      background-attachment: fixed;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+    .report-container {
+      /* Glassmorphism Light */
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      width: 100%;
+      max-width: 800px;
+    }
+
+    body.dark-mode .report-container {
+      /* Glassmorphism Dark */
+      background: rgba(15, 23, 42, 0.6); /* Slightly more transparent dark */
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    }
+    .report-title {
+      color: #2c3e50;
+      font-size: 28px;
+      margin-bottom: 30px;
+      text-align: center;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 20px;
+    }
+    .report-field-group {
+      margin-bottom: 20px;
+    }
+    .report-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #34495e;
+    }
+    .report-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    .report-input:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+    .report-select {
+      appearance: none;
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+      background-repeat: no-repeat;
+      background-position: left 10px center;
+      background-size: 16px;
+    }
+    .shift-selector-container {
+      display: flex;
+      gap: 10px;
+    }
+    .shift-btn {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background: #f8f9fa;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    /* Colors for each shift type - Professional Theme */
+    .shift-btn {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: white;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .shift-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+
+    .shift-btn[data-value="الصباحي"].active {
+      background: linear-gradient(135deg, #fce38a 0%, #f38181 100%); /* Sunrise Gold/Pink */
+      border-color: transparent;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    .shift-btn[data-value="المسائي"].active {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); /* Clear Sky Blue */
+      border-color: transparent;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    .shift-btn[data-value="الخفر"].active {
+      background: linear-gradient(135deg, #434343 0%, #000000 100%); /* Night/Black */
+      border-color: transparent;
+      color: #ffd700; /* Gold Text */
+      text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    }
+
+    .file-upload-container {
+      border: 2px dashed #b2bec3;
+      background: rgba(245, 247, 250, 0.5);
+      padding: 30px;
+      text-align: center;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+    }
+    .file-upload-container:hover {
+      border-color: #ffd700; /* Gold */
+      background: rgba(255, 255, 255, 0.8);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    }
+    .file-upload-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+    .upload-icon {
+      font-size: 32px;
+    }
+    .image-preview-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .preview-item {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #eee;
+    }
+    .preview-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .remove-image-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(231, 76, 60, 0.9); /* Clear Red */
+      color: white;
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .remove-image-btn:hover {
+      background: #c0392b;
+      transform: scale(1.1);
+    }
+    .mention-buttons-container {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .mention-btn {
+      padding: 10px 20px;
+      border: 1px solid rgba(0,0,0,0.1);
+      background: rgba(255,255,255,0.8);
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .mention-btn:hover {
+      transform: translateY(-2px);
+    }
+    .mention-btn.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+      border-color: transparent !important;
+      color: white !important;
+      box-shadow: 0 4px 10px rgba(118, 75, 162, 0.4);
+    }
+    .report-actions {
+      display: flex;
+      gap: 15px;
+      margin-top: 40px;
+    }
+    .report-btn {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+    .report-btn::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(rgba(255,255,255,0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .report-btn:hover::after {
+      opacity: 1;
+    }
+    .report-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    .report-btn:active {
+      transform: scale(0.98);
+    }
+    .generate-btn {
+      background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); /* Fresh Green */
+    }
+    .telegram-btn {
+      background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%); /* Telegram Blue */
+    }
+    .reset-btn {
+      background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%); /* Professional Red */
+    }
+    
+    /* Modal Styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(5px);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      position: relative;
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    @keyframes modalSlideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .close-button {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #aaa;
+    }
+    .close-button:hover { color: #333; }
+    
+    /* Toast Notification */
+    .toast-notification {
+      position: fixed;
+      top: -100px;
+      right: 20px;
+      background: white;
+      padding: 15px 25px;
+      border-radius: 8px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 2000;
+      transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      border-right: 5px solid #3498db;
+    }
+    .toast-notification.show {
+      top: 20px;
+    }
+    .toast-notification.warning { border-right-color: #f39c12; }
+    .toast-notification.error { border-right-color: #e74c3c; }
+    .toast-notification.success { border-right-color: #2ecc71; }
+    
+    .toast-icon { font-size: 24px; }
+    .toast-title { font-weight: bold; display: block; margin-bottom: 2px; }
+    .toast-message { color: #666; font-size: 14px; }
+    .toast-close { background: none; border: none; cursor: pointer; font-size: 18px; color: #999; margin-right: auto; }
+
+    /* Dark Mode Styles */
+    body.dark-mode {
+      background-color: #1a1b1e;
+      color: #e0e0e0;
+    }
+    body.dark-mode .report-container {
+      background-color: #25262b;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    body.dark-mode .report-title {
+      color: #e0e0e0;
+      border-bottom-color: #373a40;
+    }
+    body.dark-mode .report-label {
+      color: #a5d8ff;
+    }
+    body.dark-mode .report-input {
+      background-color: #2c2e33;
+      border-color: #373a40;
+      color: #e0e0e0;
+    }
+    body.dark-mode .report-input:focus {
+      border-color: #339af0;
+      box-shadow: 0 0 0 3px rgba(51, 154, 240, 0.1);
+    }
+    body.dark-mode .report-select {
+      background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e0e0e0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    }
+    body.dark-mode .shift-btn {
+      background-color: #2c2e33;
+      border-color: #373a40;
+      color: #e0e0e0;
+    }
+    /* Dark mode colors for each shift type */
+    body.dark-mode .shift-btn[data-value="الصباحي"] {
+      background-color: #1e3a4c;
+      border-color: #339af0;
+      color: #a5d8ff;
+    }
+    body.dark-mode .shift-btn[data-value="الصباحي"]:hover {
+      background-color: #2a4a5c;
+      border-color: #339af0;
+    }
+    body.dark-mode .shift-btn[data-value="الصباحي"].active {
+      background-color: #339af0;
+      border-color: #339af0;
+      color: white;
+    }
+    body.dark-mode .shift-btn[data-value="المسائي"] {
+      background-color: #4a3a1a;
+      border-color: #fab005;
+      color: #ffd43b;
+    }
+    body.dark-mode .shift-btn[data-value="المسائي"]:hover {
+      background-color: #5a4a2a;
+      border-color: #fab005;
+    }
+    body.dark-mode .shift-btn[data-value="المسائي"].active {
+      background-color: #fab005;
+      border-color: #fab005;
+      color: #1a1a1a;
+    }
+    body.dark-mode .shift-btn[data-value="الخفر"] {
+      background-color: #4a1f1f;
+      border-color: #ff6b6b;
+      color: #ff8787;
+    }
+    body.dark-mode .shift-btn[data-value="الخفر"]:hover {
+      background-color: #5a2f2f;
+      border-color: #ff6b6b;
+    }
+    body.dark-mode .shift-btn[data-value="الخفر"].active {
+      background-color: #ff6b6b;
+      border-color: #ff6b6b;
+      color: white;
+    }
+    body.dark-mode .file-upload-container {
+      border-color: #373a40;
+    }
+    body.dark-mode .file-upload-container:hover {
+      border-color: #339af0;
+    }
+    body.dark-mode .file-upload-label {
+      color: #909296;
+    }
+    body.dark-mode .mention-btn {
+      background-color: #2c2e33;
+      border-color: #373a40;
+      color: #e0e0e0;
+    }
+    body.dark-mode .mention-btn.active {
+      background-color: #1864ab;
+      border-color: #1864ab;
+      color: white;
+    }
+    body.dark-mode .modal-content {
+      background-color: #25262b;
+      color: #e0e0e0;
+    }
+    body.dark-mode .close-button {
+      color: #909296;
+    }
+    body.dark-mode .close-button:hover {
+      color: #e0e0e0;
+    }
+    body.dark-mode .report-input.readonly-input {
+      background-color: #1a1b1e !important;
+      color: #909296;
+    }
+    body.dark-mode #telegram-settings-btn {
+      color: #e0e0e0;
+    }
+  </style>
+</head>
+<body class="dark-mode">
+
+  <!-- Custom Toast Notification -->
+  <div id="toast-notification" class="toast-notification">
+    <div class="toast-icon">✅</div>
+    <div class="toast-content">
+      <div class="toast-title"></div>
+      <div class="toast-message"></div>
+    </div>
+    <button class="toast-close">×</button>
+  </div>
+
+  <div class="report-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 30px; padding-bottom: 20px;">
+      <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير تحويل الحسابات</h2>
+      <div style="display: flex; gap: 10px;">
+        <button id="telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.5rem;">⚙️</button>
+      </div>
+    </div>
+    
+    <div class="report-field-group">
+      <label class="report-label">فترة الشفت:</label>
+      <div class="shift-selector-container">
+        <button type="button" class="shift-btn" data-value="الصباحي">الصباحي ☀️</button>
+        <button type="button" class="shift-btn" data-value="المسائي">المسائي 🌅</button>
+        <button type="button" class="shift-btn" data-value="الخفر">الخفر 🌙</button>
+      </div>
+      <input type="hidden" id="report-shift" value="">
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-ip" class="report-label">IP:</label>
+      <input type="text" id="report-ip" class="report-input" placeholder="أدخل IP">
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-country" class="report-label">IP Country:</label>
+      <input type="text" id="report-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً" style="background-color: #f9f9f9;">
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-account" class="report-label">رقم الحساب:</label>
+      <input type="text" id="report-account" class="report-input" placeholder="أدخل رقم الحساب">
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-email" class="report-label">الإيميل:</label>
+      <input type="email" id="report-email" class="report-input" placeholder="أدخل الإيميل">
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-source" class="report-label">مصدر التحويل:</label>
+      <select id="report-source" class="report-input report-select">
+        <option value="2 ACTIONS">2 ACTIONS</option>
+        <option value="PROFIT SUMMARY">PROFIT SUMMARY</option>
+        <option value="suspicious traders" selected>suspicious traders</option>
+        <option value="NEW POSITIONS">NEW POSITIONS</option>
+        <option value="Deals with No profit">Deals with No profit</option>
+        <option value="Same Price">Same Price</option>
+        <option value="Floating Profit">Floating Profit</option>
+        <option value="Transfer Report">Transfer Report</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="report-source-custom" class="report-input" placeholder="أدخل المصدر" style="display: none; margin-top: 10px;">
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-profits" class="report-label">الارباح:</label>
+      <select id="report-profits" class="report-input report-select">
+        <option value="ارباح بالسالب">ارباح بالسالب</option>
+        <option value="ارباح لم تتخطى 50%">ارباح لم تتخطى 50%</option>
+        <option value="ارباح فوق 100%">ارباح فوق 100%</option>
+        <option value="ارباح بالموجب">ارباح بالموجب</option>
+        <option value="Other">Other</option>
+      </select>
+      <input type="text" id="report-profits-custom" class="report-input" placeholder="أدخل الارباح" style="display: none; margin-top: 10px;">
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-old-group" class="report-label">الغروب القديم (Old Group):</label>
+      <select id="report-old-group" class="report-input report-select">
+        <option value="" disabled selected>اختر الغروب القديم...</option>
+        
+        <optgroup label="B5 Family">
+          <option value="B5">B5</option>
+          <option value="B5 2">B5 2</option>
+          <option value="B5 3">B5 3</option>
+          <option value="B5 W">B5 W</option>
+          <option value="B5 2W">B5 2W</option>
+          <option value="B5 yemen">B5 yemen</option>
+          <option value="B5 FS">B5 FS</option>
+          <option value="B5 FS 2">B5 FS 2</option>
+        </optgroup>
+
+        <optgroup label="Zero Family">
+          <option value="ZERO S">ZERO S</option>
+          <option value="ZERO 2">ZERO 2</option>
+          <option value="ZERO 3">ZERO 3</option>
+          <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
+          <option value="Zero Standard A 2">Zero Standard A 2</option>
+        </optgroup>
+
+        <optgroup label="B1 Family">
+          <option value="B1">B1</option>
+          <option value="B1 CLIENT">B1 CLIENT</option>
+          <option value="B1 CLIENT 2">B1 CLIENT 2</option>
+        </optgroup>
+
+        <optgroup label="Standard Family">
+          <option value="Standard Acccount 2">Standard Acccount 2</option>
+          <option value="Standard Bonus">Standard Bonus</option>
+        </optgroup>
+
+        <optgroup label="Others">
+          <option value="B2 AD">B2 AD</option>
+          <option value="copy trade 2">copy trade 2</option>
+          <option value="COPY TRADE">COPY TRADE</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-new-group" class="report-label">الغروب الجديد (New Group):</label>
+      <select id="report-new-group" class="report-input report-select">
+        <option value="" disabled selected>اختر الغروب الجديد</option>
+        
+        <optgroup label="B5 Family">
+          <option value="B5">B5</option>
+          <option value="B5 2">B5 2</option>
+          <option value="B5 3">B5 3</option>
+          <option value="B5 W">B5 W</option>
+          <option value="B5 2W">B5 2W</option>
+          <option value="B5 yemen">B5 yemen</option>
+          <option value="B5 FS">B5 FS</option>
+          <option value="B5 FS 2">B5 FS 2</option>
+        </optgroup>
+
+        <optgroup label="Zero Family">
+          <option value="ZERO S">ZERO S</option>
+          <option value="ZERO 2">ZERO 2</option>
+          <option value="ZERO 3">ZERO 3</option>
+          <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
+          <option value="Zero Standard A 2">Zero Standard A 2</option>
+        </optgroup>
+
+        <optgroup label="B1 Family">
+          <option value="B1">B1</option>
+          <option value="B1 CLIENT">B1 CLIENT</option>
+          <option value="B1 CLIENT 2">B1 CLIENT 2</option>
+        </optgroup>
+
+        <optgroup label="Standard Family">
+          <option value="Standard Acccount 2">Standard Acccount 2</option>
+          <option value="Standard Bonus">Standard Bonus</option>
+        </optgroup>
+
+        <optgroup label="Others">
+          <option value="B2 AD">B2 AD</option>
+          <option value="copy trade 2">copy trade 2</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <div class="report-field-group">
+      <label for="report-notes" class="report-label">الملاحظات:</label>
+      <div style="position: relative;">
+        <textarea id="report-notes" class="report-input" rows="4" placeholder="أدخل الملاحظات" style="resize: vertical;"></textarea>
+        <button id="open-notes-modal-btn" type="button" style="position: absolute; left: 10px; bottom: 10px; background: none; border: none; cursor: pointer; font-size: 1.2rem;" title="اختر ملاحظة">📋</button>
+      </div>
+    </div>
+
+    <div class="report-field-group">
+      <label class="report-label">المرفقات (صور):</label>
+      <div class="file-upload-container">
+        <label for="report-images" class="file-upload-label">
+          <span class="upload-icon">📷</span>
+          <span>اختر صوراً أو اسحبها هنا</span>
+        </label>
+        <input type="file" id="report-images" multiple accept="image/*" style="display: none;">
+      </div>
+      <div id="image-preview-container" class="image-preview-container"></div>
+    </div>
+
+    <div class="report-field-group">
+      <label class="report-label">المنشن:</label>
+      <div class="mention-buttons-container">
+        <button type="button" id="mention-ahmed-btn" class="mention-btn">Ahmed (@ahmedelgma)</button>
+        <button type="button" id="mention-batoul-btn" class="mention-btn">Batoul (@batoulhassan)</button>
+      </div>
+    </div>
+
+    <div class="report-actions">
+      <button id="generate-report-btn" class="report-btn generate-btn">نسخ التقرير</button>
+      <button id="send-telegram-btn" class="report-btn telegram-btn">إرسال</button>
+      <button id="delete-last-sent-btn" type="button" class="report-btn reset-btn" disabled>حذف آخر إرسال</button>
+      <button id="reset-report-btn" class="report-btn reset-btn">إعادة تعيين</button>
+    </div>
+  </div>
+
+  <!-- Saved Notes Modal -->
+  <div id="saved-notes-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="saved-notes-close">&times;</span>
+      <h2>الملاحظات المحفوظة</h2>
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input type="text" id="new-note-input" placeholder="أضف ملاحظة جديدة..." class="report-input">
+        <button id="add-note-btn" class="report-btn generate-btn" style="flex: 0 0 auto; width: auto; padding: 10px 20px;">إضافة</button>
+      </div>
+
+      <ul id="saved-notes-list" style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+        <!-- Notes will be injected here -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Telegram Settings Modal -->
+  <div id="telegram-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="telegram-settings-close">&times;</span>
+      <h2>إعدادات المستخدم</h2>
+      
+      <div class="report-field-group">
+        <label for="employee-name-select" class="report-label">اسم الموظف:</label>
+        <select id="employee-name-select" class="report-input report-select">
+          <option value="" disabled selected>اختر اسمك...</option>
+          <option value="ABBASS">ABBASS</option>
+          <option value="AHMED MAGDY">AHMED MAGDY</option>
+          <option value="zahraa Shaqir">zahraa Shaqir</option>
+          <option value="Zainab">Zainab</option>
+          <option value="Hadil zaiter">Hadil zaiter</option>
+          <option value="Nour karsifi">Nour karsifi</option>
+          <option value="Ahmed Gamal">Ahmed Gamal</option>
+          <option value="Mohamed Abd">Mohamed Abd</option>
+          <option value="Ahmed – Manager">Ahmed – Manager</option>
+          <option value="Shahenda Sherif">Shahenda Sherif</option>
+        </select>
+      </div>
+
+
+
+      <button id="save-user-settings-btn" class="report-btn generate-btn" style="width: 100%;">حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <script src="transfer-report.js"></script>
+</body>
+</html>

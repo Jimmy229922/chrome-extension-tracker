@@ -1,0 +1,57 @@
+/* Shift Selector Buttons */
+.shift-selector-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+
+.shift-btn {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  background: #f8f9fa;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+  color: #555;
+}
+
+.shift-btn:hover {
+  background: #e9ecef;
+}
+
+/* Shift Button Colors - Only on Active State */
+.shift-btn[data-value="الصباحي"].active {
+  background: #FFD700;
+  color: #333333;
+  border-color: #FFA500;
+  box-shadow: 0 2px 5px rgba(255, 215, 0, 0.4);
+}
+.shift-btn[data-value="الصباحي"].active:hover {
+  background: #FFD700;
+  color: #333333;
+  border-color: #FFA500;
+}
+.shift-btn[data-value="المسائي"].active {
+  background: #3498db;
+  color: white;
+  border-color: #2980b9;
+  box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+}
+.shift-btn[data-value="المسائي"].active:hover {
+  background: #3498db;
+  color: white;
+  border-color: #2980b9;
+}
+.shift-btn[data-value="الخفر"].active {
+  background: #2c3e50;
+  color: white;
+  border-color: #1a252f;
+  box-shadow: 0 2px 5px rgba(44, 62, 80, 0.5);
+}
+.shift-btn[data-value="الخفر"].active:hover {
+  background: #2c3e50;
+  color: white;
+  border-color: #1a252f;
+}

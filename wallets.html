@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سجل المحافظ</title>
+    <title>المحافظ والتقارير</title>
     <link rel="stylesheet" href="style.css">
     <script src="csp-guard.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f5f5;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(218, 165, 32, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(192, 192, 192, 0.1) 0%, transparent 20%),
+                linear-gradient(135deg, #fdfbf7 0%, #ebedee 100%);
+            background-attachment: fixed;
             margin: 0;
             padding: 20px;
         }
@@ -21,6 +25,45 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        /* Tabs */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #7f8c8d;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover {
+            color: #3498db;
+            background-color: #f8f9fa;
+        }
+        .tab-btn.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Existing Wallet Styles */
         h1 {
             color: #333;
             text-align: center;
@@ -65,12 +108,13 @@
             margin-bottom: 20px;
         }
         .btn {
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 10px 20px;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
             font-family: inherit;
             font-weight: 500;
+            transition: background 0.2s;
         }
         .btn-danger {
             background-color: #dc3545;
@@ -79,16 +123,186 @@
         .btn-danger:hover {
             background-color: #c82333;
         }
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+            width: 100%;
+            font-size: 1.1em;
+        }
+        .btn-primary:hover {
+            background-color: #2980b9;
+        }
+
+        /* Report Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        /* Image Upload */
+        .image-upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+        }
+        .image-upload-area:hover, .image-upload-area.dragover {
+            border-color: #3498db;
+            background-color: #ebf8ff;
+        }
+        .upload-icon {
+            font-size: 40px;
+            color: #a0aec0;
+            margin-bottom: 10px;
+        }
+        .upload-text {
+            color: #718096;
+            margin-bottom: 5px;
+        }
+        .upload-hint {
+            color: #a0aec0;
+            font-size: 0.9em;
+        }
+        .preview-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .preview-item {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .preview-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .remove-image {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255, 0, 0, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            line-height: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .remove-image:hover {
+            background: rgba(255, 0, 0, 0.9);
+        }
     </style>
 </head>
-<body>
+<body class="dark-mode">
     <div class="container">
-        <h1>سجل المحافظ المحفوظة</h1>
-        <div class="header-actions">
-            <button id="clear-wallets" class="btn btn-danger">مسح السجل</button>
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="wallets">سجل المحافظ</button>
+            <button class="tab-btn" data-tab="report">تقرير سحوبات</button>
         </div>
-        <div id="wallets-list">
-            <!-- Wallets will be inserted here -->
+
+        <!-- Wallets Tab -->
+        <div id="tab-wallets" class="tab-content active">
+            <h1>سجل المحافظ المحفوظة</h1>
+            <div class="header-actions">
+                <button id="clear-wallets" class="btn btn-danger">مسح السجل</button>
+            </div>
+            <div id="wallets-list">
+                <!-- Wallets will be inserted here -->
+            </div>
+        </div>
+
+        <!-- Report Tab -->
+        <div id="tab-report" class="tab-content">
+            <h1 style="margin-bottom: 20px;">إنشاء تقرير سحب جديد</h1>
+            <form id="withdrawal-form">
+                <div class="form-group">
+                    <label class="form-label">IP Address</label>
+                    <input type="text" id="report-ip" class="form-input" placeholder="أدخل عنوان IP" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Country</label>
+                    <input type="text" id="report-country" class="form-input" placeholder="الدولة (تلقائي أو يدوي)">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Account Number</label>
+                    <input type="text" id="report-account" class="form-input" placeholder="رقم الحساب" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" id="report-email" class="form-input" placeholder="البريد الإلكتروني" required>
+                    <small style="color: #7f8c8d; display: block; margin-top: 5px;">يمكنك لصق نص كامل وسيتم استخراج الإيميل تلقائياً</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Withdrawal Amount</label>
+                    <input type="number" id="report-amount" class="form-input" placeholder="مبلغ السحب" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Withdrawal Method</label>
+                    <input type="text" id="report-method" class="form-input" placeholder="طريقة السحب (مثلاً USDT, Bank)" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="report-notes" class="form-textarea" placeholder="ملاحظات إضافية..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">المرفقات (صور)</label>
+                    <div id="drop-zone" class="image-upload-area">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">اسحب الصور وأفلتها هنا</div>
+                        <div class="upload-hint">أو اضغط للاختيار (الحد الأقصى 3 صور)</div>
+                        <div class="upload-hint">يمكنك أيضاً لصق الصور (Ctrl+V)</div>
+                        <input type="file" id="file-input" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <div id="preview-container" class="preview-container"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">إرسال التقرير</button>
+            </form>
         </div>
     </div>
     <script src="wallets.js"></script>

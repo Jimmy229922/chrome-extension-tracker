@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Hedge Checker</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { 
+            padding: 20px; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: 
+                radial-gradient(2px 2px at 20px 30px, rgba(255, 215, 0, 0.15), rgba(0,0,0,0)),
+                radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.1), rgba(0,0,0,0)),
+                linear-gradient(135deg, #0F2027 0%, #203A43 50%, #2C5364 100%);
+            background-attachment: fixed;
+            background-size: 200px 200px, 200px 200px, 100% 100%;
+            color: #e0e0e0; 
+        }
+        h1 { text-align: center; color: #ffffff; }
+        .container { display: flex; gap: 20px; margin-bottom: 20px; }
+        .client-input { flex: 1; display: flex; flex-direction: column; background: #2d2d2d; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .client-input h3 { margin-top: 0; color: #cccccc; border-bottom: 2px solid #444; padding-bottom: 10px; }
+        textarea { height: 300px; width: 100%; box-sizing: border-box; border: 1px solid #444; background-color: #333; color: #e0e0e0; border-radius: 4px; padding: 10px; font-family: monospace; resize: vertical; }
+        button#check-btn { display: block; width: 100%; padding: 15px; font-size: 18px; background-color: #2e7d32; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background 0.3s; }
+        button#check-btn:hover { background-color: #1b5e20; }
+        #results { margin-top: 30px; background: #2d2d2d; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #444; padding: 12px; text-align: center; }
+        th { background-color: #333; color: #e0e0e0; }
+        tr:nth-child(even) { background-color: #252525; }
+        tr:hover { background-color: #333; }
+        .match-row { background-color: #1a3a1a !important; color: #e0e0e0; border-bottom: 1px solid #2e7d32; }
+        .buy { color: #4caf50; font-weight: bold; }
+        .sell { color: #f44336; font-weight: bold; }
+        .no-matches { text-align: center; color: #aaa; font-style: italic; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Hedge Checker (مقارنة الهيدج)</h1>
+    <div class="container">
+        <div class="client-input">
+            <h3>صفقات العميل الأول (Client 1)</h3>
+            <textarea id="client1-trades" placeholder="الصق صفقات العميل الأول هنا..."></textarea>
+        </div>
+        <div class="client-input">
+            <h3>صفقات العميل الثاني (Client 2)</h3>
+            <textarea id="client2-trades" placeholder="الصق صفقات العميل الثاني هنا..."></textarea>
+        </div>
+    </div>
+    
+    <div class="settings-bar" style="background: #2d2d2d; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+        <label>
+            <strong>Time Tolerance (Seconds):</strong>
+            <input type="number" id="time-tolerance" value="180" style="width: 60px; padding: 5px;">
+        </label>
+        <label>
+            <strong>Price Tolerance (Price):</strong>
+            <input type="number" id="price-tolerance" value="1" step="0.01" style="width: 60px; padding: 5px;" title="Tolerance for price difference in currency units">
+        </label>
+    </div>
+
+    <button id="check-btn">تحقق من الهيدج (Check Hedge)</button>
+    <div id="results"></div>
+
+    <div class="telegram-section" style="background: #2d2d2d; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+        <h3 style="margin-top: 0; color: #0088cc;">إرسال تقرير إلى تلجرام</h3>
+        
+        <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <h4 style="margin: 5px 0; color: #aaa;">بيانات العميل الأول</h4>
+                <input type="email" id="c1-email" placeholder="البريد الإلكتروني" style="width: 100%; padding: 8px; margin-bottom: 5px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="c1-account" placeholder="رقم الحساب" style="flex: 1; padding: 8px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                    <input type="text" id="c1-country" placeholder="الدولة" style="flex: 1; padding: 8px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <h4 style="margin: 5px 0; color: #aaa;">بيانات العميل الثاني</h4>
+                <input type="email" id="c2-email" placeholder="البريد الإلكتروني" style="width: 100%; padding: 8px; margin-bottom: 5px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="c2-account" placeholder="رقم الحساب" style="flex: 1; padding: 8px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                    <input type="text" id="c2-country" placeholder="الدولة" style="flex: 1; padding: 8px; background: #333; border: 1px solid #444; color: #fff; border-radius: 4px;">
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">إرفاق صور (اختياري) - يمكنك لصق الصور (Ctrl+V) مباشرة:</label>
+            <input type="file" id="report-images" multiple accept="image/*" style="width: 100%; padding: 10px; background: #333; border: 1px solid #444; border-radius: 4px;">
+            <div id="image-preview-container" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+        </div>
+
+        <button id="send-telegram-btn" style="background-color: #0088cc; width: 100%; padding: 12px; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">إرسال إلى تلجرام ✈️</button>
+        <div id="telegram-status" style="margin-top: 10px; text-align: center;"></div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="image-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.9);">
+        <span id="modal-close" style="position: absolute; top: 15px; right: 35px; color: #f1f1f1; font-size: 40px; font-weight: bold; cursor: pointer;">&times;</span>
+        <img class="modal-content" id="modal-img" style="margin: auto; display: block; width: 80%; max-width: 700px; margin-top: 50px;">
+    </div>
+
+    <script src="hedge-checker.js"></script>
+</body>
+</html>

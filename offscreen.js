@@ -24,16 +24,18 @@ chrome.runtime.onMessage.addListener((message) => {
   if (message && message.type === 'writeClipboardText' && typeof message.text === 'string') {
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(message.text).catch(() => {
+        navigator.clipboard.writeText(message.text).then(() => {
+          lastRead = message.text; // Prevent re-detection
+        }).catch(() => {
           // Fallback to execCommand copy via textarea
           textarea.value = message.text;
           textarea.select();
-          try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+          try { document.execCommand('copy'); lastRead = message.text; } catch (e) { /* ignore */ }
         });
       } else {
         textarea.value = message.text;
         textarea.select();
-        try { document.execCommand('copy'); } catch (e) { /* ignore */ }
+        try { document.execCommand('copy'); lastRead = message.text; } catch (e) { /* ignore */ }
       }
     } catch (e) {
       // Swallow errors; clipboard write may fail depending on context
@@ -174,6 +176,72 @@ chrome.runtime.onMessage.addListener((message) => {
       osc.stop(now + 0.8);
     } catch (e) {
       console.warn('Could not play warning sound:', e);
+    }
+  }
+
+// Global variable to prevent garbage collection of the utterance
+let currentUtterance = null;
+
+  // Handle Text-to-Speech (TTS)
+  if (message && message.type === 'playTTS' && typeof message.text === 'string') {
+    try {
+      // Cancel any currently playing speech
+      window.speechSynthesis.cancel();
+      
+      const speak = () => {
+        const voices = window.speechSynthesis.getVoices();
+        
+        // Prioritize "Google" Arabic voices (highest quality)
+        let selectedVoice = voices.find(v => v.lang.includes('ar') && v.name.includes('Google'));
+        
+        // Fallback to Microsoft voices
+        if (!selectedVoice) {
+          selectedVoice = voices.find(v => v.lang.includes('ar') && v.name.includes('Microsoft'));
+        }
+        
+        // General fallback
+        if (!selectedVoice) {
+          selectedVoice = voices.find(v => v.lang.includes('ar'));
+        }
+
+        currentUtterance = new SpeechSynthesisUtterance(message.text);
+        currentUtterance.volume = 1.0;
+
+        if (selectedVoice) {
+          currentUtterance.voice = selectedVoice;
+          currentUtterance.lang = selectedVoice.lang;
+          
+          // Micro-tuning for natural flow
+          if (selectedVoice.name.includes('Google')) {
+             currentUtterance.rate = 0.9; // Slightly slower for gravity/clarity
+             currentUtterance.pitch = 1.0;
+          } else {
+             currentUtterance.rate = 1.1; // Speed up legacy voices
+             currentUtterance.pitch = 1.1; // Slightly higher pitch often clears up "muddy" legacy audio
+          }
+        } else {
+          currentUtterance.lang = 'ar-SA';
+          currentUtterance.rate = 1.0;
+        }
+
+        // Release the global reference when done to allow GC
+        currentUtterance.onend = () => { currentUtterance = null; };
+        
+        window.speechSynthesis.speak(currentUtterance);
+      };
+
+      // Ensure voices are loaded before speaking
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            speak();
+            window.speechSynthesis.onvoiceschanged = null; // Remove listener
+        };
+      } else {
+        speak();
+      }
+
+    } catch (e) {
+      console.warn('TTS error:', e);
     }
   }
 });

@@ -6,19 +6,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Set current date/time
   const now = new Date();
+  now.setHours(now.getHours() - 2);
   reportDate.textContent = now.toLocaleDateString('ar-EG', { 
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', 
     hour: '2-digit', minute: '2-digit' 
   });
-
-  // Load data
-  const data = await chrome.storage.local.get('suspiciousReportData');
-  let patterns = data.suspiciousReportData || [];
-
-  if (patterns.length === 0) {
-    reportContent.innerHTML = '<div class="no-data">لا توجد بيانات لعرضها حالياً</div>';
-    return;
-  }
 
   // Assign IDs based on chronological order (Oldest = 1)
   // First, ensure they are sorted by date ascending

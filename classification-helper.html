@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Classification Helper</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { 
+            padding: 20px; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            /* New Year Theme: Visible Shapes & Dark Background */
+            background-color: #0F2027;
+            background-image: 
+                /* Gold Stars */
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 215, 0, 0.2)' stroke-width='2'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E"),
+                /* White Snowflakes */
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(255, 255, 255, 0.15)' stroke-width='2'%3E%3Cpath d='M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07'/%3E%3C/svg%3E"),
+                /* Deep Night Gradient */
+                linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            background-attachment: fixed;
+            background-position: 0 0, 50px 50px, 0 0;
+            background-repeat: repeat, repeat, no-repeat;
+            background-size: 150px 150px, 120px 120px, 100% 100%;
+            color: #e0e0e0; 
+            min-height: 100vh; 
+        }
+        h1 { text-align: center; color: #ffffff; margin-bottom: 30px; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+        .container { 
+            max-width: 700px; 
+            margin: 0 auto; 
+            background: rgba(45, 45, 45, 0.95); /* Slightly transparent for bg effect */
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255, 215, 0, 0.1); /* Gold border hint */
+        }
+        
+        .form-group { margin-bottom: 30px; }
+        label { display: block; margin-bottom: 12px; font-weight: bold; color: #cccccc; font-size: 1.1em; }
+        
+        .button-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        .choice-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 16px;
+            border: 2px solid #444;
+            background: #333;
+            color: #bbb;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            text-align: center;
+            font-family: inherit;
+        }
+        
+        .choice-btn:hover { border-color: #666; background: #3d3d3d; }
+        
+        .choice-btn.active {
+            background-color: #1565C0;
+            color: #ffffff;
+            border-color: #42a5f5;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+        }
+
+        /* Specific colors for specific choices if needed */
+        .choice-btn[data-value="negative"].active { background-color: #c62828; color: #ffffff; border-color: #ef5350; }
+        .choice-btn[data-value="positive"].active { background-color: #2e7d32; color: #ffffff; border-color: #66bb6a; }
+
+        #result-area { margin-top: 40px; display: none; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .result-box { border: 2px solid; padding: 25px; border-radius: 10px; margin-bottom: 15px; text-align: center; position: relative; overflow: hidden; }
+        .b5 { border-color: #ef5350; background-color: #3e2723; color: #ffcdd2; }
+        .standard { border-color: #66bb6a; background-color: #1b5e20; color: #c8e6c9; }
+        .ignore { border-color: #ffa726; background-color: #3e2723; color: #ffe0b2; }
+        
+        .result-type { font-size: 2em; font-weight: bold; display: block; margin-bottom: 10px; }
+        .result-reason { font-size: 1.2em; opacity: 0.9; }
+
+        /* Navigation Tabs */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .nav-btn {
+            padding: 12px 30px;
+            background: #333;
+            border: 2px solid #555;
+            color: #ccc;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+        .nav-btn:hover { background: #444; border-color: #777; }
+        .nav-btn.active {
+            background: #1565C0;
+            color: white;
+            border-color: #42a5f5;
+            font-weight: bold;
+            box-shadow: 0 0 15px rgba(21, 101, 192, 0.5);
+        }
+
+        /* View Containers */
+        .view-section { display: none; animation: fadeIn 0.3s ease-out; }
+        .view-section.active { display: block; }
+
+        /* Reused styles for the second view */
+        .side-form-group { margin-bottom: 25px; }
+        .side-form-group label { font-size: 1.1em; margin-bottom: 12px; display: block; font-weight: bold; color: #cccccc; }
+        .side-btn-group { display: flex; gap: 12px; flex-wrap: wrap; }
+        .side-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 16px;
+            background: #333;
+            border: 2px solid #444;
+            color: #bbb;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.2s;
+            text-align: center;
+            font-family: inherit;
+        }
+        .side-btn:hover { background: #3d3d3d; border-color: #666; }
+        .side-btn.active {
+            background-color: #1565C0;
+            color: #ffffff;
+            border-color: #42a5f5;
+            font-weight: bold;
+        }
+        .side-result {
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 10px;
+            display: none;
+            font-weight: bold;
+            line-height: 1.6;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <h1>أدوات التدقيق (Audit Tools)</h1>
+    
+    <div class="nav-tabs">
+        <button class="nav-btn active" data-target="classification-view">مساعد التصنيف (Classification)</button>
+        <button class="nav-btn" data-target="three-days-view">تقرير 3 أيام (3 Days Balance)</button>
+    </div>
+
+    <div class="container">
+        
+        <!-- View 1: Classification Helper -->
+        <div id="classification-view" class="view-section active">
+            <h2 style="text-align:center; margin-bottom:20px; color:#aaa;">مساعد التصنيف</h2>
+            <div class="form-group">
+                <label>1. حالة الرصيد/الأرباح (Balance/Profit):</label>
+                <div class="button-group" id="profit-group">
+                    <button class="choice-btn" data-value="positive">موجب (Positive)</button>
+                    <button class="choice-btn" data-value="negative">سالب (Negative)</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>2. الموقع الجغرافي (Location):</label>
+                <div class="button-group" id="location-group">
+                    <button class="choice-btn" data-value="governorates">محافظات (أربيل/كركوك/سليمانية)</button>
+                    <button class="choice-btn" data-value="other">مناطق أخرى (Other)</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>3. حالة الحظر (Ban Status):</label>
+                <div class="button-group" id="ban-group">
+                    <button class="choice-btn" data-value="banned">محظور (Banned)</button>
+                    <button class="choice-btn" data-value="not-banned">غير محظور (Not Banned)</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>4. شروط إضافية (Additional Conditions):</label>
+                <div class="button-group" id="condition-group">
+                    <button class="choice-btn" data-value="none">
+                        غير محقق اي من الشروط
+                        <div style="font-size: 0.75em; margin-top: 4px; font-weight: normal; opacity: 0.85;">
+                            (لا أوامر معلقة، لا أرباح عالية، لا Price=SL)
+                        </div>
+                    </button>
+                    <button class="choice-btn" data-value="pending-zero">أوامر معلقة أرباح صفر</button>
+                    <button class="choice-btn" data-value="weekly-profit">أرباح أسبوعية (1000$-5000$)</button>
+                    <button class="choice-btn" data-value="exceptional-profit">أرباح استثنائية (6000$+)</button>
+                    <button class="choice-btn" data-value="same-sl">Price=SL</button>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="reset-btn" style="padding: 12px 24px; background-color: #555; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; transition: background 0.3s;">
+                    إعادة تعيين (Reset)
+                </button>
+            </div>
+
+            <div id="result-area"></div>
+        </div>
+
+        <!-- View 2: Three Days Balance -->
+        <div id="three-days-view" class="view-section">
+            <h2 style="text-align:center; margin-bottom:20px; color:#aaa;">Three Days Balance Report</h2>
+            
+            <div class="side-form-group">
+                <label>1. نوع الحساب (Account Group):</label>
+                <div class="side-btn-group" id="tdb-account-group">
+                    <button class="side-btn" data-value="b1">B1</button>
+                    <button class="side-btn" data-value="b5">B5</button>
+                    <button class="side-btn" data-value="standard2">Standard 2</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Sections based on Account Group -->
+            
+            <!-- B1 Section -->
+            <div id="tdb-b1-section" class="dynamic-section" style="display:none;">
+                <div class="side-form-group">
+                    <label>الموقع (Location):</label>
+                    <div class="side-btn-group" id="tdb-b1-location">
+                        <button class="side-btn" data-value="governorates">محافظات (أربيل/كركوك/سليمانية)</button>
+                        <button class="side-btn" data-value="other">أخرى (Other)</button>
+                    </div>
+                </div>
+                <div class="side-form-group">
+                    <label>نسبة الأرباح (Profits %):</label>
+                    <div class="side-btn-group" id="tdb-b1-profits">
+                        <button class="side-btn" data-value="above-100">أرباح 100$ أو أكثر</button>
+                        <button class="side-btn" data-value="below-100">أرباح أقل من 100$</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- B5 Section -->
+            <div id="tdb-b5-section" class="dynamic-section" style="display:none;">
+                <div class="side-form-group">
+                    <label>حالة الرصيد/الأرباح:</label>
+                    <div class="side-btn-group" id="tdb-b5-profit-status">
+                         <button class="side-btn" data-value="positive">موجب (Positive)</button>
+                         <button class="side-btn" data-value="negative">سالب (Negative)</button>
+                    </div>
+                </div>
+                <div class="side-form-group">
+                    <label>الموقع (Location):</label>
+                    <div class="side-btn-group" id="tdb-b5-location">
+                         <button class="side-btn" data-value="governorates">محافظات</button>
+                         <button class="side-btn" data-value="other">أخرى</button>
+                    </div>
+                </div>
+                <div class="side-form-group">
+                    <label>الحظر (Ban):</label>
+                    <div class="side-btn-group" id="tdb-b5-ban-status">
+                         <button class="side-btn" data-value="banned">محظور</button>
+                         <button class="side-btn" data-value="not-banned">غير محظور</button>
+                    </div>
+                </div>
+                <div class="side-form-group">
+                    <label>شروط إضافية:</label>
+                    <div class="side-btn-group" id="tdb-b5-condition">
+                        <button class="side-btn" data-value="none">لا يوجد</button>
+                        <button class="side-btn" data-value="pending-zero">معلقة 0</button>
+                        <button class="side-btn" data-value="weekly-profit">أرباح أسبوعية</button>
+                        <button class="side-btn" data-value="exceptional-profit">أرباح استثنائية</button>
+                        <button class="side-btn" data-value="same-sl">Price=SL</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Standard 2 Section -->
+            <div id="tdb-standard2-section" class="dynamic-section" style="display:none;">
+                <div class="side-form-group">
+                    <label>نشاط التداول (Trading Activity):</label>
+                    <div class="side-btn-group" id="tdb-std2-activity">
+                        <button class="side-btn" data-value="style-withdraw">أسلوب تداول + سحب</button>
+                        <button class="side-btn" data-value="high-profit">أرباح عالية (>5000 يومي / >10000 أسبوعي)</button>
+                        <button class="side-btn" data-value="normal">طبيعي (Normal)</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tdb-result" class="side-result"></div>
+            
+            <div style="text-align: center; margin-top: 30px; border-top: 1px solid #555; padding-top: 15px;">
+                <button id="tdb-reset-btn" style="padding: 12px 24px; background-color: #555; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px;">
+                    إعادة تعيين (Reset)
+                </button>
+            </div>
+        </div>
+
+    </div>
+    <script src="classification-helper.js"></script>
+</body>
+</html>

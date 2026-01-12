@@ -1,0 +1,154 @@
+
+body.dark-mode .saved-note-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Shift Selector Buttons - Matching Mention Buttons Style */
+.shift-selector-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+  background: transparent;
+  padding: 0;
+  border: none;
+}
+
+.shift-btn {
+  padding: 10px 16px;
+  border: 1px solid #334155;
+  background-color: #1e293b;
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  flex: 1;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.shift-btn:hover {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+/* Shift Button Colors - Only on Active State */
+.shift-btn[data-value="الصباحي"].active {
+  background: #FFD700 !important;
+  border-color: #FFA500 !important;
+  color: #333333 !important;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+}
+.shift-btn[data-value="الصباحي"].active:hover {
+  background: #FFD700 !important;
+  border-color: #FFA500 !important;
+  color: #333333 !important;
+}
+.shift-btn[data-value="المسائي"].active {
+  background: #3498db !important;
+  border-color: #2980b9 !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+.shift-btn[data-value="المسائي"].active:hover {
+  background: #3498db !important;
+  border-color: #2980b9 !important;
+  color: white !important;
+}
+.shift-btn[data-value="الخفر"].active {
+  background: #2c3e50 !important;
+  border-color: #1a252f !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.5);
+}
+.shift-btn[data-value="الخفر"].active:hover {
+  background: #2c3e50 !important;
+  border-color: #1a252f !important;
+  color: white !important;
+}
+
+/* Dark Mode Shift Button Colors - Only on Active State */
+body.dark-mode .shift-btn[data-value="الصباحي"].active {
+  background-color: #FFD700 !important;
+  border-color: #FFA500 !important;
+  color: #333333 !important;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+}
+body.dark-mode .shift-btn[data-value="الصباحي"].active:hover {
+  background-color: #FFD700 !important;
+  border-color: #FFA500 !important;
+  color: #333333 !important;
+}
+body.dark-mode .shift-btn[data-value="المسائي"].active {
+  background-color: #5DADE2 !important;
+  border-color: #3498db !important;
+  color: white !important;
+  box-shadow: 0 2px 8px rgba(93, 173, 226, 0.3);
+}
+body.dark-mode .shift-btn[data-value="المسائي"].active:hover {
+  background-color: #5DADE2 !important;
+  border-color: #3498db !important;
+  color: white !important;
+}
+body.dark-mode .shift-btn[data-value="الخفر"].active {
+  background-color: #1a1a1a !important;
+  border-color: #0d0d0d !important;
+  color: #cccccc !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+body.dark-mode .shift-btn[data-value="الخفر"].active:hover {
+  background-color: #1a1a1a !important;
+  border-color: #0d0d0d !important;
+  color: #cccccc !important;
+}
+
+/* General Selector Buttons */
+.selector-btn {
+  padding: 10px 16px;
+  border: 1px solid #334155;
+  background-color: #1e293b;
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  flex: 1;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selector-btn:hover {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+/* Active States */
+.selector-btn.active {
+  background: #3b82f6;
+  border-color: #2563eb;
+  color: white;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.4);
+}
+
+/* Specific Colors for Positive/Negative/etc */
+.selector-btn[data-value='positive'].active,
+.selector-btn[data-value='matching'].active,
+.selector-btn[data-value='not-banned'].active {
+  background: #10b981;
+  border-color: #059669;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+
+.selector-btn[data-value='negative'].active,
+.selector-btn[data-value='not-matching'].active,
+.selector-btn[data-value='banned'].active {
+  background: #ef4444;
+  border-color: #dc2626;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+

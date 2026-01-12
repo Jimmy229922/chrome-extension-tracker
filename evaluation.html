@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="color-scheme" content="dark">
+  <title>تقييم أداء الموظفين</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style_extras.css">
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+        margin: 0;
+        padding: 40px;
+        font-family: 'Tajawal', 'Cairo', sans-serif;
+        background-color: #1a1a2e;
+        color: #e0e0e0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .main-container {
+        width: 100%;
+        max-width: 1200px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr; /* Adjusted ratio */
+        gap: 30px;
+    }
+
+    .card {
+        background: #16213e;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        border: 1px solid rgba(255,255,255,0.05);
+        height: fit-content;
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 40px;
+        font-size: 2.5rem;
+        background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        font-weight: 800;
+        width: 100%;
+    }
+
+    h2 {
+        margin-top: 0;
+        color: #fff;
+        border-bottom: 2px solid #0f3460;
+        padding-bottom: 15px;
+        margin-bottom: 25px;
+        font-size: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap; 
+        gap: 10px;
+    }
+
+    /* Form Styles */
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    label {
+        font-size: 0.95rem;
+        color: #a0a0b0;
+    }
+
+    select {
+        background-color: #0f3460;
+        border: 1px solid #253b6e;
+        color: #fff;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: inherit;
+        text-align: center;
+        width: 100%;
+        outline: none;
+    }
+
+    /* Custom Input Table Grid */
+    .reports-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr; /* Name | Done | Sent | Accuracy | Error */
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .grid-header {
+        font-weight: bold;
+        color: #00d2ff;
+        text-align: center;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        margin-bottom: 10px;
+    }
+
+    .grid-row-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #e0e0e0;
+        font-size: 0.9rem;
+    }
+
+    .weight-badge {
+        font-size: 0.7rem;
+        background: #253b6e;
+        padding: 2px 6px;
+        border-radius: 6px;
+        color: #00d2ff;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    input[type="number"] {
+        background-color: #0f3460;
+        border: 1px solid #253b6e;
+        color: #fff;
+        padding: 8px;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        font-family: inherit;
+        text-align: center;
+        width: 100%;
+        transition: all 0.2s;
+        box-sizing: border-box; /* Include padding in width */
+    }
+
+    input[type="number"]:focus {
+        border-color: #00d2ff;
+        background-color: #1a2b4b;
+    }
+    
+    input::placeholder {
+        color: rgba(255,255,255,0.2);
+    }
+
+    button.action-btn {
+        width: 100%;
+        padding: 15px;
+        background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    button.action-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0, 210, 255, 0.4);
+    }
+
+    /* Fixed Reset Button Styles */
+    button.reset-week-btn {
+        background: #e74c3c !important; /* Brighter Red */
+        color: #ffffff !important;
+        border: 2px solid #c0392b !important;
+        padding: 8px 20px !important;
+        font-size: 0.95rem !important;
+        border-radius: 8px !important;
+        cursor: pointer;
+        font-family: 'Tajawal', 'Cairo', sans-serif !important;
+        font-weight: 700 !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 120px;
+        line-height: 1.5;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+    
+    button.reset-week-btn:hover {
+        background: #ff5e57 !important;
+        transform: translateY(-2px);
+    }
+
+    /* Leaderboard Styles */
+    .leaderboard-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .leaderboard-table th {
+        text-align: right;
+        color: #a0a0b0;
+        padding: 10px;
+        border-bottom: 1px solid #253b6e;
+        font-size: 0.9rem;
+    }
+
+    .leaderboard-table td {
+        padding: 15px 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+        font-weight: 500;
+        font-size: 1.1rem;
+    }
+
+    .rank-cell {
+        font-weight: 800;
+        width: 40px;
+    }
+    
+    .rank-1 { color: #ffd700; font-size: 1.3rem; }
+    .rank-2 { color: #c0c0c0; font-size: 1.2rem; }
+    .rank-3 { color: #cd7f32; font-size: 1.2rem; }
+
+    .score-cell {
+        color: #00d2ff;
+        font-weight: bold;
+        font-family: 'Consolas', monospace;
+    }
+
+    .ideal-employee-section {
+        background: linear-gradient(135deg, rgba(0, 210, 255, 0.1) 0%, rgba(58, 123, 213, 0.1) 100%);
+        border: 1px solid #00d2ff;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        margin-bottom: 25px;
+        animation: glow 2s infinite alternate;
+    }
+
+    @keyframes glow {
+        from { box-shadow: 0 0 10px rgba(0, 210, 255, 0.1); }
+        to { box-shadow: 0 0 20px rgba(0, 210, 255, 0.3); }
+    }
+
+    .ideal-title {
+        color: #00d2ff;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+    
+    .grid-row-label {
+        cursor: pointer;
+        transition: color 0.2s;
+        position: relative;
+    }
+    .grid-row-label:hover {
+        color: #00d2ff;
+    }
+    .grid-row-label:hover::after {
+        content: '?';
+        position: absolute;
+        right: -15px; /* Adjust based on padding/layout */
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 0.8rem;
+        background: #00d2ff;
+        color: #000;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+    }
+
+    .ideal-name {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #fff;
+        margin: 0;
+    }
+    
+    .winner-crown {
+        font-size: 3rem;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    @media (max-width: 900px) {
+        .main-container {
+            grid-template-columns: 1fr;
+        }
+    }
+  </style>
+</head>
+<body class="dark-mode">
+
+  <h1>تقييم الأداء الأسبوعي</h1>
+
+  <div class="main-container">
+    
+    <!-- Input Section -->
+    <div class="card">
+        <h2>
+            بيانات التقرير
+             <div style="font-size: 1rem; color: #00d2ff; background: rgba(0, 210, 255, 0.1); padding: 5px 10px; border-radius: 8px;">
+                Total: <span id="current-total-score">0</span>
+            </div>
+        </h2>
+        
+        <div class="input-group" style="margin-bottom: 25px;">
+            <div style="display: flex; gap: 10px;">
+                <select id="employee-select" style="flex-grow: 1;">
+                    <option value="" disabled selected>-- اختر الموظف لتقييمه --</option>
+                </select>
+                <button id="manage-employees-btn" style="background: #253b6e; border: 1px solid #4a69bd; color: #fff; padding: 0 15px; border-radius: 8px; cursor: pointer; font-size: 1.2rem;" title="إدارة الموظفين">⚙️</button>
+            </div>
+            
+            <!-- Managers Score Display -->
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <!-- Shift Manager -->
+                <div id="shift-manager-display-container" style="flex: 1; background: rgba(255, 159, 243, 0.1); border: 1px solid rgba(255, 159, 243, 0.3); padding: 10px; border-radius: 8px; display: none; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <span style="color: #ff9ff3; font-weight: bold;">تقييم مسؤول الشيفت:</span>
+                    <span id="shift-manager-display-value" style="color: #fff; font-weight: 800; font-size: 1.2rem;">-</span>
+                    <input type="hidden" id="shift-manager-input">
+                    <button id="edit-shift-score-btn" style="background: none; border: none; color: #ff9ff3; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">تعديل</button>
+                </div>
+
+                <!-- Dept Manager -->
+                <div id="dept-manager-display-container" style="flex: 1; background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.3); padding: 10px; border-radius: 8px; display: none; align-items: center; justify-content: space-between; cursor: pointer;">
+                    <span style="color: #00d2ff; font-weight: bold;">تقييم مسؤول القسم:</span>
+                    <span id="dept-manager-display-value" style="color: #fff; font-weight: 800; font-size: 1.2rem;">-</span>
+                    <input type="hidden" id="dept-manager-input">
+                    <button id="edit-dept-score-btn" style="background: none; border: none; color: #00d2ff; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">تعديل</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="reports-grid">
+            <div class="grid-header" style="text-align:right;">نوع التقرير</div>
+            <div class="grid-header">Done</div>
+            <div class="grid-header">Sent</div>
+            <div class="grid-header" id="acc-header" style="cursor:help; border-bottom:1px dashed #aaa;">% Accuracy</div>
+            <div class="grid-header" id="error-header" style="cursor:help; border-bottom:1px dashed #aaa;">% Error</div>
+
+            <!-- ROW 1 -->
+            <div class="grid-row-label"><span class="weight-badge">15</span> Suspicious</div>
+            <div><input type="number" id="inp-suspicious-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-suspicious-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-suspicious-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-suspicious-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 2 -->
+            <div class="grid-row-label"><span class="weight-badge">15</span> Deposit %</div>
+            <div><input type="number" id="inp-deposit-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-deposit-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-deposit-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-deposit-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 3 -->
+            <div class="grid-row-label"><span class="weight-badge">12</span> 3 Days Balance</div>
+            <div><input type="number" id="inp-3days-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-3days-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-3days-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-3days-error" placeholder="0%" min="0" max="100"></div>
+            
+            <!-- ROW 4 -->
+            <div class="grid-row-label"><span class="weight-badge">8</span> New Positions</div>
+            <div><input type="number" id="inp-new-pos-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-new-pos-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-new-pos-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-new-pos-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 5 -->
+            <div class="grid-row-label"><span class="weight-badge">8</span> Profit Watching</div>
+            <div><input type="number" id="inp-profit-watch-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-profit-watch-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-profit-watch-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-profit-watch-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 6 -->
+            <div class="grid-row-label"><span class="weight-badge">8</span> Profit Summary</div>
+            <div><input type="number" id="inp-profit-sum-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-profit-sum-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-profit-sum-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-profit-sum-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 7 -->
+            <div class="grid-row-label"><span class="weight-badge">7</span> Same Price SL</div>
+            <div><input type="number" id="inp-same-sl-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-same-sl-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-same-sl-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-same-sl-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 8 -->
+            <div class="grid-row-label"><span class="weight-badge">7</span> Deals Profit</div>
+            <div><input type="number" id="inp-deals-profit-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-deals-profit-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-deals-profit-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-deals-profit-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 9 -->
+            <div class="grid-row-label"><span class="weight-badge">5</span> Credit Out</div>
+            <div><input type="number" id="inp-credit-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-credit-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-credit-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-credit-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 10 -->
+            <div class="grid-row-label"><span class="weight-badge">5</span> Accounts' Profit over 0</div>
+            <div><input type="number" id="inp-profit-zero-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-profit-zero-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-profit-zero-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-profit-zero-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 11 -->
+            <div class="grid-row-label"><span class="weight-badge">4</span> Accounts' Floating</div>
+            <div><input type="number" id="inp-floating-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-floating-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-floating-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-floating-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 12 -->
+            <div class="grid-row-label"><span class="weight-badge">3</span> Two Actions</div>
+            <div><input type="number" id="inp-two-actions-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-two-actions-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-two-actions-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-two-actions-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 13 -->
+            <div class="grid-row-label"><span class="weight-badge">0</span> Market Warnings</div>
+            <div style="grid-column: span 3;">
+                <select id="inp-market-done" style="width:100%; height:100%; background:#2f3640; color:#fff; border:1px solid #444; border-radius:5px; padding:0 10px;">
+                    <option value="0" selected>اختر التقييم (1-5)</option>
+                    <option value="1">1 - سيء</option>
+                    <option value="2">2 - مقبول</option>
+                    <option value="3">3 - جيد</option>
+                    <option value="4">4 - جيد جداً</option>
+                    <option value="5">5 - ممتاز</option>
+                </select>
+                <!-- Hidden sent input to maintain compatibility or null in JS -->
+            </div>
+            <div><input type="number" id="inp-market-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 14 -->
+            <div class="grid-row-label"><span class="weight-badge">1</span> Profit Leverage</div>
+            <div><input type="number" id="inp-leverage-done" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-leverage-sent" placeholder="0" min="0"></div>
+            <div><input type="number" id="inp-leverage-acc" placeholder="100%" min="0" max="100"></div>
+            <div><input type="number" id="inp-leverage-error" placeholder="0%" min="0" max="100"></div>
+
+            <!-- ROW 15: Excellence -->
+            <div class="grid-row-label"><span class="weight-badge">Special</span> التميز (Excellence)</div>
+            <div style="grid-column: span 4;">
+                <select id="inp-excellence-done" style="width:100%; height:100%; background:#2f3640; color:#ffd700; border:1px solid #ffd700; border-radius:5px; padding:0 10px; font-weight:bold;">
+                    <option value="0" selected>-- لا يوجد تميز --</option>
+                    <option value="1">1 - تميز بسيط (+2%)</option>
+                    <option value="2">2 - تميز ملحوظ (+4%)</option>
+                    <option value="3">3 - تميز عالي (+6%)</option>
+                    <option value="4">4 - تميز فائق (+8%)</option>
+                    <option value="5">5 - إبداع منقطع النظير (+10%)</option>
+                </select>
+                <!-- Hidden inputs for compatibility -->
+            </div>
+
+        </div>
+
+        <button id="save-btn" class="action-btn">حفظ وتحديث</button>
+    </div>
+
+    <!-- Leaderboard Section -->
+    <div class="card">
+        <h2>
+            ترتيب الموظفين
+            <div style="display:inline-flex; gap:10px;">
+                <button id="compare-btn" class="reset-week-btn" style="background:#00d2ff !important; display:none;">
+                    <span>⚖️ مقارنة</span>
+                </button>
+                <button id="reset-all-btn" class="reset-week-btn">
+                    <span>🗑️ تصفير الأسبوع</span>
+                </button>
+            </div>
+        </h2>
+
+        <div id="ideal-employee-container" class="ideal-employee-section" style="display:none;">
+            <div class="winner-crown">👑</div>
+            <div class="ideal-title">الموظف المثالي لهذا الأسبوع</div>
+            <h3 class="ideal-name" id="ideal-name">Loading...</h3>
+            <div style="margin-top:5px; color:#00d2ff; font-weight:bold;">Score: <span id="ideal-score">0</span></div>
+            <div style="font-size:0.8rem; color:#a0a0b0; margin-top:5px;">(Done + Sent) × Weight</div>
+        </div>
+
+        <table class="leaderboard-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;"></th> <!-- Checkbox -->
+                    <th>#</th>
+                    <th>الموظف</th>
+                    <th style="text-align:center;">Score</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard-body">
+                <!-- Rows will be added here -->
+            </tbody>
+        </table>
+    </div>
+
+  </div>
+
+  <!-- Comparison Modal -->
+  <div id="compare-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:2500; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
+      <div class="modal-content" style="background:#16213e; padding:30px; border-radius:20px; width:95%; max-width:1100px; color:#fff; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 60px rgba(0,0,0,0.7); max-height:90vh; display:flex; flex-direction:column;">
+          
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1);">
+              <h2 style="margin:0; color:#00d2ff; font-size:1.8rem;">مـقـارنـة المـوظـفيـن</h2>
+              <button id="close-compare-modal-btn" style="background:none; border:none; color:#aaa; font-size:2rem; cursor:pointer; line-height:1;">&times;</button>
+          </div>
+
+          <div id="compare-content" style="overflow-x:auto; flex-grow:1; padding-bottom:10px;">
+             <!-- Table Injected Here -->
+          </div>
+
+      </div>
+  </div>
+
+  <!-- Employee Details Modal -->
+  <div id="details-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:1000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+    <div class="modal-content" style="background:#16213e; padding:0; border-radius:20px; width:90%; max-width:600px; color:#fff; position:relative; max-height:90vh; overflow-y:auto; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+        
+        <!-- Header Image/Gradient -->
+        <div style="background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); padding: 20px 20px 30px 20px; border-radius: 20px 20px 0 0; text-align: center; position: relative;">
+            <span id="close-modal" style="position:absolute; top:10px; right:15px; font-size:1.5rem; cursor:pointer; color:rgba(255,255,255,0.8); transition:0.2s;">&times;</span>
+            <div id="modal-employee-header" style="font-size: 1.6rem; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">اسم الموظف</div>
+             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.9); margin-top: 4px;">تقرير الأداء الأسبوعي</div>
+        </div>
+
+        <!-- Body -->
+        <div id="modal-details-body" style="padding: 0 20px 20px 20px; margin-top: -25px; position:relative; z-index:10;">
+            <!-- Details will be injected here -->
+        </div>
+
+    </div>
+  </div>
+
+  <!-- Rule Explanation Modal -->
+  <div id="rule-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:3000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+    <div class="modal-content" style="background:#1e272e; padding:30px; border-radius:15px; width:90%; max-width:400px; color:#fff; text-align:center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+        <div id="rule-title" style="font-size:1.4rem; font-weight:bold; color:#fbc531; margin-bottom:15px;">عنوان التقرير</div>
+        
+        <div style="background:#151521; padding:15px; border-radius:10px; margin-bottom:20px;">
+            <div style="color:#aaa; font-size:0.9rem; margin-bottom:10px;">طريقة الاحتساب</div>
+            <div id="rule-formula" style="font-size:1.1rem; color:#00d2ff; font-weight:bold; direction: ltr;">Formuala</div>
+        </div>
+
+        <div id="rule-desc" style="font-size:0.95rem; line-height:1.6; color:#ddd; margin-bottom:20px;">
+            الشرح
+        </div>
+
+        <button id="close-rule-modal-btn" style="background:#00d2ff; color:#000; border:none; padding:8px 25px; border-radius:20px; font-weight:bold; cursor:pointer;">حسنًا</button>
+    </div>
+  </div>
+
+  <!-- Manage Employees Modal -->
+  <div id="manage-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2000; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+    <div class="modal-content" style="background:#1e272e; padding:30px; border-radius:15px; width:90%; max-width:500px; color:#fff; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); display: flex; flex-direction: column; max-height: 85vh;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin:0; border:none; padding:0; font-size: 1.5rem; color: #fff;">إدارة الموظفين</h2>
+            <button id="close-manage-modal-btn" style="background:none; border:none; color:#aaa; font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+        
+        <div id="manage-list-container" style="flex-grow: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 5px; display: flex; flex-direction: column; gap: 10px;">
+            <!-- Employee Rows injected by JS -->
+        </div>
+
+        <div style="background: #151521; padding: 15px; border-radius: 10px; border: 1px dashed rgba(255,255,255,0.2);">
+            <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 8px;">إضافة موظف جديد:</div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="new-employee-name" placeholder="اسم الموظف" style="flex-grow: 1; background: #0f3460; border: 1px solid #253b6e; color: #fff; padding: 8px 12px; border-radius: 6px;">
+                <button id="add-employee-btn" style="background: #4cd137; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; color: #fff; font-weight: bold;">+</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Edit Employee Modal -->
+  <div id="edit-employee-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2100; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+      <div class="modal-content" style="background:#1e272e; padding:30px; border-radius:15px; width:90%; max-width:400px; color:#fff; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center;">
+          <h3 style="margin-top:0; color:#00d2ff; margin-bottom: 20px;">تعديل اسم الموظف</h3>
+          <input type="text" id="edit-employee-input" style="width:100%; box-sizing:border-box; background:#0f3460; border:1px solid #253b6e; color:#fff; padding:12px; border-radius:8px; margin-bottom:25px; font-size:1.1rem; text-align:center; outline:none;">
+          <div style="display:flex; justify-content:center; gap:15px;">
+              <button id="save-edit-btn" style="background:linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color:#fff; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; transition:transform 0.2s;">حفظ</button>
+              <button id="cancel-edit-btn" style="background:#2f3542; color:#fff; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; transition:transform 0.2s;">إلغاء</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-confirm-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2100; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+      <div class="modal-content" style="background:#1e272e; padding:30px; border-radius:15px; width:90%; max-width:400px; color:#fff; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center;">
+          <div style="font-size:3.5rem; margin-bottom:15px;">⚠️</div>
+          <h3 style="margin-top:0; color:#ff6b6b; margin-bottom:15px; font-size:1.3rem;">تأكيد الحذف</h3>
+          <p id="delete-confirm-msg" style="color:#ddd; margin-bottom:25px; line-height:1.6; font-size:1rem;">هل أنت متأكد؟</p>
+          <div style="display:flex; justify-content:center; gap:15px;">
+              <button id="confirm-delete-btn" style="background:linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); color:#fff; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem; box-shadow: 0 4px 15px rgba(255, 75, 43, 0.3);">نعم، حذف</button>
+              <button id="cancel-delete-btn" style="background:#2f3542; color:#fff; border:none; padding:10px 25px; border-radius:8px; cursor:pointer; font-weight:bold; font-size:1rem;">إلغاء</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Shift Manager Eval Modal -->
+  <div id="shift-eval-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2200; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+      <div class="modal-content" style="background:#1e272e; padding:30px; border-radius:15px; width:90%; max-width:400px; color:#fff; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center;">
+          <h3 style="margin-top:0; color:#ff9ff3; margin-bottom: 20px;">تقييم مسؤول الشيفت</h3>
+          <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">الرجاء إدخال نسبة تقييم الموظف في هذا الأسبوع</p>
+          
+          <div style="position: relative; width: 100px; margin: 0 auto 25px auto;">
+              <input type="number" id="shift-eval-modal-input" min="0" max="100" placeholder="%" style="width:100%; box-sizing:border-box; background:#0f3460; border:2px solid #ff9ff3; color:#fff; padding:15px; border-radius:12px; font-size:1.5rem; text-align:center; outline:none;">
+          </div>
+          
+          <button id="save-shift-eval-btn" style="width:100%; background:linear-gradient(135deg, #ff9ff3 0%, #feca57 100%); color:#1e272e; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:800; font-size:1.1rem; transition:transform 0.2s;">تـأكيـد</button>
+      </div>
+  </div>
+
+  <!-- Dept Manager Eval Modal -->
+  <div id="dept-eval-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:2200; justify-content:center; align-items:center; backdrop-filter: blur(5px);">
+      <div class="modal-content" style="background:#1e272e; padding:30px; border-radius:15px; width:90%; max-width:400px; color:#fff; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center;">
+          <h3 style="margin-top:0; color:#00d2ff; margin-bottom: 20px;">تقييم مسؤول القسم</h3>
+          <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">الرجاء إدخال نسبة تقييم الموظف في هذا الأسبوع</p>
+          
+          <div style="position: relative; width: 100px; margin: 0 auto 25px auto;">
+              <input type="number" id="dept-eval-modal-input" min="0" max="100" placeholder="%" style="width:100%; box-sizing:border-box; background:#0f3460; border:2px solid #00d2ff; color:#fff; padding:15px; border-radius:12px; font-size:1.5rem; text-align:center; outline:none;">
+          </div>
+          
+          <button id="save-dept-eval-btn" style="width:100%; background:linear-gradient(135deg, #00d2ff 0%, #0abde3 100%); color:#1e272e; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:800; font-size:1.1rem; transition:transform 0.2s;">تـأكيـد</button>
+      </div>
+  </div>
+
+  <script src="evaluation.js"></script>
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تنبيه أمني - مطلوب إجراء</title>
+  <style>
+    body {
+      background-color: #111827;
+      color: #f9fafb;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 20px;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.05);
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 100%;
+      max-width: 320px;
+      text-align: center;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    h2 {
+      margin-top: 0;
+      color: #ef4444;
+      font-size: 1.25rem;
+      margin-bottom: 16px;
+    }
+    .info-box {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: right;
+      font-size: 0.9rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .info-item {
+      margin-bottom: 8px;
+    }
+    .info-label {
+      color: #9ca3af;
+      font-weight: bold;
+    }
+    label {
+      display: block;
+      text-align: right;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #d1d5db;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #1f2937;
+      color: white;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      font-size: 1rem;
+      direction: ltr; /* numbers look better ltr */
+      text-align: right;
+    }
+    input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #dc2626;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+      font-size: 1rem;
+    }
+    button:hover {
+      background: #b91c1c;
+    }
+    .hidden {
+      display: none;
+    }
+    .success {
+      color: #10b981;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="mainForm">
+    <h2>⚠️ تم الكشف عن منطقة محظورة</h2>
+    
+    <div class="info-box">
+      <div class="info-item">
+        <span class="info-label">العنوان:</span> <span id="ipDisplay">...</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">الدولة:</span> <span id="countryDisplay">...</span>
+      </div>
+    </div>
+
+    <label for="accountNumber">رقم الحساب المرتبط (اختياري)</label>
+    <input type="text" id="accountNumber" placeholder="أدخل رقم الحساب هنا..." autocomplete="off">
+
+    <button id="sendBtn">إرسال التقرير</button>
+  </div>
+
+  <div class="container hidden" id="successMsg">
+    <h2 style="color: #10b981;">✅ تم الإرسال</h2>
+    <p>تم إرسال التقرير الأمني بنجاح.</p>
+    <p>سيتم إغلاق هذه النافذة تلقائياً.</p>
+  </div>
+
+  <script src="security-alert.js"></script>
+</body>
+</html>

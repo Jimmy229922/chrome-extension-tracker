@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load saved settings
   chrome.storage.sync.get(['darkMode', 'clearHistoryEnabled', 'clearHistoryDays', 'maxAccounts', 'timestampFormat', 'filters', 'tooltipsEnabled', 'onboardingCompleted', 'onboardingStep', 'alertSoundText'], (data) => {
-    darkModeToggle.checked = data.darkMode || false;
+    darkModeToggle.checked = data.darkMode !== false;
     applyDarkModeToOptions(darkModeToggle.checked);
 
     clearHistoryToggle.checked = data.clearHistoryEnabled || false;

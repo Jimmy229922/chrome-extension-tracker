@@ -1,0 +1,61 @@
+
+body.dark-mode .saved-note-btn:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+/* Shift Selector Buttons */
+.shift-selector-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 15px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.shift-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  color: #64748b;
+  font-size: 0.9em;
+}
+
+.shift-btn:hover {
+  background: rgba(255, 255, 255, 0.5);
+  color: #475569;
+}
+
+.shift-btn.active {
+  background: #ffffff;
+  color: #3b82f6;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode support for shift selector */
+body.dark-mode .shift-selector-container {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+body.dark-mode .shift-btn {
+  color: #94a3b8;
+}
+
+body.dark-mode .shift-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+}
+
+body.dark-mode .shift-btn.active {
+  background: #334155;
+  color: #60a5fa;
+  border-color: #475569;
+}

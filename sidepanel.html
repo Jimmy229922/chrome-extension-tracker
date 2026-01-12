@@ -6,7 +6,7 @@
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src="csp-guard.js"></script>
 </head>
-<body>
+<body class="dark-mode">
   <!-- Custom Toast Notification -->
   <div id="toast-notification" class="toast-notification">
     <div class="toast-icon"></div>
@@ -25,6 +25,12 @@
       <button id="critical-tab" class="tab-button">VIP</button>
       <button id="wallets-tab" class="tab-button">Wallets</button>
       <button id="profit-tab" class="tab-button">Profit Calculator</button>
+      <button id="transfer-report-tab" class="tab-button">Transfer Report</button>
+      <button id="withdrawal-report-btn" class="tab-button">Withdrawal Report</button>
+      <button id="hedge-checker-btn" class="tab-button">Hedge Checker</button>
+      <button id="deposit-percentage-btn" class="tab-button">Deposit %</button>
+      <button id="classification-helper-btn" class="tab-button">Classify</button>
+      <button id="evaluation-btn" class="tab-button" style="display: none;">تقييم الموظفين</button>
     </div>
     <div class="tracking-toggle-wrapper">
       <label class="switch">
@@ -149,11 +155,303 @@
             <span class="stat-value" id="total-profit">0.00</span>
           </div>
         </div>
+
+        <div class="profit-filter-container" style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee;">
+          <div style="font-weight: bold; color: #34495e; margin-bottom: 8px;">تصفية حسب الزوج:</div>
+          <div id="symbol-filter-buttons" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+        </div>
         
         <div class="trades-details">
           <h4>تفاصيل الصفقات</h4>
           <div id="trades-list"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer Report Section -->
+  <div id="transfer-report-section" class="data-list" style="display: none;">
+    <div class="report-container" dir="rtl">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير تحويل الحسابات</h2>
+        <div style="display: flex; gap: 5px;">
+          <button id="telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+        </div>
+      </div>
+      
+      <div class="report-field-group">
+        <label class="report-label">فترة الشفت:</label>
+        <div class="shift-selector-container" style="display: flex; gap: 10px; margin-bottom: 5px;">
+          <button type="button" class="shift-btn" data-value="الصباحي">الصباحي ☀️</button>
+          <button type="button" class="shift-btn" data-value="المسائي">المسائي 🌅</button>
+          <button type="button" class="shift-btn" data-value="الخفر">الخفر 🌙</button>
+        </div>
+        <input type="hidden" id="report-shift" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-ip" class="report-label">IP:</label>
+        <input type="text" id="report-ip" class="report-input" placeholder="أدخل IP">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-country" class="report-label">IP Country:</label>
+        <input type="text" id="report-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-account" class="report-label">رقم الحساب:</label>
+        <input type="text" id="report-account" class="report-input" placeholder="أدخل رقم الحساب">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-email" class="report-label">الإيميل:</label>
+        <input type="email" id="report-email" class="report-input" placeholder="أدخل الإيميل">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-source" class="report-label">مصدر التحويل:</label>
+        <select id="report-source" class="report-input report-select">
+          <option value="2 ACTIONS">2 ACTIONS</option>
+          <option value="PROFIT SUMMARY">PROFIT SUMMARY</option>
+          <option value="suspicious traders" selected>suspicious traders</option>
+          <option value="NEW POSITIONS">NEW POSITIONS</option>
+          <option value="Deals with No profit">Deals with No profit</option>
+          <option value="Same Price">Same Price</option>
+          <option value="three-days-balance">three-days-balance</option>
+          <option value="deals-profit">deals-profit</option>
+          <option value="profit-watching">profit-watching</option>
+          <option value="Floating Profit">Floating Profit</option>
+          <option value="Transfer Report">Transfer Report</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="report-source-custom" class="report-input" placeholder="أدخل المصدر" style="display: none; margin-top: 5px;">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-profits" class="report-label">الارباح:</label>
+        <select id="report-profits" class="report-input report-select">
+          <option value="ارباح بالسالب">ارباح بالسالب</option>
+          <option value="ارباح لم تتخطى 50%">ارباح لم تتخطى 50%</option>
+          <option value="ارباح فوق 100%">ارباح فوق 100%</option>
+          <option value="ارباح بالموجب">ارباح بالموجب</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="report-profits-custom" class="report-input" placeholder="أدخل الارباح" style="display: none; margin-top: 5px;">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-old-group" class="report-label">الغروب القديم (Old Group):</label>
+        <select id="report-old-group" class="report-input report-select">
+          <option value="" disabled selected>اختر الغروب القديم...</option>
+          <optgroup label="B5 Family">
+            <option value="B5">B5</option>
+            <option value="B5 2">B5 2</option>
+            <option value="B5 3">B5 3</option>
+            <option value="B5 W">B5 W</option>
+            <option value="B5 2W">B5 2W</option>
+            <option value="B5 yemen">B5 yemen</option>
+            <option value="B5 FS">B5 FS</option>
+            <option value="B5 FS 2">B5 FS 2</option>
+          </optgroup>
+          <optgroup label="Zero Family">
+            <option value="ZERO S">ZERO S</option>
+            <option value="ZERO 2">ZERO 2</option>
+            <option value="ZERO 3">ZERO 3</option>
+            <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
+            <option value="Zero Standard A 2">Zero Standard A 2</option>
+          </optgroup>
+          <optgroup label="B1 Family">
+            <option value="B1">B1</option>
+            <option value="B1 CLIENT">B1 CLIENT</option>
+            <option value="B1 CLIENT 2">B1 CLIENT 2</option>
+          </optgroup>
+          <optgroup label="Standard Family">
+            <option value="Standard Acccount 2">Standard Acccount 2</option>
+            <option value="Standard Bonus">Standard Bonus</option>
+          </optgroup>
+          <optgroup label="Others">
+            <option value="B2 AD">B2 AD</option>
+            <option value="copy trade 2">copy trade 2</option>
+            <option value="COPY TRADE">COPY TRADE</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-new-group" class="report-label">الغروب الجديد (New Group):</label>
+        <select id="report-new-group" class="report-input">
+          <option value="" disabled selected>اختر الغروب الجديد</option>
+          <optgroup label="B5 Family">
+            <option value="B5">B5</option>
+            <option value="B5 2">B5 2</option>
+            <option value="B5 3">B5 3</option>
+            <option value="B5 W">B5 W</option>
+            <option value="B5 2W">B5 2W</option>
+            <option value="B5 yemen">B5 yemen</option>
+            <option value="B5 FS">B5 FS</option>
+            <option value="B5 FS 2">B5 FS 2</option>
+          </optgroup>
+          <optgroup label="Zero Family">
+            <option value="ZERO S">ZERO S</option>
+            <option value="ZERO 2">ZERO 2</option>
+            <option value="ZERO 3">ZERO 3</option>
+            <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
+            <option value="Zero Standard A 2">Zero Standard A 2</option>
+          </optgroup>
+          <optgroup label="B1 Family">
+            <option value="B1">B1</option>
+            <option value="B1 CLIENT">B1 CLIENT</option>
+            <option value="B1 CLIENT 2">B1 CLIENT 2</option>
+          </optgroup>
+          <optgroup label="Standard Family">
+            <option value="Standard Acccount 2">Standard Acccount 2</option>
+            <option value="Standard Bonus">Standard Bonus</option>
+          </optgroup>
+          <optgroup label="Others">
+            <option value="B2 AD">B2 AD</option>
+            <option value="copy trade 2">copy trade 2</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-notes" class="report-label">الملاحظات:</label>
+        <div style="position: relative;">
+          <textarea id="report-notes" class="report-input report-textarea" rows="4" placeholder="أدخل الملاحظات"></textarea>
+          <button id="open-notes-modal-btn" type="button" class="notes-trigger-btn" title="اختر ملاحظة">📋</button>
+        </div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور):</label>
+        <div class="file-upload-container">
+          <label for="report-images" class="file-upload-label">
+            <span class="upload-icon">📷</span>
+            <span>اختر صوراً أو اسحبها هنا</span>
+          </label>
+          <input type="file" id="report-images" multiple accept="image/*" style="display: none;">
+        </div>
+        <div id="image-preview-container" class="image-preview-container"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المنشن:</label>
+        <div class="mention-buttons-container">
+          <button type="button" id="mention-ahmed-btn" class="mention-btn">Ahmed (@ahmedelgma)</button>
+          <button type="button" id="mention-batoul-btn" class="mention-btn">Batoul (@batoulhassan)</button>
+        </div>
+      </div>
+
+      <div class="report-actions">
+        <button id="generate-report-btn" class="report-btn generate-btn">نسخ التقرير</button>
+        <button id="send-telegram-btn" class="report-btn telegram-btn" style="background: linear-gradient(135deg, #229ED9 0%, #1E88E5 100%); color: white;">إرسال</button>
+        <button id="reset-report-btn" class="report-btn reset-btn">إعادة تعيين</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deposit Percentage Section -->
+  <div id="deposit-percentage-section" class="data-list" style="display: none;">
+    <div class="report-container" dir="rtl">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 class="report-title" style="margin: 0; border: none; padding: 0;">Deposit Percentage Report</h2>
+        <div style="display: flex; gap: 5px;">
+          <button id="deposit-telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+        </div>
+      </div>
+      
+      <div class="report-field-group">
+        <label class="report-label">فترة الشفت:</label>
+        <div class="shift-selector-container">
+          <button type="button" class="shift-btn deposit-shift-btn" data-value="الصباحي">☀️ الصباحي</button>
+          <button type="button" class="shift-btn deposit-shift-btn" data-value="المسائي">🌑 المسائي</button>
+          <button type="button" class="shift-btn deposit-shift-btn" data-value="الخفر">🌙 الخفر</button>
+        </div>
+        <input type="hidden" id="deposit-report-shift" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-ip" class="report-label">IP Address *</label>
+        <input type="text" id="deposit-report-ip" class="report-input" placeholder="أدخل IP">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-country" class="report-label">IP Country *</label>
+        <input type="text" id="deposit-report-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-account" class="report-label">رقم الحساب *</label>
+        <input type="text" id="deposit-report-account" class="report-input" placeholder="أدخل رقم الحساب">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-email" class="report-label">البريد الإلكتروني *</label>
+        <input type="email" id="deposit-report-email" class="report-input" placeholder="أدخل الإيميل">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-margin" class="report-label">نسبة الهامش *</label>
+        <input type="text" id="deposit-report-margin" class="report-input" placeholder="أدخل نسبة الهامش (مثال: 22.56%)">
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">حالة الأرباح العائمة *</label>
+        <div class="selector-container" style="display: flex; gap: 10px;">
+          <button type="button" class="selector-btn" data-group="profits-status" data-value="positive">موجب</button>
+          <button type="button" class="selector-btn" data-group="profits-status" data-value="negative">سالب</button>
+        </div>
+        <input type="hidden" id="deposit-report-profits-status" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">حالة الـ IP الأخير *</label>
+        <div class="selector-container" style="display: flex; gap: 10px;">
+          <button type="button" class="selector-btn" data-group="ip-status" data-value="matching">مطابق</button>
+          <button type="button" class="selector-btn" data-group="ip-status" data-value="not-matching">غير مطابق</button>
+        </div>
+        <input type="hidden" id="deposit-report-ip-status" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">حالة البونص *</label>
+        <div class="selector-container" style="display: flex; gap: 10px;">
+          <button type="button" class="selector-btn" data-group="bonus-status" data-value="not-banned">غير محظور</button>
+          <button type="button" class="selector-btn" data-group="bonus-status" data-value="banned">محظور</button>
+        </div>
+        <input type="hidden" id="deposit-report-bonus-status" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-notes" class="report-label">ملاحظات إضافية (اختياري)</label>
+        <textarea id="deposit-report-notes" class="report-input" rows="4" placeholder="أدخل ملاحظات إضافية" style="resize: vertical;"></textarea>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور):</label>
+        <div class="file-upload-container">
+          <label for="deposit-report-images" class="file-upload-label">
+            <span class="upload-icon">📷</span>
+            <span>اختر صوراً أو اسحبها هنا</span>
+          </label>
+          <input type="file" id="deposit-report-images" multiple accept="image/*" style="display: none;">
+        </div>
+        <div id="deposit-image-preview-container" class="image-preview-container"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المنشن:</label>
+        <div class="mention-buttons-container">
+          <button type="button" id="deposit-mention-ahmed-btn" class="mention-btn">Ahmed (@ahmedelgma)</button>
+          <button type="button" id="deposit-mention-batoul-btn" class="mention-btn">Batoul (@batoulhassan)</button>
+        </div>
+      </div>
+
+      <div class="report-actions">
+        <button id="deposit-generate-report-btn" class="report-btn generate-btn">نسخ التقرير</button>
+        <button id="deposit-send-telegram-btn" class="report-btn telegram-btn" style="background: linear-gradient(135deg, #229ED9 0%, #1E88E5 100%); color: white;">إرسال</button>
+        <button id="deposit-reset-report-btn" class="report-btn reset-btn">إعادة تعيين</button>
       </div>
     </div>
   </div>
@@ -273,6 +571,164 @@
       <div class="modal-actions">
         <button id="delete-confirm-cancel" class="btn-secondary">إلغاء</button>
         <button id="delete-confirm-ok" class="btn-danger">حذف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved Notes Modal -->
+  <div id="saved-notes-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="saved-notes-close">&times;</span>
+      <h2>الملاحظات المحفوظة</h2>
+      
+      <div class="saved-notes-input-group">
+        <input type="text" id="new-note-input" placeholder="أضف ملاحظة جديدة..." class="report-input">
+        <button id="add-note-btn" class="report-btn generate-btn" style="flex: 0 0 auto; width: auto;">إضافة</button>
+      </div>
+
+      <ul id="saved-notes-list" class="saved-notes-list">
+        <!-- Notes will be injected here -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Telegram Settings Modal -->
+  <div id="telegram-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="telegram-settings-close">&times;</span>
+      <h2>إعدادات المستخدم</h2>
+      
+      <div class="report-field-group">
+        <label for="employee-name-select" class="report-label">اسم الموظف:</label>
+        <select id="employee-name-select" class="report-input report-select">
+          <option value="" disabled selected>اختر اسمك...</option>
+          <option value="ABBASS">ABBASS</option>
+          <option value="AHMED MAGDY">AHMED MAGDY</option>
+          <option value="zahraa Shaqir">zahraa Shaqir</option>
+          <option value="Zainab">Zainab</option>
+          <option value="Hadil zaiter">Hadil zaiter</option>
+          <option value="Nour karsifi">Nour karsifi</option>
+          <option value="Ahmed Gamal">Ahmed Gamal</option>
+          <option value="Mohamed Abd">Mohamed Abd</option>
+          <option value="Ahmed – Manager">Ahmed – Manager</option>
+          <option value="Shahenda Sherif">Shahenda Sherif</option>
+        </select>
+      </div>
+
+
+
+      <button id="save-user-settings-btn" class="report-btn generate-btn" style="width: 100%; margin-bottom: 20px;">حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <!-- Withdrawal Report Section -->
+  <div id="withdrawal-report-section" class="data-list" style="display: none;" dir="rtl">
+    <div class="report-container" style="max-width: 100%; padding: 20px; box-shadow: none; background: transparent;">
+      <h2 class="report-title" style="color: #e0e0e0; border-bottom-color: #444;">تقرير سحب جديد</h2>
+      
+      <div class="report-field-group">
+        <label class="report-label" style="color: #ccc;">عنوان المحفظة <span style="color: #e74c3c;">*</span></label>
+        <input type="text" id="withdrawal-wallet" class="report-input" placeholder="أدخل عنوان المحفظة" style="background: #2d3748; color: white; border-color: #4a5568;">
+        <div id="withdrawal-wallet-feedback" style="margin-top: 8px; font-size: 13px; font-weight: 500; min-height: 20px; transition: all 0.3s ease;"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label" style="color: #ccc;">الإيميلات <span style="color: #e74c3c;">*</span></label>
+        <textarea id="withdrawal-email" class="report-input" placeholder="أدخل البريد الإلكتروني (كل إيميل في سطر)" style="background: #2d3748; color: white; border-color: #4a5568; min-height: 100px; resize: vertical; font-family: monospace;"></textarea>
+        <small style="color: #a0aec0; display: block; margin-top: 5px;">يمكنك لصق نص كامل وسيتم استخراج الإيميلات تلقائياً</small>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور)</label>
+        <div id="withdrawal-drop-zone" class="image-upload-area">
+            <div class="upload-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+            </div>
+            <div class="upload-text">اسحب الصور وأفلتها هنا</div>
+            <div class="upload-hint">أو اضغط للاختيار (الحد الأقصى 3 صور)</div>
+            <div class="upload-hint">يمكنك أيضاً لصق الصور (Ctrl+V)</div>
+            <input type="file" id="withdrawal-file-input" accept="image/*" multiple style="display: none;">
+        </div>
+        <div id="withdrawal-preview-container" class="preview-container"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 30px;">
+        <button id="withdrawal-reset-btn" class="report-btn reset-btn" style="flex: 1; background: #4a5568; color: white;">إعادة تعيين</button>
+        <button id="withdrawal-submit-btn" class="report-btn generate-btn" style="flex: 2; background: #3498db;">إرسال التقرير</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Form Settings Modal -->
+  <div id="google-form-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar" style="max-height: 80vh; overflow-y: auto;">
+      <span class="close-button" id="google-form-settings-close">&times;</span>
+      <h2>إعدادات Google Form</h2>
+      
+      <div class="report-field-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <input type="checkbox" id="google-form-enable" style="width: auto; margin: 0; cursor: pointer;">
+        <label for="google-form-enable" style="margin: 0; cursor: pointer;">تفعيل الإرسال إلى Google Form</label>
+      </div>
+
+      <div class="report-field-group">
+        <label for="google-form-url" class="report-label">رابط الفورم (Form Action URL):</label>
+        <input type="text" id="google-form-url" class="report-input" placeholder="https://docs.google.com/forms/d/e/.../formResponse">
+      </div>
+
+      <h3>معرفات الحقول (Entry IDs)</h3>
+      
+      <div class="report-field-group">
+        <label for="entry-ip" class="report-label">IP Entry ID:</label>
+        <input type="text" id="entry-ip" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-country" class="report-label">Country Entry ID:</label>
+        <input type="text" id="entry-country" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-account" class="report-label">Account Entry ID:</label>
+        <input type="text" id="entry-account" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-email" class="report-label">Email Entry ID:</label>
+        <input type="text" id="entry-email" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-employee" class="report-label">Employee Name Entry ID:</label>
+        <input type="text" id="entry-employee" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-shift" class="report-label">Shift Entry ID:</label>
+        <input type="text" id="entry-shift" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-profits" class="report-label">Profits Entry ID:</label>
+        <input type="text" id="entry-profits" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-old-group" class="report-label">Old Group Entry ID:</label>
+        <input type="text" id="entry-old-group" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-new-group" class="report-label">New Group Entry ID:</label>
+        <input type="text" id="entry-new-group" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-source" class="report-label">Source Entry ID:</label>
+        <input type="text" id="entry-source" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-notes" class="report-label">Notes Entry ID:</label>
+        <input type="text" id="entry-notes" class="report-input" placeholder="entry.123456">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button id="restore-google-form-defaults" class="report-btn reset-btn" style="flex: 1;">استعادة الافتراضي</button>
+        <button id="save-google-form-settings" class="report-btn generate-btn" style="flex: 1;">حفظ الإعدادات</button>
       </div>
     </div>
   </div>

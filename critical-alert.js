@@ -137,9 +137,9 @@ function tryPlaySound() {
       if (payload && payload.items && payload.items.length > 0) {
         const firstItem = payload.items[0];
         if (firstItem.type === 'IP') {
-          text = 'اي بي مهم';
+          text = ' آي بي مهم';
         } else if (firstItem.type === 'AC') {
-          text = 'حساب مهم';
+          text = 'تنبيه حساب مهم';
         } else {
           text = 'الحساب خطير';
         }
@@ -148,9 +148,9 @@ function tryPlaySound() {
         const ips = parseIpsFromQuery();
         const accounts = parseAccountsFromQuery();
         if (ips.length > 0) {
-          text = 'اي بي مهم';
+          text = 'تنبيه آي بي مهم';
         } else if (accounts.length > 0) {
-          text = 'حساب مهم';
+          text = 'تنبيه حساب مهم';
         } else {
           text = 'الحساب خطير';
         }
@@ -345,10 +345,15 @@ function setupAutoClose(seconds) {
 }
 
 function setupButtons() {
+  const openSidepanelBtn = document.getElementById('open-sidepanel-btn');
   const closeBtn = document.getElementById('close-btn');
   const hideOnlyBtn = document.getElementById('hide-only');
   const ackBtn = document.getElementById('ack-btn');
 
+  if (openSidepanelBtn) openSidepanelBtn.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('price-sl-checker.html') });
+    window.close();
+  });
   if (closeBtn) closeBtn.addEventListener('click', () => window.close());
   if (hideOnlyBtn) hideOnlyBtn.addEventListener('click', () => window.close());
 

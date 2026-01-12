@@ -1,0 +1,40 @@
+
+/* Mention Buttons */
+.mention-buttons-container {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.mention-btn {
+  padding: 10px 16px;
+  border: 1px solid #334155;
+  background-color: #1e293b;
+  color: #94a3b8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  flex: 1;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mention-btn:hover {
+  background-color: #334155;
+  color: #e2e8f0;
+}
+
+.mention-btn.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+  color: white !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.mention-btn.active:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+}

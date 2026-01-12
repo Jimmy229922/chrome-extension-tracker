@@ -5,11 +5,13 @@ let lastNotificationId = null; // Track the last notification ID
 let toastQueue = []; // Queue toast messages when side panel not open
 let trackingPaused = false; // Pause clipboard tracking state
 let latestWalletAddress = null; // Track the last detected wallet address
+let justCopiedFromExtension = false; // Flag to ignore clipboard content after copying from extension
+let lastCopiedText = ''; // Track the last text copied from extension
 const accountNumberRegex = /^\d{6,7}$/;
 const emailRegex = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 const walletRegex = /^\s*T[a-zA-Z0-9]{33}\s*$/;
 
-const DEFAULT_CRITICAL_IPS = ['166.88.54.203', '166.88.167.40'];
+const DEFAULT_CRITICAL_IPS = ['166.88.54.203', '166.88.167.40', '77.76.9.250'];
 const CRITICAL_WATCHLIST_STORAGE_KEY = 'criticalWatchlist';
 const CRITICAL_BADGE_COLOR = '#dc2626';
 const CRITICAL_IP_ALERT_STORAGE_KEY = 'criticalIpAlert';
@@ -30,6 +32,163 @@ let criticalAccountNoteMap = new Map(); // account -> note
 const CRITICAL_POPUP_WIDTH = 560;
 const CRITICAL_POPUP_HEIGHT = 340;
 const CRITICAL_POPUP_MARGIN = 16;
+
+// Telegram Configuration
+const TELEGRAM_BOT_TOKEN = '8284290450:AAFFhQlAMWliCY0jGTAct50GTNtF5NzLIec'; // Same token as Sidepanel
+const ALERT_CHAT_ID = '-1003667986180'; // The NEW Supergroup ID (Migrated from legacy ID)
+
+// --- Shift & Duplicate Prevention Logic ---
+function getCurrentShiftId() {
+    const now = new Date();
+    const hour = now.getHours();
+    const dateStr = now.toISOString().split('T')[0];
+    let shift = 3;
+    if (hour >= 8 && hour < 16) shift = 1;
+    else if (hour >= 16) shift = 2;
+    return `${dateStr}-S${shift}`;
+}
+
+async function markIpAsSent(ip) {
+    if (!ip || ip === 'N/A') return;
+    const shiftId = getCurrentShiftId();
+    try {
+        const data = await chrome.storage.local.get('sentSecurityAlerts');
+        let record = data.sentSecurityAlerts || { shiftId: shiftId, ips: [] };
+        // Reset if new shift
+        if (record.shiftId !== shiftId) {
+            record = { shiftId: shiftId, ips: [] };
+        }
+        if (!record.ips.includes(ip)) {
+            record.ips.push(ip);
+            await chrome.storage.local.set({ sentSecurityAlerts: record });
+        }
+    } catch (e) {
+        console.warn('Failed to mark IP as sent:', e);
+    }
+}
+
+async function isIpSentInCurrentShift(ip) {
+    if (!ip || ip === 'N/A') return false;
+    const shiftId = getCurrentShiftId();
+    try {
+        const data = await chrome.storage.local.get('sentSecurityAlerts');
+        const record = data.sentSecurityAlerts;
+        if (record && record.shiftId === shiftId && record.ips.includes(ip)) {
+            return true;
+        }
+    } catch (e) { console.warn(e); }
+    return false;
+}
+// ------------------------------------------
+
+let securityAlertWindowId = null;
+
+// Clean up ID when window is closed
+chrome.windows.onRemoved.addListener((winId) => {
+    if (winId === securityAlertWindowId) {
+        securityAlertWindowId = null;
+    }
+});
+
+function openSecurityAlertPopup(ipMessage, country, type) {
+    // If already open, focus it
+    if (securityAlertWindowId) {
+        chrome.windows.update(securityAlertWindowId, { focused: true }).catch(() => {
+            securityAlertWindowId = null;
+            openSecurityAlertPopup(ipMessage, country, type); // Retry
+        });
+        return;
+    }
+
+    const params = new URLSearchParams({
+        ipMessage: ipMessage,
+        country: country,
+        type: type
+    });
+    
+    chrome.windows.create({
+        url: chrome.runtime.getURL('security-alert.html') + '?' + params.toString(),
+        type: 'popup',
+        width: 420,
+        height: 550,
+        focused: true
+    }).then(win => {
+        securityAlertWindowId = win.id;
+    }).catch(err => console.warn('Failed to open security popup:', err));
+}
+
+async function sendTelegramAlert(ipMessage, country, type, accountNumber = null) {
+  console.log('%c >>> STARTING TELEGRAM ALERT <<<', 'background: #222; color: #bada55; font-size: 20px');
+  console.log('Parameters:', { ipMessage, country, type, ALERT_CHAT_ID, accountNumber });
+
+  try {
+    const { userSettings } = await chrome.storage.local.get(['userSettings']);
+    console.log('Fetched User Settings:', userSettings);
+    
+    const employee = (userSettings && userSettings.employeeName) ? userSettings.employeeName : 'Unknown/Not Set';
+    
+    // Extract IP
+    let ip = 'N/A';
+    let regionName = '';
+
+    if (ipMessage) {
+        const ipMatch = ipMessage.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
+        ip = ipMatch ? ipMatch[0] : ipMessage.substring(0, 20);
+
+        // Extract Governorate
+        const regionMatch = ipMessage.match(/المحافظة:\s*(.+)/);
+        if (regionMatch) {
+            regionName = regionMatch[1].trim();
+        }
+    }
+
+    console.log(`Processing Alert -> IP: ${ip}, Country: ${country}, ChatID: ${ALERT_CHAT_ID}`);
+
+    let text = '';
+    if (accountNumber) {
+        text += `رقم الحساب: ${accountNumber}\n`;
+    }
+    text += `IP: ${ip} // ${country}`;
+
+    if (regionName) {
+        text += ` // ${regionName}`;
+    }
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const body = {
+      chat_id: ALERT_CHAT_ID, 
+      text: text,
+      parse_mode: 'Markdown'
+    };
+    
+    console.log('Attempting fetch to:', url);
+    console.log('Request Body:', JSON.stringify(body));
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+    });
+    
+    console.log('Fetch Response Status:', response.status);
+
+    if (!response.ok) {
+        const errText = await response.text();
+        console.error('❌ TELEGRAM ALERT FAILED ❌');
+        console.error('Status:', response.status);
+        console.error('Error Body:', errText);
+    } else {
+        const successData = await response.json();
+        console.log('✅ TELEGRAM ALERT SENT SUCCESSFULLY ✅');
+        console.log('Response Data:', successData);
+        // Mark as sent for this shift
+        markIpAsSent(ip); 
+    }
+
+  } catch (e) {
+    console.error('❌ EXCEPTION IN SEND TELEGRAM ALERT ❌', e);
+  }
+}
 
 let criticalAlertWindowId = null;
 let criticalAlertTabId = null;
@@ -122,6 +281,11 @@ async function loadCriticalWatchlistFromSync() {
       }
     }
 
+    // Ensure default note for specific IP
+    if (!ipNotes.has('77.76.9.250')) {
+      ipNotes.set('77.76.9.250', 'ال IP دة خاص ب سيرفر الشركة');
+    }
+
     criticalIpNoteMap = ipNotes;
     criticalAccountNoteMap = accountNotes;
     criticalIpSet = new Set(DEFAULT_CRITICAL_IPS.concat(userIps));
@@ -131,6 +295,7 @@ async function loadCriticalWatchlistFromSync() {
     criticalIpSet = new Set(DEFAULT_CRITICAL_IPS);
     criticalAccountSet = new Set();
     criticalIpNoteMap = new Map();
+    criticalIpNoteMap.set('77.76.9.250', 'ال IP دة خاص ب سيرفر الشركة');
     criticalAccountNoteMap = new Map();
   }
 }
@@ -172,7 +337,40 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
   }
 
   const skipSystemNotification = !!(config && config.skipSystemNotification);
-  if (skipSystemNotification) {
+  
+  // Call Telegram Alert logic regardless of Side Panel state
+  const tempToastType = toastType || '';
+  
+  if (['uk', 'netherlands', 'erbil'].includes(tempToastType)) {
+      const ipMatch = message.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
+      const ipToCheck = ipMatch ? ipMatch[0] : null;
+
+      isIpSentInCurrentShift(ipToCheck).then(isSent => {
+          if (isSent) {
+              console.log(`IP ${ipToCheck} already sent in current shift. Skipping popup.`);
+              chrome.notifications.create({
+                  type: 'basic',
+                  iconUrl: chrome.runtime.getURL('images/icon128.png'),
+                  title: '⚠️ تنبيه مكرر',
+                  message: `تم إرسال تنبيه لهذا الـ IP (${ipToCheck}) مسبقاً خلال هذا الشيفت.`
+              });
+          } else {
+              if (tempToastType === 'uk') {
+                  console.log('Detected UK IP - Opening Security Popup');
+                  openSecurityAlertPopup(message, 'United Kingdom', 'UK');
+              } else if (tempToastType === 'netherlands') {
+                  console.log('Detected Netherlands IP - Opening Security Popup');
+                  openSecurityAlertPopup(message, 'Netherlands', 'NL');
+              } else if (tempToastType === 'erbil') {
+                  console.log('Detected Special Region IP - Opening Security Popup');
+                  openSecurityAlertPopup(message, 'Iraq (Special Region)', 'IQ');
+              }
+          }
+      });
+  }
+
+  // If side panel is open, suppress system notification (user sees internal toast)
+  if (isSidePanelOpen || skipSystemNotification) {
     return;
   }
 
@@ -224,11 +422,11 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
   
   if (toastType === 'uk') {
     enhancedTitle = '🇬🇧 United Kingdom IP';
-    const ukNote = '🟥 ملاحظة هامة: يجب تحويل الحساب إلى الفئة الثالثة';
+    const ukNote = '⚠️ هام جداً: لازم نبعت ال IP دة لمدير الشيفت';
     enhancedMessage = `🚨\n${message}\n${ukNote}`;
     options.title = enhancedTitle;
     options.message = enhancedMessage;
-    options.contextMessage = '⚠️ ملاحظة هامة: يجب تحويل الحساب إلى الفئة الثالثة';
+    options.contextMessage = ukNote;
     options.type = 'basic';
     delete options.items;
     options.requireInteraction = true;
@@ -244,9 +442,11 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
   
   if (toastType === 'netherlands') {
     enhancedTitle = '🇳🇱 Netherlands IP';
-    enhancedMessage = `🚨\n${message}`;
+    const nlNote = '⚠️ هام جداً: لازم نبعت ال IP دة لمدير الشيفت';
+    enhancedMessage = `🚨\n${message}\n${nlNote}`;
     options.title = enhancedTitle;
     options.message = enhancedMessage;
+    options.contextMessage = nlNote;
     options.type = 'basic';
     delete options.items;
     options.requireInteraction = true;
@@ -611,6 +811,13 @@ async function handleWalletAddress(address) {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'writeClipboardText') {
+    justCopiedFromExtension = true;
+    lastCopiedText = message.text || '';
+    lastProcessedText = ''; // Reset to allow re-processing the same text
+    setTimeout(() => justCopiedFromExtension = false, 5000); // Reset after 5 seconds
+    // Continue to offscreen
+  }
   if (message.type === 'clipboardContent' && typeof message.text === 'string') {
     const clipboardText = message.text.trim();
     console.log('Clipboard content received (len):', clipboardText.length);
@@ -620,8 +827,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return false;
     }
 
+    if (justCopiedFromExtension) {
+      console.log('Ignoring clipboard content because it was just copied from extension');
+      return false;
+    }
+
+    if (clipboardText === lastCopiedText) {
+      console.log('Ignoring clipboard content because it matches the last copied text');
+      return false;
+    }
+
+    // --- FIX: Bring Security Alert to Front if open ---
+    if (securityAlertWindowId) {
+        console.log('Security Alert is open - bringing to front on new copy');
+        chrome.windows.update(securityAlertWindowId, { focused: true }).catch(() => {
+            securityAlertWindowId = null;
+        });
+        
+        // Optional: Send the copied text to the popup?
+        // Check if it looks like an account number (numbers, 5-10 chars)
+        if (/^\d{5,15}$/.test(clipboardText)) {
+            // It's likely an account number, we could potentially auto-fill it via messaging
+            // but for now, just focusing handles the user's issue of "window closing".
+        }
+        
+        // We do NOT stop propagation here, because the user might have copied a NEW IP.
+        // We verify below if it is a new IP.
+    }
+    // ------------------------------------------------_
+
     const criticalHits = getCriticalMatchesFromText(clipboardText);
     if (criticalHits.ips.length || criticalHits.accounts.length) {
+      // Check for Special Corporate IP to trigger TTS
+      if (criticalHits.ips.includes('77.76.9.250')) {
+        chrome.runtime.sendMessage({
+          type: 'playTTS',
+          text: 'تنبيه. هذا الآي بي خاص بسيرفر الشركة'
+        }).catch(err => console.warn('Failed to trigger TTS:', err));
+      }
+
       setCriticalAlertBadge(criticalHits).catch(err => {
         console.warn('Failed to set critical alert badge:', err);
       });
@@ -728,7 +972,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           
           // Show a colored toast (sidepanel / in-app) so the highlight is visible
           try {
-            showToastMessage('تحذير صفقات مريبة', messageLines.join('\n'), 'warning');
+            showToastMessage('تحذير صفقات مريبة', messageLines.join('\n'), 'warning', null, null, { skipSystemNotification: true });
           } catch (e) {
             console.warn('Toast warning failed', e);
           }
@@ -904,8 +1148,12 @@ async function handleNewIP(ip) {
       
       // Show only Country and Region buttons (max 2 supported)
       const buttons = [];
-      if (country && country !== 'N/A') buttons.push({ key: 'copy_country', title: 'نسخ الدولة' });
-      if (region && region !== 'N/A') buttons.push({ key: 'copy_region', title: 'نسخ المحافظة' });
+      if (country && country !== 'N/A' && region && region !== 'N/A') {
+        buttons.push({ key: 'copy_country_region', title: 'نسخ الدولة والمحافظة' });
+      } else {
+        if (country && country !== 'N/A') buttons.push({ key: 'copy_country', title: 'نسخ الدولة' });
+        if (region && region !== 'N/A') buttons.push({ key: 'copy_region', title: 'نسخ المحافظة' });
+      }
       // Store latest payload for notification button handling
       latestIpPayload = { ip, country, region, city };
       
@@ -979,9 +1227,10 @@ const notificationPayloads = {};
 chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
   // Handle Suspicious Report Button
   if (notificationId.startsWith('warning-')) {
-      if (buttonIndex === 0) {
-          chrome.tabs.create({ url: 'report.html' });
-      }
+      // Disabled per user request
+      // if (buttonIndex === 0) {
+      //     chrome.tabs.create({ url: 'report.html' });
+      // }
       return;
   }
   
@@ -1014,10 +1263,15 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
   if (!payload) return;
   let textToCopy = '';
   const availableButtons = [];
-  if (payload.country && payload.country !== 'N/A') availableButtons.push('country');
-  if (payload.region && payload.region !== 'N/A') availableButtons.push('region');
+  if (payload.country && payload.country !== 'N/A' && payload.region && payload.region !== 'N/A') {
+    availableButtons.push('country_region');
+  } else {
+    if (payload.country && payload.country !== 'N/A') availableButtons.push('country');
+    if (payload.region && payload.region !== 'N/A') availableButtons.push('region');
+  }
   const selected = availableButtons[buttonIndex];
-  if (selected === 'country') textToCopy = payload.country;
+  if (selected === 'country_region') textToCopy = `${payload.country} - (${payload.region})`;
+  else if (selected === 'country') textToCopy = payload.country;
   else if (selected === 'region') textToCopy = payload.region;
   // no city button in this mode
   if (!textToCopy) return;
@@ -1389,16 +1643,207 @@ loadCriticalWatchlistFromSync().catch(() => {});
 // Notification click handlers
 chrome.notifications.onClicked.addListener((notificationId) => {
   if (notificationId.startsWith('trades-anomaly-')) {
-    // Open critical alert popup on notification click
-    openCriticalAlertPopup({}).catch(err => console.warn('Failed to open popup on notification click:', err));
+    // Open price-sl-checker page on notification click
+    chrome.tabs.create({ url: chrome.runtime.getURL('price-sl-checker.html') });
   }
 });
 
-chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
-  if (notificationId.startsWith('trades-anomaly-')) {
-    if (buttonIndex === 0) {
-      // Open report page
-      chrome.tabs.create({ url: chrome.runtime.getURL('report.html') });
-    }
+// --- Handle Security Alert Submission ---
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'sendSecurityAlert') {
+      console.log('Received Security Alert Request:', message);
+      sendTelegramAlert(message.ipMessage, message.country, message.type, message.accountNumber)
+        .then(() => sendResponse({ success: true }))
+        .catch(err => {
+            console.error('Security Alert Error:', err);
+            sendResponse({ success: false, error: err.toString() });
+        });
+      return true; // Keep channel open
   }
 });
+
+// --- Handle Background Report Submission ---
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'submitReport') {
+    handleReportSubmission(message.data)
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => sendResponse({ success: false, error: err.toString() }));
+    return true;
+  }
+});
+
+async function handleReportSubmission(data) {
+  const { 
+    gfSettings, 
+    payload, 
+    telegramToken, 
+    telegramChatId, 
+    telegramMessage, 
+    telegramImages
+  } = data;
+
+  console.log('Background: Starting report submission...');
+
+  let formSubmissionSuccess = true; // Assume success if form is disabled
+  
+  // 1. Send to Google Form / Apps Script FIRST
+  if (gfSettings && gfSettings.enabled && gfSettings.url) {
+    console.log('Background: Sending to Google Form...');
+    formSubmissionSuccess = false; // Must prove success since it is enabled
+
+    try {
+      // Legacy Google Form (no-cors)
+      if (gfSettings.url.includes('docs.google.com/forms')) {
+        const params = new URLSearchParams();
+        // Map payload keys to entry IDs
+        if (gfSettings.entryIp) params.append(gfSettings.entryIp, payload.ip);
+        if (gfSettings.entryCountry) params.append(gfSettings.entryCountry, payload.country);
+        if (gfSettings.entryAccount) params.append(gfSettings.entryAccount, payload.account);
+        if (gfSettings.entryEmail) params.append(gfSettings.entryEmail, payload.email);
+        if (gfSettings.entrySource) params.append(gfSettings.entrySource, payload.source);
+        if (gfSettings.entryProfits) params.append(gfSettings.entryProfits, payload.profits);
+        if (gfSettings.entryOldGroup) params.append(gfSettings.entryOldGroup, payload.oldGroup);
+        if (gfSettings.entryNewGroup) params.append(gfSettings.entryNewGroup, payload.newGroup);
+        if (gfSettings.entryNotes) params.append(gfSettings.entryNotes, payload.notes);
+        if (gfSettings.entryEmployee) params.append(gfSettings.entryEmployee, payload.employeeName);
+        if (gfSettings.entryShift) params.append(gfSettings.entryShift, payload.shift);
+
+        await fetch(gfSettings.url, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString()
+        });
+        console.log('Background: Legacy Google Form request sent');
+        formSubmissionSuccess = true; // Assume success for no-cors
+      } 
+      // Apps Script
+      else if (gfSettings.url.includes('script.google.com')) {
+        const formResponse = await fetch(gfSettings.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!formResponse.ok) {
+          console.error(`Background: Google Script Error: ${formResponse.status}`);
+        } else {
+          const result = await formResponse.json();
+          if (result.status !== 'success') {
+            console.error(`Background: Google Script Failed: ${result.message}`);
+          } else {
+            console.log('Background: Google Form request sent successfully');
+            formSubmissionSuccess = true;
+          }
+        }
+      } else {
+        // Unknown URL type but enabled? Default to true or false?
+        // Let's assume if we can't handle it, we shouldn't block telegram unless strictly necessary.
+        // But for safety, let's just log and allow it if it's some other URL? 
+        // Actually, previous code only handled these two. Let's assume failure if no match.
+        console.warn('Background: Unknown Google Form URL type');
+      }
+    } catch (error) {
+      console.error('Background: Google Form Submission Error:', error);
+    }
+  }
+
+  if (!formSubmissionSuccess) {
+    console.error('Background: Google Form submission failed. Aborting Telegram submission.');
+    chrome.runtime.sendMessage({ 
+      type: 'showToast', 
+      title: 'فشل الإرسال', 
+      message: 'فشل إرسال النموذج. لم يتم إرسال التقرير إلى تيليجرام.', 
+      toastType: 'error' 
+    }).catch(() => {});
+    return; // STOP HERE
+  }
+
+  // 2. Send to Telegram (Only if Form Success or Form Disabled)
+  try {
+    console.log('Background: Sending to Telegram...');
+    let response;
+
+    if (telegramImages && telegramImages.length > 0) {
+      if (telegramImages.length === 1) {
+        // Send Single Photo
+        const imgData = telegramImages[0];
+        const byteString = atob(imgData.data.split(',')[1]);
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+        for (let i = 0; i < byteString.length; i++) {
+          ia[i] = byteString.charCodeAt(i);
+        }
+        const blob = new Blob([ab], { type: imgData.type });
+
+        const formData = new FormData();
+        formData.append('chat_id', telegramChatId);
+        formData.append('photo', blob, 'image.png');
+        formData.append('caption', telegramMessage);
+        formData.append('parse_mode', 'HTML');
+
+        response = await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
+          method: 'POST',
+          body: formData
+        });
+      } else {
+        // Send Media Group
+        const formData = new FormData();
+        formData.append('chat_id', telegramChatId);
+        
+        const mediaArray = telegramImages.map((imgData, index) => {
+          // Convert base64 to Blob
+          const byteString = atob(imgData.data.split(',')[1]);
+          const ab = new ArrayBuffer(byteString.length);
+          const ia = new Uint8Array(ab);
+          for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+          }
+          const blob = new Blob([ab], { type: imgData.type });
+          
+          const attachName = `file${index}`;
+          formData.append(attachName, blob, `image${index}.png`);
+          
+          return {
+            type: 'photo',
+            media: `attach://${attachName}`,
+            caption: index === 0 ? telegramMessage : '',
+            parse_mode: 'HTML'
+          };
+        });
+        
+        formData.append('media', JSON.stringify(mediaArray));
+        
+        response = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMediaGroup`, {
+          method: 'POST',
+          body: formData
+        });
+      }
+
+    } else {
+      // Send Text Only
+      response = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: telegramChatId,
+          text: telegramMessage,
+          parse_mode: 'HTML'
+        })
+      });
+    }
+
+    const data = await response.json();
+    if (data.ok) {
+      console.log('Background: Telegram sent successfully');
+      // Notify sidepanel if open, or show system notification
+      chrome.runtime.sendMessage({ type: 'showToast', title: 'تم الإرسال', message: 'تم إرسال التقرير بنجاح', toastType: 'default' }).catch(() => {});
+    } else {
+      console.error('Background: Telegram Error:', data);
+      chrome.runtime.sendMessage({ type: 'showToast', title: 'فشل الإرسال', message: `Telegram Error: ${data.description}`, toastType: 'warning' }).catch(() => {});
+    }
+
+  } catch (error) {
+    console.error('Background: Telegram Submission Error:', error);
+  }
+}

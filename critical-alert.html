@@ -258,7 +258,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="dark-mode">
     <div class="wrap">
       <div class="card" role="alert" aria-live="assertive">
         <div class="header">
@@ -266,7 +266,10 @@
             <span class="dot" aria-hidden="true"></span>
             <span>CRITICAL ALERT</span>
           </div>
-          <button class="close" id="close-btn" title="إغلاق" aria-label="إغلاق">×</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="close" id="open-sidepanel-btn" title="فتح صفحة الصفقات" aria-label="فتح صفحة الصفقات">📋</button>
+            <button class="close" id="close-btn" title="إغلاق" aria-label="إغلاق">✕</button>
+          </div>
         </div>
 
         <div class="body">
