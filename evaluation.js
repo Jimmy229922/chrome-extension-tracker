@@ -334,18 +334,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function updateManagerDisplays() {
+        // Shift Manager
         if (currentShiftScore !== null && currentShiftScore !== undefined) {
-            shiftManagerDisplayContainer.style.display = 'flex';
             shiftManagerDisplayValue.textContent = formatScore(currentShiftScore);
+            editShiftScoreBtn.textContent = 'تعديل';
         } else {
-            shiftManagerDisplayContainer.style.display = 'none';
+            shiftManagerDisplayValue.textContent = 'اضغط للتقييم';
+            editShiftScoreBtn.textContent = 'تقييم';
         }
 
+        // Dept Manager
         if (currentDeptScore !== null && currentDeptScore !== undefined) {
-            deptManagerDisplayContainer.style.display = 'flex';
             deptManagerDisplayValue.textContent = formatScore(currentDeptScore);
+            editDeptScoreBtn.textContent = 'تعديل';
         } else {
-            deptManagerDisplayContainer.style.display = 'none';
+            deptManagerDisplayValue.textContent = 'اضغط للتقييم';
+            editDeptScoreBtn.textContent = 'تقييم';
         }
     }
 
@@ -593,6 +597,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             clearForm();
         }
+
+        // Show manager score containers if employee selected
+        if (selectedEmployee) {
+            shiftManagerDisplayContainer.style.display = 'flex';
+            deptManagerDisplayContainer.style.display = 'flex';
+            updateManagerDisplays(); // Update text and buttons
+        } else {
+            shiftManagerDisplayContainer.style.display = 'none';
+            deptManagerDisplayContainer.style.display = 'none';
+        }
     });
 
     // Save Button
@@ -631,25 +645,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Shift Manager Display Click - Open Modal
-    shiftManagerDisplayContainer.addEventListener('click', (e) => {
-        if (e.target !== editShiftScoreBtn) return;
-        shiftEvalModalInput.value = currentShiftScore || '';
-        shiftEvalModal.style.display = 'flex';
-    });
-
-    editShiftScoreBtn.addEventListener('click', () => {
+    shiftManagerDisplayContainer.addEventListener('click', () => {
         shiftEvalModalInput.value = currentShiftScore || '';
         shiftEvalModal.style.display = 'flex';
     });
 
     // Dept Manager Display Click - Open Modal
-    deptManagerDisplayContainer.addEventListener('click', (e) => {
-        if (e.target !== editDeptScoreBtn) return;
-        deptEvalModalInput.value = currentDeptScore || '';
-        deptEvalModal.style.display = 'flex';
-    });
-
-    editDeptScoreBtn.addEventListener('click', () => {
+    deptManagerDisplayContainer.addEventListener('click', () => {
         deptEvalModalInput.value = currentDeptScore || '';
         deptEvalModal.style.display = 'flex';
     });
