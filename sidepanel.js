@@ -3290,7 +3290,7 @@ if (googleFormSettingsClose) {
 
 // --- Telegram Integration ---
 // Constants for Telegram
-const DEFAULT_TELEGRAM_TOKEN = '8284290450:AAFFhQlAMWliCY0jGTAct50GTNtF5NzLIec';
+const DEFAULT_TELEGRAM_TOKEN = '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA';
 const DEFAULT_TELEGRAM_CHAT_ID = '-1003692121203';
 
 // Open Settings

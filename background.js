@@ -34,7 +34,7 @@ const CRITICAL_POPUP_HEIGHT = 340;
 const CRITICAL_POPUP_MARGIN = 16;
 
 // Telegram Configuration
-const TELEGRAM_BOT_TOKEN = '8284290450:AAFFhQlAMWliCY0jGTAct50GTNtF5NzLIec'; // Same token as Sidepanel
+const TELEGRAM_BOT_TOKEN = '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA'; // Same token as Sidepanel
 const ALERT_CHAT_ID = '-1003667986180'; // The NEW Supergroup ID (Migrated from legacy ID)
 
 // --- Shift & Duplicate Prevention Logic ---
