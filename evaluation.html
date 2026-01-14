@@ -94,7 +94,7 @@
     /* Custom Input Table Grid */
     .reports-grid {
         display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1fr 1fr; /* Name | Done | Sent | Accuracy | Error */
+        grid-template-columns: 2fr 1fr 1fr; /* Name | Done | Sent */
         gap: 10px;
         align-items: center;
         margin-bottom: 20px;
@@ -310,7 +310,7 @@
         <h2>
             بيانات التقرير
              <div style="font-size: 1rem; color: #00d2ff; background: rgba(0, 210, 255, 0.1); padding: 5px 10px; border-radius: 8px;">
-                Total: <span id="current-total-score">0</span>
+                الإجمالي: <span id="current-total-score">0</span>
             </div>
         </h2>
         
@@ -326,7 +326,7 @@
             <div style="display: flex; gap: 10px; margin-top: 15px;">
                 <!-- Shift Manager -->
                 <div id="shift-manager-display-container" style="flex: 1; background: rgba(255, 159, 243, 0.1); border: 1px solid rgba(255, 159, 243, 0.3); padding: 10px; border-radius: 8px; display: none; align-items: center; justify-content: space-between; cursor: pointer;">
-                    <span style="color: #ff9ff3; font-weight: bold;">تقييم مسؤول الشيفت:</span>
+                    <span style="color: #ff9ff3; font-weight: bold;">تقييم الشيفت</span>
                     <span id="shift-manager-display-value" style="color: #fff; font-weight: 800; font-size: 1.2rem;">-</span>
                     <input type="hidden" id="shift-manager-input">
                     <button id="edit-shift-score-btn" style="background: none; border: none; color: #ff9ff3; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">تعديل</button>
@@ -334,7 +334,7 @@
 
                 <!-- Dept Manager -->
                 <div id="dept-manager-display-container" style="flex: 1; background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.3); padding: 10px; border-radius: 8px; display: none; align-items: center; justify-content: space-between; cursor: pointer;">
-                    <span style="color: #00d2ff; font-weight: bold;">تقييم مسؤول القسم:</span>
+                    <span style="color: #00d2ff; font-weight: bold;">تقييم القسم</span>
                     <span id="dept-manager-display-value" style="color: #fff; font-weight: 800; font-size: 1.2rem;">-</span>
                     <input type="hidden" id="dept-manager-input">
                     <button id="edit-dept-score-btn" style="background: none; border: none; color: #00d2ff; cursor: pointer; text-decoration: underline; font-size: 0.9rem;">تعديل</button>
@@ -346,129 +346,99 @@
             <div class="grid-header" style="text-align:right;">نوع التقرير</div>
             <div class="grid-header">Done</div>
             <div class="grid-header">Sent</div>
-            <div class="grid-header" id="acc-header" style="cursor:help; border-bottom:1px dashed #aaa;">% Accuracy</div>
-            <div class="grid-header" id="error-header" style="cursor:help; border-bottom:1px dashed #aaa;">% Error</div>
 
             <!-- ROW 1 -->
-            <div class="grid-row-label"><span class="weight-badge">15</span> Suspicious</div>
+            <div class="grid-row-label"><span class="weight-badge">14</span> Suspicious</div>
             <div><input type="number" id="inp-suspicious-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-suspicious-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-suspicious-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-suspicious-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 2 -->
-            <div class="grid-row-label"><span class="weight-badge">15</span> Deposit %</div>
+            <div class="grid-row-label"><span class="weight-badge">14</span> Deposit Percentage</div>
             <div><input type="number" id="inp-deposit-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-deposit-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-deposit-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-deposit-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 3 -->
-            <div class="grid-row-label"><span class="weight-badge">12</span> 3 Days Balance</div>
+            <div class="grid-row-label"><span class="weight-badge">10</span> 3 Days Balance</div>
             <div><input type="number" id="inp-3days-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-3days-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-3days-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-3days-error" placeholder="0%" min="0" max="100"></div>
             
             <!-- ROW 4 -->
             <div class="grid-row-label"><span class="weight-badge">8</span> New Positions</div>
             <div><input type="number" id="inp-new-pos-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-new-pos-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-new-pos-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-new-pos-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 5 -->
             <div class="grid-row-label"><span class="weight-badge">8</span> Profit Watching</div>
             <div><input type="number" id="inp-profit-watch-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-profit-watch-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-profit-watch-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-profit-watch-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 6 -->
             <div class="grid-row-label"><span class="weight-badge">8</span> Profit Summary</div>
             <div><input type="number" id="inp-profit-sum-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-profit-sum-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-profit-sum-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-profit-sum-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 7 -->
-            <div class="grid-row-label"><span class="weight-badge">7</span> Same Price SL</div>
+            <div class="grid-row-label"><span class="weight-badge">6</span> Same Price SL</div>
             <div><input type="number" id="inp-same-sl-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-same-sl-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-same-sl-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-same-sl-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 8 -->
-            <div class="grid-row-label"><span class="weight-badge">7</span> Deals Profit</div>
+            <div class="grid-row-label"><span class="weight-badge">6</span> Deals Profit</div>
             <div><input type="number" id="inp-deals-profit-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-deals-profit-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-deals-profit-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-deals-profit-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 9 -->
-            <div class="grid-row-label"><span class="weight-badge">5</span> Credit Out</div>
+            <div class="grid-row-label"><span class="weight-badge">4</span> Credit Out</div>
             <div><input type="number" id="inp-credit-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-credit-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-credit-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-credit-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 10 -->
-            <div class="grid-row-label"><span class="weight-badge">5</span> Accounts' Profit over 0</div>
+            <div class="grid-row-label"><span class="weight-badge">4</span> Profit over 0</div>
             <div><input type="number" id="inp-profit-zero-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-profit-zero-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-profit-zero-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-profit-zero-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 11 -->
-            <div class="grid-row-label"><span class="weight-badge">4</span> Accounts' Floating</div>
+            <div class="grid-row-label"><span class="weight-badge">4</span> Floating Profit</div>
             <div><input type="number" id="inp-floating-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-floating-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-floating-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-floating-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 12 -->
             <div class="grid-row-label"><span class="weight-badge">3</span> Two Actions</div>
             <div><input type="number" id="inp-two-actions-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-two-actions-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-two-actions-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-two-actions-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 13 -->
             <div class="grid-row-label"><span class="weight-badge">0</span> Market Warnings</div>
-            <div style="grid-column: span 3;">
-                <select id="inp-market-done" style="width:100%; height:100%; background:#2f3640; color:#fff; border:1px solid #444; border-radius:5px; padding:0 10px;">
-                    <option value="0" selected>اختر التقييم (1-5)</option>
-                    <option value="1">1 - سيء</option>
-                    <option value="2">2 - مقبول</option>
-                    <option value="3">3 - جيد</option>
-                    <option value="4">4 - جيد جداً</option>
-                    <option value="5">5 - ممتاز</option>
+            <div style="grid-column: span 2;">
+                <select id="inp-market-done" style="width:100%; height:100%; background:#2f3640; color:#fff; border:1px solid #444; border-radius:5px; padding:8px 10px; font-size:0.95rem;">
+                    <option value="0" selected>غير متابع</option>
+                    <option value="1">متابع</option>
                 </select>
-                <!-- Hidden sent input to maintain compatibility or null in JS -->
             </div>
-            <div><input type="number" id="inp-market-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 14 -->
             <div class="grid-row-label"><span class="weight-badge">1</span> Profit Leverage</div>
             <div><input type="number" id="inp-leverage-done" placeholder="0" min="0"></div>
             <div><input type="number" id="inp-leverage-sent" placeholder="0" min="0"></div>
-            <div><input type="number" id="inp-leverage-acc" placeholder="100%" min="0" max="100"></div>
-            <div><input type="number" id="inp-leverage-error" placeholder="0%" min="0" max="100"></div>
 
             <!-- ROW 15: Excellence -->
-            <div class="grid-row-label"><span class="weight-badge">Special</span> التميز (Excellence)</div>
-            <div style="grid-column: span 4;">
-                <select id="inp-excellence-done" style="width:100%; height:100%; background:#2f3640; color:#ffd700; border:1px solid #ffd700; border-radius:5px; padding:0 10px; font-weight:bold;">
-                    <option value="0" selected>-- لا يوجد تميز --</option>
-                    <option value="1">1 - تميز بسيط (+2%)</option>
-                    <option value="2">2 - تميز ملحوظ (+4%)</option>
-                    <option value="3">3 - تميز عالي (+6%)</option>
-                    <option value="4">4 - تميز فائق (+8%)</option>
-                    <option value="5">5 - إبداع منقطع النظير (+10%)</option>
+            <div class="grid-row-label"><span class="weight-badge">خاص</span> التميز</div>
+            <div style="grid-column: span 2; display:flex; gap:10px; align-items:center;">
+                <input type="text" id="inp-excellence-note" placeholder="ملاحظات التميز..." style="flex:1; background:#2f3640; color:#ffd700; border:1px solid #ffd700; border-radius:5px; padding:0 10px; font-weight:bold; height:100%;">
+                <select id="inp-excellence-bonus" style="width:140px; background:#2f3640; color:#ffd700; border:1px solid #ffd700; border-radius:5px; padding:0 10px; height:100%; font-weight:bold; text-align:center;">
+                    <option value="0" selected>بدون زيادة</option>
+                    <option value="1">زيادة 1</option>
+                    <option value="2">زيادة 2</option>
+                    <option value="3">زيادة 3</option>
                 </select>
-                <!-- Hidden inputs for compatibility -->
             </div>
 
+        </div>
+
+
+        <div class="accuracy-total" style="display:flex; gap:10px; align-items:center; margin: 10px 0 20px;">
+            <label id="acc-header" style="min-width:160px; color:#00d2ff; font-weight:bold; cursor:help;">الدقة (من 0 إلى 30)</label>
+            <input type="number" id="inp-accuracy-total" placeholder="0" min="0" max="30" step="0.01" style="flex:1;">
         </div>
 
         <button id="save-btn" class="action-btn">حفظ وتحديث</button>
@@ -479,11 +449,11 @@
         <h2>
             ترتيب الموظفين
             <div style="display:inline-flex; gap:10px;">
-                <button id="compare-btn" class="reset-week-btn" style="background:#00d2ff !important; display:none;">
-                    <span>⚖️ مقارنة</span>
+                <button id="compare-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-family: 'Tajawal', 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 700; display: none; align-items: center; gap: 6px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                    <span style="color: #fff !important; -webkit-text-fill-color: #fff !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">⚖️ مقارنة</span>
                 </button>
-                <button id="reset-all-btn" class="reset-week-btn">
-                    <span>🗑️ تصفير الأسبوع</span>
+                <button id="reset-all-btn" style="background: #c0392b !important; color: #fff !important; -webkit-text-fill-color: #fff !important; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-family: 'Tajawal', 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; transition: all 0.3s;">
+                    <span style="color: #fff !important; -webkit-text-fill-color: #fff !important;">🗑️ تصفير الأسبوع</span>
                 </button>
             </div>
         </h2>
@@ -491,9 +461,9 @@
         <div id="ideal-employee-container" class="ideal-employee-section" style="display:none;">
             <div class="winner-crown">👑</div>
             <div class="ideal-title">الموظف المثالي لهذا الأسبوع</div>
-            <h3 class="ideal-name" id="ideal-name">Loading...</h3>
-            <div style="margin-top:5px; color:#00d2ff; font-weight:bold;">Score: <span id="ideal-score">0</span></div>
-            <div style="font-size:0.8rem; color:#a0a0b0; margin-top:5px;">(Done + Sent) × Weight</div>
+            <h3 class="ideal-name" id="ideal-name">جارٍ التحميل...</h3>
+            <div style="margin-top:5px; color:#00d2ff; font-weight:bold;">الدرجة: <span id="ideal-score">0</span></div>
+            <div style="font-size:0.8rem; color:#a0a0b0; margin-top:5px;">(Done + Sent) × الوزن</div>
         </div>
 
         <table class="leaderboard-table">
@@ -502,7 +472,7 @@
                     <th style="width: 40px;"></th> <!-- Checkbox -->
                     <th>#</th>
                     <th>الموظف</th>
-                    <th style="text-align:center;">Score</th>
+                    <th style="text-align:center;">الدرجة</th>
                 </tr>
             </thead>
             <tbody id="leaderboard-body">
@@ -536,6 +506,7 @@
         <!-- Header Image/Gradient -->
         <div style="background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); padding: 20px 20px 30px 20px; border-radius: 20px 20px 0 0; text-align: center; position: relative;">
             <span id="close-modal" style="position:absolute; top:10px; right:15px; font-size:1.5rem; cursor:pointer; color:rgba(255,255,255,0.8); transition:0.2s;">&times;</span>
+            <span id="print-modal-btn" style="position:absolute; top:15px; right:50px; font-size:1.2rem; cursor:pointer; color:rgba(255,255,255,0.8); transition:0.2s; background:rgba(0,0,0,0.2); width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center;" title="تصدير PDF">🖨️</span>
             <div id="modal-employee-header" style="font-size: 1.6rem; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">اسم الموظف</div>
              <div style="font-size: 0.85rem; color: rgba(255,255,255,0.9); margin-top: 4px;">تقرير الأداء الأسبوعي</div>
         </div>
@@ -555,12 +526,10 @@
         
         <div style="background:#151521; padding:15px; border-radius:10px; margin-bottom:20px;">
             <div style="color:#aaa; font-size:0.9rem; margin-bottom:10px;">طريقة الاحتساب</div>
-            <div id="rule-formula" style="font-size:1.1rem; color:#00d2ff; font-weight:bold; direction: ltr;">Formuala</div>
+            <div id="rule-formula" style="font-size:1.1rem; color:#00d2ff; font-weight:bold; direction: ltr;">الصيغة ستظهر هنا</div>
         </div>
 
-        <div id="rule-desc" style="font-size:0.95rem; line-height:1.6; color:#ddd; margin-bottom:20px;">
-            الشرح
-        </div>
+        <div id="rule-desc" style="font-size:0.95rem; line-height:1.6; color:#ddd; margin-bottom:20px;">اختر تقريرًا لعرض طريقة الحساب.</div>
 
         <button id="close-rule-modal-btn" style="background:#00d2ff; color:#000; border:none; padding:8px 25px; border-radius:20px; font-weight:bold; cursor:pointer;">حسنًا</button>
     </div>
@@ -619,8 +588,8 @@
           <h3 style="margin-top:0; color:#ff9ff3; margin-bottom: 20px;">تقييم مسؤول الشيفت</h3>
           <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">الرجاء إدخال نسبة تقييم الموظف في هذا الأسبوع</p>
           
-          <div style="position: relative; width: 100px; margin: 0 auto 25px auto;">
-              <input type="number" id="shift-eval-modal-input" min="0" max="100" placeholder="%" style="width:100%; box-sizing:border-box; background:#0f3460; border:2px solid #ff9ff3; color:#fff; padding:15px; border-radius:12px; font-size:1.5rem; text-align:center; outline:none;">
+          <div style="position: relative; width: 150px; margin: 0 auto 25px auto;">
+              <input type="number" id="shift-eval-modal-input" min="0" max="5" step="0.01" style="width:100%; box-sizing:border-box; background:#0f3460; border:2px solid #ff9ff3; color:#fff; padding:10px; border-radius:12px; font-size:1.2rem; text-align:center; outline:none; cursor:text;">
           </div>
           
           <button id="save-shift-eval-btn" style="width:100%; background:linear-gradient(135deg, #ff9ff3 0%, #feca57 100%); color:#1e272e; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:800; font-size:1.1rem; transition:transform 0.2s;">تـأكيـد</button>
@@ -633,11 +602,87 @@
           <h3 style="margin-top:0; color:#00d2ff; margin-bottom: 20px;">تقييم مسؤول القسم</h3>
           <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">الرجاء إدخال نسبة تقييم الموظف في هذا الأسبوع</p>
           
-          <div style="position: relative; width: 100px; margin: 0 auto 25px auto;">
-              <input type="number" id="dept-eval-modal-input" min="0" max="100" placeholder="%" style="width:100%; box-sizing:border-box; background:#0f3460; border:2px solid #00d2ff; color:#fff; padding:15px; border-radius:12px; font-size:1.5rem; text-align:center; outline:none;">
+          <div style="position: relative; width: 150px; margin: 0 auto 25px auto;">
+              <input type="number" id="dept-eval-modal-input" min="0" max="5" step="0.01" style="width:100%; box-sizing:border-box; background:#0f3460; border:2px solid #00d2ff; color:#fff; padding:10px; border-radius:12px; font-size:1.2rem; text-align:center; outline:none; cursor:text;">
           </div>
           
           <button id="save-dept-eval-btn" style="width:100%; background:linear-gradient(135deg, #00d2ff 0%, #0abde3 100%); color:#1e272e; border:none; padding:12px; border-radius:10px; cursor:pointer; font-weight:800; font-size:1.1rem; transition:transform 0.2s;">تـأكيـد</button>
+      </div>
+  </div>
+
+  <!-- Manager Score Required Modal -->
+  <div id="manager-required-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:3500; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
+      <div class="modal-content" style="background: linear-gradient(145deg, #1e272e 0%, #16213e 100%); padding:0; border-radius:20px; width:90%; max-width:420px; color:#fff; border: 2px solid rgba(255, 159, 67, 0.5); box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(255, 159, 67, 0.15); overflow:hidden;">
+          
+          <!-- Header with Warning Icon -->
+          <div style="background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%); padding: 25px 20px; text-align: center;">
+              <div style="font-size: 4rem; margin-bottom: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">📝</div>
+              <h3 style="margin: 0; color: #fff; font-size: 1.4rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">بيانات مطلوبة!</h3>
+          </div>
+          
+          <!-- Body -->
+          <div style="padding: 25px 30px;">
+              <p style="color: #fff; font-size: 1.1rem; line-height: 1.8; margin: 0 0 20px 0; text-align: center;">
+                  لازم تدخل <span style="color: #ff9f43; font-weight: 800;">تقييم المديرين</span> قبل الحفظ
+              </p>
+              
+              <div style="background: rgba(255, 159, 67, 0.1); border: 1px solid rgba(255, 159, 67, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                  <div style="display: flex; flex-direction: column; gap: 12px;">
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                          <span style="font-size: 1.5rem;">👔</span>
+                          <span style="color: #ff9ff3; font-weight: 600;">تقييم مسؤول الشيفت</span>
+                          <span style="color: #ccc; font-size: 0.85rem;">(من 0 إلى 5)</span>
+                      </div>
+                      <div style="display: flex; align-items: center; gap: 10px;">
+                          <span style="font-size: 1.5rem;">🏢</span>
+                          <span style="color: #00d2ff; font-weight: 600;">تقييم مسؤول القسم</span>
+                          <span style="color: #ccc; font-size: 0.85rem;">(من 0 إلى 5)</span>
+                      </div>
+                  </div>
+              </div>
+              
+              <!-- Button -->
+              <button id="close-manager-required-btn" style="width: 100%; background: linear-gradient(135deg, #ff9f43 0%, #ee5a24 100%); color: #fff; border: none; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 1rem; transition: all 0.3s; box-shadow: 0 4px 15px rgba(255, 159, 67, 0.4);">
+                  فهمت، سأدخل التقييم
+              </button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Reset Week Confirmation Modal -->
+  <div id="reset-week-modal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.92); z-index:3500; justify-content:center; align-items:center; backdrop-filter: blur(8px);">
+      <div class="modal-content" style="background: linear-gradient(145deg, #1e272e 0%, #16213e 100%); padding:0; border-radius:20px; width:90%; max-width:420px; color:#fff; border: 2px solid rgba(231, 76, 60, 0.5); box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(231, 76, 60, 0.15); overflow:hidden;">
+          
+          <!-- Header with Warning Icon -->
+          <div style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 25px 20px; text-align: center;">
+              <div style="font-size: 4rem; margin-bottom: 10px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));">⚠️</div>
+              <h3 style="margin: 0; color: #fff; font-size: 1.5rem; font-weight: 800; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">تحذير هام!</h3>
+          </div>
+          
+          <!-- Body -->
+          <div style="padding: 25px 30px;">
+              <p style="color: #fff; font-size: 1.1rem; line-height: 1.8; margin: 0 0 15px 0; text-align: center;">
+                  هل أنت متأكد من <span style="color: #e74c3c; font-weight: 800;">تصفير بيانات الأسبوع</span>؟
+              </p>
+              
+              <div style="background: rgba(231, 76, 60, 0.1); border: 1px solid rgba(231, 76, 60, 0.3); border-radius: 12px; padding: 15px; margin-bottom: 25px;">
+                  <ul style="margin: 0; padding-right: 20px; color: #ccc; font-size: 0.95rem; line-height: 1.8;">
+                      <li>سيتم حذف <b style="color:#fff;">جميع بيانات التقييم</b> لكل الموظفين</li>
+                      <li>سيتم إعادة <b style="color:#fff;">جميع الدرجات</b> إلى الصفر</li>
+                      <li style="color: #e74c3c; font-weight: 600;">هذا الإجراء لا يمكن التراجع عنه!</li>
+                  </ul>
+              </div>
+              
+              <!-- Buttons -->
+              <div style="display: flex; gap: 12px;">
+                  <button id="confirm-reset-week-btn" style="flex: 1; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: #fff; border: none; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 1rem; transition: all 0.3s; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);">
+                      🗑️ نعم، تصفير الأسبوع
+                  </button>
+                  <button id="cancel-reset-week-btn" style="flex: 1; background: #2f3542; color: #fff; border: 1px solid rgba(255,255,255,0.1); padding: 14px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 1rem; transition: all 0.3s;">
+                      إلغاء
+                  </button>
+              </div>
+          </div>
       </div>
   </div>
 

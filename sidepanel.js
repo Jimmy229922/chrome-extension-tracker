@@ -4116,11 +4116,13 @@ document.addEventListener('paste', (e) => {
 
 // Deposit Report Mentions
 if (depositMentionAhmedBtn) {
+  depositMentionAhmedBtn.classList.add('active');
   depositMentionAhmedBtn.addEventListener('click', () => {
     depositMentionAhmedBtn.classList.toggle('active');
   });
 }
 if (depositMentionBatoulBtn) {
+  depositMentionBatoulBtn.classList.add('active');
   depositMentionBatoulBtn.addEventListener('click', () => {
     depositMentionBatoulBtn.classList.toggle('active');
   });
@@ -4199,8 +4201,8 @@ if (depositResetReportBtn) {
     setDepositShift(shift);
 
     // Reset Mentions
-    if (depositMentionAhmedBtn) depositMentionAhmedBtn.classList.remove('active');
-    if (depositMentionBatoulBtn) depositMentionBatoulBtn.classList.remove('active');
+    if (depositMentionAhmedBtn) depositMentionAhmedBtn.classList.add('active');
+    if (depositMentionBatoulBtn) depositMentionBatoulBtn.classList.add('active');
     
     // Reset Images
     depositSelectedImages = [];
@@ -4228,6 +4230,16 @@ if (depositGenerateReportBtn) {
     const ipStatusText = ipStatus === 'matching' ? 'مطابق' : 'غير مطابق';
     const bonusText = bonusStatus === 'not-banned' ? 'العميل غير محظور من البونص' : 'العميل محظور من البونص';
 
+    // Mentions
+    let mentions = [];
+    if (depositMentionAhmedBtn && depositMentionAhmedBtn.classList.contains('active')) {
+      mentions.push('@ahmedelgma');
+    }
+    if (depositMentionBatoulBtn && depositMentionBatoulBtn.classList.contains('active')) {
+      mentions.push('@batoulhassan');
+    }
+    const mentionsText = mentions.length > 0 ? '\n' + mentions.join(' ') : '';
+
     const report = `تقرير Deposit Report
 
 ip country: ${country}
@@ -4239,7 +4251,7 @@ IP: ${ip}
 الأرباح للصفقات العائمة (${profitsText})
 الـ IP الأخير (${ipStatusText}) لبلد التسجيل، ${bonusText}
 ${notes ? '\n' + notes : ''}
-
+${mentionsText}
 #deposit_percentages`;
 
     try {
