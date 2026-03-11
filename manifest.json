@@ -13,12 +13,15 @@
     "notifications",
     "tabs",
     "windows",
-    "downloads"
+    "downloads",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
-    "https://ipwhois.app/",
+    "https://ipwhois.app/*",
     "https://api.telegram.org/",
-    "https://docs.google.com/"
+    "https://docs.google.com/",
+    "https://dns.google/*",
+    "https://cloudflare-dns.com/*"
   ],
   "side_panel": {
     "default_path": "sidepanel.html"

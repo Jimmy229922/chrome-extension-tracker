@@ -27,6 +27,7 @@
       <button id="profit-tab" class="tab-button">Profit Calculator</button>
       <button id="transfer-report-tab" class="tab-button">Transfer Report</button>
       <button id="withdrawal-report-btn" class="tab-button">Withdrawal Report</button>
+      <button id="credit-out-btn" class="tab-button">Credit Out</button>
       <button id="hedge-checker-btn" class="tab-button">Hedge Checker</button>
       <button id="deposit-percentage-btn" class="tab-button">Deposit Percentage</button>
       <button id="classification-helper-btn" class="tab-button">Classify</button>
@@ -45,6 +46,7 @@
       <button class="tag-filter-btn" data-filter="safe">🟢 آمن</button>
       <button class="tag-filter-btn" data-filter="under-review">🟡 قيد المراجعة</button>
       <button class="tag-filter-btn" data-filter="flagged">🚩 محظور</button>
+      <button class="tag-filter-btn" data-filter="none">❌ إزالة التصنيف</button>
     </div>
     <input type="text" id="search-bar" placeholder="Search accounts...">
     <div class="header-buttons">
@@ -606,6 +608,8 @@
           <option value="AHMED MAGDY">AHMED MAGDY</option>
           <option value="zahraa Shaqir">zahraa Shaqir</option>
           <option value="Zainab">Zainab</option>
+          <option value="Basant Abdelhamed">Basant Abdelhamed</option>
+          <option value="Zain-Alabdeen Balloul">Zain-Alabdeen Balloul</option>
           <option value="Hadil zaiter">Hadil zaiter</option>
           <option value="Nour karsifi">Nour karsifi</option>
           <option value="Ahmed Gamal">Ahmed Gamal</option>
@@ -618,6 +622,142 @@
 
 
       <button id="save-user-settings-btn" class="report-btn generate-btn" style="width: 100%; margin-bottom: 20px;">حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <!-- Credit Out Section -->
+  <div id="credit-out-section" class="data-list" style="display: none;" dir="rtl">
+    <div class="report-container" style="max-width: 100%; padding: 20px; box-shadow: none; background: transparent;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير Credit Out</h2>
+        <div style="display: flex; gap: 5px;">
+          <button id="credit-out-settings-btn" class="icon-btn" title="إعدادات" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+        </div>
+      </div>
+      
+      <div class="report-field-group">
+        <label class="report-label">فترة الشفت:</label>
+        <div class="shift-selector-container" style="display: flex; gap: 10px; margin-bottom: 5px;">
+          <button type="button" class="credit-out-shift-btn shift-btn" data-value="الصباحي">الصباحي ☀️</button>
+          <button type="button" class="credit-out-shift-btn shift-btn" data-value="المسائي">المسائي 🌅</button>
+          <button type="button" class="credit-out-shift-btn shift-btn" data-value="الخفر">الخفر 🌙</button>
+        </div>
+        <input type="hidden" id="credit-out-shift" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-ip" class="report-label">IP:</label>
+        <input type="text" id="credit-out-ip" class="report-input" placeholder="أدخل IP">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-country" class="report-label">IP Country:</label>
+        <input type="text" id="credit-out-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-account" class="report-label">رقم الحساب:</label>
+        <input type="text" id="credit-out-account" class="report-input" placeholder="أدخل رقم الحساب">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-email" class="report-label">الإيميل:</label>
+        <input type="email" id="credit-out-email" class="report-input" placeholder="أدخل الإيميل">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-date" class="report-label">التاريخ:</label>
+        <input type="text" id="credit-out-date" class="report-input" placeholder="الصق سطر البيانات وسيتم استخراج التاريخ تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-amount" class="report-label">المبلغ:</label>
+        <input type="text" id="credit-out-amount" class="report-input" placeholder="أدخل المبلغ (مثال: 41.83$)">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-notes" class="report-label">الملاحظة:</label>
+        <div style="position: relative;">
+          <textarea id="credit-out-notes" class="report-input" rows="3" placeholder="أدخل الملاحظة" style="resize: vertical;"></textarea>
+          <button id="credit-out-notes-modal-btn" type="button" style="position: absolute; left: 10px; bottom: 10px; background: none; border: none; cursor: pointer; font-size: 1.2rem;" title="اختر ملاحظة">📋</button>
+        </div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور):</label>
+        <div id="credit-out-drop-zone" class="image-upload-area">
+          <div class="upload-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <div class="upload-text">اسحب الصور وأفلتها هنا</div>
+          <div class="upload-hint">أو اضغط للاختيار</div>
+          <input type="file" id="credit-out-file-input" accept="image/*" multiple style="display: none;">
+        </div>
+        <div id="credit-out-preview-container" class="preview-container"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المنشن:</label>
+        <div class="mention-buttons-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" id="credit-out-mention-ahmed" class="mention-btn">Ahmed (@ahmedelgma)</button>
+          <button type="button" id="credit-out-mention-batoul" class="mention-btn">Batoul (@batoulhassan)</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 30px; flex-wrap: wrap;">
+        <button id="credit-out-copy-btn" class="report-btn generate-btn" style="flex: 1;">نسخ التقرير</button>
+        <button id="credit-out-send-btn" class="report-btn telegram-btn" style="flex: 1;">إرسال</button>
+        <button id="credit-out-reset-btn" class="report-btn reset-btn" style="flex: 1;">إعادة تعيين</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credit Out Notes Modal -->
+  <div id="credit-out-notes-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="credit-out-notes-modal-close">&times;</span>
+      <h2>الملاحظات المحفوظة</h2>
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input type="text" id="credit-out-new-note-input" placeholder="أضف ملاحظة جديدة..." class="report-input">
+        <button id="credit-out-add-note-btn" class="report-btn generate-btn" style="flex: 0 0 auto; width: auto; padding: 10px 20px;">إضافة</button>
+      </div>
+
+      <ul id="credit-out-notes-list" style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+      </ul>
+    </div>
+  </div>
+
+  <!-- Credit Out Settings Modal -->
+  <div id="credit-out-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="credit-out-settings-close">&times;</span>
+      <h2>إعدادات المستخدم</h2>
+      
+      <div class="report-field-group">
+        <label for="credit-out-employee-select" class="report-label">اسم الموظف:</label>
+        <select id="credit-out-employee-select" class="report-input report-select">
+          <option value="" disabled selected>اختر اسمك...</option>
+          <option value="ABBASS">ABBASS</option>
+          <option value="AHMED MAGDY">AHMED MAGDY</option>
+          <option value="zahraa Shaqir">zahraa Shaqir</option>
+          <option value="Zainab">Zainab</option>
+          <option value="Basant Abdelhamed">Basant Abdelhamed</option>
+          <option value="Zain-Alabdeen Balloul">Zain-Alabdeen Balloul</option>
+          <option value="Hadil zaiter">Hadil zaiter</option>
+          <option value="Nour karsifi">Nour karsifi</option>
+          <option value="Ahmed Gamal">Ahmed Gamal</option>
+          <option value="Mohamed Abd">Mohamed Abd</option>
+          <option value="Ahmed – Manager">Ahmed – Manager</option>
+          <option value="Shahenda Sherif">Shahenda Sherif</option>
+        </select>
+      </div>
+
+      <button id="credit-out-save-settings-btn" class="report-btn generate-btn" style="width: 100%;">حفظ الإعدادات</button>
     </div>
   </div>
 
@@ -733,6 +873,19 @@
     </div>
   </div>
 
+  <!-- Core: Variables, Toast, Translations -->
+  <script src="sidepanel-core.js"></script>
+  
+  <!-- Modals: All Modal Windows -->
+  <script src="sidepanel-modals.js"></script>
+  
+  <!-- Tabs: Navigation & Filters -->
+  <script src="sidepanel-tabs.js"></script>
+
+  <!-- Shared IP geolocation client -->
+  <script src="ip-geo-client.js"></script>
+  
+  <!-- Main Logic: Watchlist, Rendering, Reports, Integrations -->
   <script src="sidepanel.js"></script>
 </body>
 </html>

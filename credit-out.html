@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تقرير تحويل الحسابات</title>
+  <title>تقرير Credit Out</title>
   <link rel="stylesheet" href="style.css">
   <script src="csp-guard.js"></script>
   <style>
@@ -35,7 +35,7 @@
 
     body.dark-mode .report-container {
       /* Glassmorphism Dark */
-      background: rgba(15, 23, 42, 0.6); /* Slightly more transparent dark */
+      background: rgba(15, 23, 42, 0.6);
       border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
     }
@@ -82,17 +82,6 @@
     }
     .shift-btn {
       flex: 1;
-      padding: 10px;
-      border: 1px solid #ddd;
-      background: #f8f9fa;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-    }
-    /* Colors for each shift type - Professional Theme */
-    .shift-btn {
-      flex: 1;
       padding: 12px;
       border: 1px solid rgba(0,0,0,0.1);
       background: white;
@@ -111,23 +100,23 @@
     }
 
     .shift-btn[data-value="الصباحي"].active {
-      background: linear-gradient(135deg, #fce38a 0%, #f38181 100%); /* Sunrise Gold/Pink */
+      background: linear-gradient(135deg, #fce38a 0%, #f38181 100%);
       border-color: transparent;
       color: white;
       text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
     
     .shift-btn[data-value="المسائي"].active {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); /* Clear Sky Blue */
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
       border-color: transparent;
       color: white;
       text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
     
     .shift-btn[data-value="الخفر"].active {
-      background: linear-gradient(135deg, #434343 0%, #000000 100%); /* Night/Black */
+      background: linear-gradient(135deg, #434343 0%, #000000 100%);
       border-color: transparent;
-      color: #ffd700; /* Gold Text */
+      color: #ffd700;
       text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
 
@@ -142,7 +131,7 @@
       position: relative;
     }
     .file-upload-container:hover {
-      border-color: #ffd700; /* Gold */
+      border-color: #ffd700;
       background: rgba(255, 255, 255, 0.8);
       box-shadow: 0 8px 16px rgba(0,0,0,0.05);
     }
@@ -180,7 +169,7 @@
       position: absolute;
       top: 5px;
       right: 5px;
-      background: rgba(231, 76, 60, 0.9); /* Clear Red */
+      background: rgba(231, 76, 60, 0.9);
       color: white;
       border: 2px solid white;
       border-radius: 50%;
@@ -267,13 +256,13 @@
       transform: scale(0.98);
     }
     .generate-btn {
-      background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); /* Fresh Green */
+      background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
     }
     .telegram-btn {
-      background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%); /* Telegram Blue */
+      background: linear-gradient(135deg, #2AABEE 0%, #229ED9 100%);
     }
     .reset-btn {
-      background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%); /* Professional Red */
+      background: linear-gradient(135deg, #ff512f 0%, #dd2476 100%);
     }
     
     /* Modal Styles */
@@ -469,7 +458,7 @@
 
   <div class="report-container">
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; margin-bottom: 30px; padding-bottom: 20px;">
-      <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير تحويل الحسابات</h2>
+      <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير Credit Out</h2>
       <div style="display: flex; gap: 10px;">
         <button id="telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.5rem;">⚙️</button>
       </div>
@@ -486,13 +475,8 @@
     </div>
 
     <div class="report-field-group">
-      <label for="report-ip" class="report-label">IP:</label>
-      <input type="text" id="report-ip" class="report-input" placeholder="أدخل IP">
-    </div>
-
-    <div class="report-field-group">
-      <label for="report-country" class="report-label">IP Country:</label>
-      <input type="text" id="report-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً" style="background-color: #f9f9f9;">
+      <label for="report-email" class="report-label">الإيميل:</label>
+      <input type="email" id="report-email" class="report-input" placeholder="أدخل الإيميل">
     </div>
 
     <div class="report-field-group">
@@ -501,127 +485,35 @@
     </div>
 
     <div class="report-field-group">
-      <label for="report-email" class="report-label">الإيميل:</label>
-      <input type="email" id="report-email" class="report-input" placeholder="أدخل الإيميل">
+      <label for="report-ip" class="report-label">IP:</label>
+      <input type="text" id="report-ip" class="report-input" placeholder="أدخل IP">
     </div>
 
     <div class="report-field-group">
-      <label for="report-source" class="report-label">مصدر التحويل:</label>
-      <select id="report-source" class="report-input report-select">
-        <option value="2 ACTIONS">2 ACTIONS</option>
-        <option value="PROFIT SUMMARY">PROFIT SUMMARY</option>
-        <option value="suspicious traders" selected>suspicious traders</option>
-        <option value="NEW POSITIONS">NEW POSITIONS</option>
-        <option value="Deals with No profit">Deals with No profit</option>
-        <option value="Same Price">Same Price</option>
-        <option value="Floating Profit">Floating Profit</option>
-        <option value="Transfer Report">Transfer Report</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="report-source-custom" class="report-input" placeholder="أدخل المصدر" style="display: none; margin-top: 10px;">
+      <label for="report-country" class="report-label">الدولة:</label>
+      <input type="text" id="report-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً" style="background-color: #f9f9f9;">
     </div>
 
     <div class="report-field-group">
-      <label for="report-profits" class="report-label">الارباح:</label>
-      <select id="report-profits" class="report-input report-select">
-        <option value="ارباح بالسالب">ارباح بالسالب</option>
-        <option value="ارباح لم تتخطى 50%">ارباح لم تتخطى 50%</option>
-        <option value="ارباح فوق 100%">ارباح فوق 100%</option>
-        <option value="ارباح بالموجب">ارباح بالموجب</option>
-        <option value="Other">Other</option>
-      </select>
-      <input type="text" id="report-profits-custom" class="report-input" placeholder="أدخل الارباح" style="display: none; margin-top: 10px;">
+      <label for="report-date-raw" class="report-label">بيانات التاريخ:</label>
+      <input type="text" id="report-date-raw" class="report-input" placeholder="الصق سطر البيانات هنا (مثال: 2026.01.20 20:35:07	146018923	Balance...)">
+      <small style="color: #7f8c8d; display: block; margin-top: 5px;">سيتم استخراج التاريخ والوقت تلقائياً</small>
     </div>
 
     <div class="report-field-group">
-      <label for="report-old-group" class="report-label">الغروب القديم (Old Group):</label>
-      <select id="report-old-group" class="report-input report-select">
-        <option value="" disabled selected>اختر الغروب القديم...</option>
-        
-        <optgroup label="B5 Family">
-          <option value="B5">B5</option>
-          <option value="B5 2">B5 2</option>
-          <option value="B5 3">B5 3</option>
-          <option value="B5 W">B5 W</option>
-          <option value="B5 2W">B5 2W</option>
-          <option value="B5 yemen">B5 yemen</option>
-          <option value="B5 FS">B5 FS</option>
-          <option value="B5 FS 2">B5 FS 2</option>
-        </optgroup>
-
-        <optgroup label="Zero Family">
-          <option value="ZERO S">ZERO S</option>
-          <option value="ZERO 2">ZERO 2</option>
-          <option value="ZERO 3">ZERO 3</option>
-          <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
-          <option value="Zero Standard A 2">Zero Standard A 2</option>
-        </optgroup>
-
-        <optgroup label="B1 Family">
-          <option value="B1">B1</option>
-          <option value="B1 CLIENT">B1 CLIENT</option>
-          <option value="B1 CLIENT 2">B1 CLIENT 2</option>
-        </optgroup>
-
-        <optgroup label="Standard Family">
-          <option value="Standard Acccount 2">Standard Acccount 2</option>
-          <option value="Standard Bonus">Standard Bonus</option>
-        </optgroup>
-
-        <optgroup label="Others">
-          <option value="B2 AD">B2 AD</option>
-          <option value="copy trade 2">copy trade 2</option>
-          <option value="COPY TRADE">COPY TRADE</option>
-        </optgroup>
-      </select>
+      <label for="report-date" class="report-label">التاريخ والوقت (مستخرج):</label>
+      <input type="text" id="report-date" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً" style="background-color: #f9f9f9;">
     </div>
 
     <div class="report-field-group">
-      <label for="report-new-group" class="report-label">الغروب الجديد (New Group):</label>
-      <select id="report-new-group" class="report-input report-select">
-        <option value="" disabled selected>اختر الغروب الجديد</option>
-        
-        <optgroup label="B5 Family">
-          <option value="B5">B5</option>
-          <option value="B5 2">B5 2</option>
-          <option value="B5 3">B5 3</option>
-          <option value="B5 W">B5 W</option>
-          <option value="B5 2W">B5 2W</option>
-          <option value="B5 yemen">B5 yemen</option>
-          <option value="B5 FS">B5 FS</option>
-          <option value="B5 FS 2">B5 FS 2</option>
-        </optgroup>
-
-        <optgroup label="Zero Family">
-          <option value="ZERO S">ZERO S</option>
-          <option value="ZERO 2">ZERO 2</option>
-          <option value="ZERO 3">ZERO 3</option>
-          <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
-          <option value="Zero Standard A 2">Zero Standard A 2</option>
-        </optgroup>
-
-        <optgroup label="B1 Family">
-          <option value="B1">B1</option>
-          <option value="B1 CLIENT">B1 CLIENT</option>
-          <option value="B1 CLIENT 2">B1 CLIENT 2</option>
-        </optgroup>
-
-        <optgroup label="Standard Family">
-          <option value="Standard Acccount 2">Standard Acccount 2</option>
-          <option value="Standard Bonus">Standard Bonus</option>
-        </optgroup>
-
-        <optgroup label="Others">
-          <option value="B2 AD">B2 AD</option>
-          <option value="copy trade 2">copy trade 2</option>
-        </optgroup>
-      </select>
+      <label for="report-amount" class="report-label">المبلغ:</label>
+      <input type="text" id="report-amount" class="report-input" placeholder="أدخل المبلغ (مثال: 41.83$)">
     </div>
 
     <div class="report-field-group">
-      <label for="report-notes" class="report-label">الملاحظات:</label>
+      <label for="report-notes" class="report-label">الملاحظة:</label>
       <div style="position: relative;">
-        <textarea id="report-notes" class="report-input" rows="4" placeholder="أدخل الملاحظات" style="resize: vertical;"></textarea>
+        <textarea id="report-notes" class="report-input" rows="4" placeholder="أدخل الملاحظة" style="resize: vertical;"></textarea>
         <button id="open-notes-modal-btn" type="button" style="position: absolute; left: 10px; bottom: 10px; background: none; border: none; cursor: pointer; font-size: 1.2rem;" title="اختر ملاحظة">📋</button>
       </div>
     </div>
@@ -685,6 +577,8 @@
           <option value="AHMED MAGDY">AHMED MAGDY</option>
           <option value="zahraa Shaqir">zahraa Shaqir</option>
           <option value="Zainab">Zainab</option>
+          <option value="Basant Abdelhamed">Basant Abdelhamed</option>
+          <option value="Zain-Alabdeen Balloul">Zain-Alabdeen Balloul</option>
           <option value="Hadil zaiter">Hadil zaiter</option>
           <option value="Nour karsifi">Nour karsifi</option>
           <option value="Ahmed Gamal">Ahmed Gamal</option>
@@ -694,13 +588,11 @@
         </select>
       </div>
 
-
-
       <button id="save-user-settings-btn" class="report-btn generate-btn" style="width: 100%;">حفظ الإعدادات</button>
     </div>
   </div>
 
   <script src="ip-geo-client.js"></script>
-  <script src="transfer-report.js"></script>
+  <script src="credit-out.js"></script>
 </body>
 </html>

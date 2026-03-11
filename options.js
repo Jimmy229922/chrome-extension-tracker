@@ -14,6 +14,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Preferences
   const tooltipsToggle = document.getElementById('tooltips-toggle');
   const alertSoundText = document.getElementById('alert-sound-text');
+  const globalEmployeeSelect = document.getElementById('global-employee-select');
+  const saveGlobalEmployeeBtn = document.getElementById('save-global-employee');
+  const globalEmployeeStatus = document.getElementById('global-employee-status');
+  const initialEmployeeOverlay = document.getElementById('initial-employee-overlay');
+  const initialEmployeeSelect = document.getElementById('initial-employee-select');
+  const initialEmployeeSave = document.getElementById('initial-employee-save');
+  const initialEmployeeError = document.getElementById('initial-employee-error');
   // Onboarding elements
   const onboardingOverlay = document.getElementById('onboarding-overlay');
   const onboardingNext = document.getElementById('onboarding-next');
@@ -27,6 +34,115 @@ document.addEventListener('DOMContentLoaded', () => {
   const onbProgressFill = document.querySelector('.onb-progress-fill');
   const reopenOnboarding = document.getElementById('reopen-onboarding');
   let onboardingStep = 1;
+  let shouldShowOnboardingAfterSetup = false;
+  let shouldShowOnboardingStep = 1;
+  let employeeSetupRequired = false;
+  let employeeNameLocked = false;
+  const EMPLOYEE_NAMES = [
+    'ABBASS',
+    'AHMED MAGDY',
+    'zahraa Shaqir',
+    'Zainab',
+    'Basant Abdelhamed',
+    'Zain-Alabdeen Balloul',
+    'Hadil zaiter',
+    'Nour karsifi',
+    'Ahmed Gamal',
+    'Mohamed Abd',
+    'Ahmed - Manager',
+    'Shahenda Sherif'
+  ];
+
+  function populateEmployeeSelect(selectEl) {
+    if (!selectEl) return;
+    if (selectEl.querySelector('option[value="ABBASS"]')) return;
+    EMPLOYEE_NAMES.forEach((name) => {
+      const option = document.createElement('option');
+      option.value = name;
+      option.textContent = name;
+      selectEl.appendChild(option);
+    });
+  }
+
+  function ensureEmployeeOption(selectEl, name) {
+    if (!selectEl || !name) return;
+    const exists = Array.from(selectEl.options || []).some((opt) => opt.value === name);
+    if (exists) return;
+    const option = document.createElement('option');
+    option.value = name;
+    option.textContent = name;
+    selectEl.appendChild(option);
+  }
+
+  function applyEmployeeLockState() {
+    const locked = !!employeeNameLocked;
+    if (globalEmployeeSelect) globalEmployeeSelect.disabled = locked;
+    if (saveGlobalEmployeeBtn) saveGlobalEmployeeBtn.disabled = locked;
+  }
+
+  function setGlobalEmployeeStatus(message, color = '#166534') {
+    if (!globalEmployeeStatus) return;
+    globalEmployeeStatus.textContent = message || '';
+    globalEmployeeStatus.style.color = color;
+  }
+
+  function setInitialEmployeeError(message) {
+    if (!initialEmployeeError) return;
+    initialEmployeeError.textContent = message || '';
+  }
+
+  function showInitialEmployeeOverlay() {
+    if (!initialEmployeeOverlay) return;
+    initialEmployeeOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    setInitialEmployeeError('');
+    setTimeout(() => {
+      if (initialEmployeeSelect) initialEmployeeSelect.focus();
+    }, 50);
+  }
+
+  function hideInitialEmployeeOverlay() {
+    if (!initialEmployeeOverlay) return;
+    initialEmployeeOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function persistEmployeeName(name, onDone, allowOverwrite = false) {
+    chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (localData) => {
+      const existingName = (
+        (localData?.userSettings?.employeeName || '').trim() ||
+        (localData?.creditOutEmployeeName || '').trim()
+      );
+      if (existingName && !allowOverwrite) {
+        if (typeof onDone === 'function') onDone(false, existingName);
+        return;
+      }
+
+      const nextUserSettings = {
+        ...(localData.userSettings || {}),
+        employeeName: name
+      };
+
+      chrome.storage.local.set({
+        userSettings: nextUserSettings,
+        creditOutEmployeeName: name
+      }, () => {
+        ensureEmployeeOption(globalEmployeeSelect, name);
+        ensureEmployeeOption(initialEmployeeSelect, name);
+        if (globalEmployeeSelect) globalEmployeeSelect.value = name;
+        if (initialEmployeeSelect) initialEmployeeSelect.value = name;
+        if (typeof onDone === 'function') onDone(true, name);
+      });
+    });
+  }
+
+  function maybeShowOnboardingAfterEmployeeSetup() {
+    if (employeeSetupRequired) return;
+    if (!shouldShowOnboardingAfterSetup) return;
+    onboardingStep = shouldShowOnboardingStep || 1;
+    shouldShowOnboardingAfterSetup = false;
+    showOnboarding();
+  }
   const onboardingSteps = [
     {
       title: '🔍 ماذا تفعل الإضافة؟',
@@ -53,6 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
       desc: 'تهانينا! لقد أكملت الجولة التعريفية. الآن يمكنك البدء في استخدام الإضافة. جرب نسخ رقم حساب أو عنوان IP لترى كيف تعمل. إذا كان لديك أي أسئلة، يمكنك إعادة عرض هذه الجولة في أي وقت من خلال الزر أدناه. استمتع بتجربة تصفح أكثر أمانًا وكفاءة!'
     }
   ];
+
+  populateEmployeeSelect(globalEmployeeSelect);
+  populateEmployeeSelect(initialEmployeeSelect);
 
   // Function to apply dark mode to options page
   function applyDarkModeToOptions(isDarkMode) {
@@ -90,11 +209,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial compute for result counter
     computeAndRenderOptionsCounter();
 
-    // Show onboarding if not completed
-    if (!data.onboardingCompleted && onboardingOverlay) {
-      onboardingStep = data.onboardingStep || 1;
-      showOnboarding();
-    }
+    // Defer onboarding until employee setup is verified
+    shouldShowOnboardingAfterSetup = !data.onboardingCompleted && !!onboardingOverlay;
+    shouldShowOnboardingStep = data.onboardingStep || 1;
+
+    chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (localData) => {
+      const savedName = localData?.userSettings?.employeeName || localData?.creditOutEmployeeName || '';
+      if (savedName) {
+        employeeSetupRequired = false;
+        employeeNameLocked = true;
+        applyEmployeeLockState();
+        ensureEmployeeOption(globalEmployeeSelect, savedName);
+        ensureEmployeeOption(initialEmployeeSelect, savedName);
+        if (globalEmployeeSelect) globalEmployeeSelect.value = savedName;
+        if (initialEmployeeSelect) initialEmployeeSelect.value = savedName;
+        setGlobalEmployeeStatus(`الاسم الحالي (مقفل): ${savedName}`, '#1d4ed8');
+        if (!localData?.userSettings?.employeeName) {
+          const nextUserSettings = {
+            ...(localData.userSettings || {}),
+            employeeName: savedName
+          };
+          chrome.storage.local.set({
+            userSettings: nextUserSettings,
+            creditOutEmployeeName: savedName
+          });
+        }
+        maybeShowOnboardingAfterEmployeeSetup();
+      } else {
+        employeeSetupRequired = true;
+        employeeNameLocked = false;
+        applyEmployeeLockState();
+        setGlobalEmployeeStatus('لم يتم تحديد اسم الموظف بعد.', '#b91c1c');
+        showInitialEmployeeOverlay();
+      }
+    });
   });
 
   // Save settings on change
@@ -123,6 +271,91 @@ document.addEventListener('DOMContentLoaded', () => {
   alertSoundText.addEventListener('input', () => {
     chrome.storage.sync.set({ alertSoundText: alertSoundText.value });
   });
+
+  if (saveGlobalEmployeeBtn) {
+    saveGlobalEmployeeBtn.addEventListener('click', () => {
+      if (employeeNameLocked) {
+        setGlobalEmployeeStatus('تم قفل اسم الموظف بعد أول حفظ ولا يمكن تغييره.', '#b91c1c');
+        return;
+      }
+      const name = (globalEmployeeSelect && globalEmployeeSelect.value || '').trim();
+      if (!name) {
+        setGlobalEmployeeStatus('اختر اسم الموظف أولاً.', '#b91c1c');
+        if (globalEmployeeSelect) globalEmployeeSelect.focus();
+        return;
+      }
+
+      persistEmployeeName(name, (saved, resolvedName) => {
+        if (!saved) {
+          employeeNameLocked = true;
+          applyEmployeeLockState();
+          if (globalEmployeeSelect) globalEmployeeSelect.value = resolvedName || '';
+          setGlobalEmployeeStatus(`تم تعيين الاسم مسبقًا (مقفل): ${resolvedName}`, '#1d4ed8');
+          return;
+        }
+        employeeSetupRequired = false;
+        employeeNameLocked = true;
+        applyEmployeeLockState();
+        setGlobalEmployeeStatus(`تم حفظ اسم الموظف نهائيًا: ${name}`, '#166534');
+        hideInitialEmployeeOverlay();
+        maybeShowOnboardingAfterEmployeeSetup();
+      });
+    });
+  }
+
+  if (initialEmployeeSave) {
+    initialEmployeeSave.addEventListener('click', () => {
+      const name = (initialEmployeeSelect && initialEmployeeSelect.value || '').trim();
+      if (!name) {
+        setInitialEmployeeError('من فضلك اختر اسم الموظف للمتابعة.');
+        if (initialEmployeeSelect) initialEmployeeSelect.focus();
+        return;
+      }
+
+      persistEmployeeName(name, (saved, resolvedName) => {
+        if (!saved) {
+          employeeNameLocked = true;
+          applyEmployeeLockState();
+          setInitialEmployeeError('الاسم تم تحديده مسبقًا ولا يمكن تغييره.');
+          if (globalEmployeeSelect) globalEmployeeSelect.value = resolvedName || '';
+          hideInitialEmployeeOverlay();
+          maybeShowOnboardingAfterEmployeeSetup();
+          return;
+        }
+        employeeSetupRequired = false;
+        employeeNameLocked = true;
+        applyEmployeeLockState();
+        setGlobalEmployeeStatus(`تم حفظ اسم الموظف نهائيًا: ${name}`, '#166534');
+        hideInitialEmployeeOverlay();
+        maybeShowOnboardingAfterEmployeeSetup();
+      });
+    });
+  }
+
+  if (globalEmployeeSelect) {
+    globalEmployeeSelect.addEventListener('change', () => {
+      setGlobalEmployeeStatus('');
+    });
+  }
+
+  if (initialEmployeeSelect) {
+    initialEmployeeSelect.addEventListener('change', () => {
+      setInitialEmployeeError('');
+    });
+  }
+
+  if (initialEmployeeOverlay) {
+    initialEmployeeOverlay.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        return;
+      }
+      if (e.key === 'Enter' && initialEmployeeOverlay.style.display === 'flex') {
+        e.preventDefault();
+        if (initialEmployeeSave) initialEmployeeSave.click();
+      }
+    });
+  }
 
   // --- Options Filters Logic (Settings page) ---
   function computeAndRenderOptionsCounter() {
@@ -306,7 +539,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   if (onboardingSkip) onboardingSkip.addEventListener('click', skipOnboarding);
   if (onboardingClose) onboardingClose.addEventListener('click', skipOnboarding);
-  if (reopenOnboarding) reopenOnboarding.addEventListener('click', () => { onboardingStep = 1; chrome.storage.sync.set({ onboardingCompleted: false, onboardingStep }); showOnboarding(); });
+  if (reopenOnboarding) reopenOnboarding.addEventListener('click', () => {
+    if (employeeSetupRequired) {
+      showInitialEmployeeOverlay();
+      return;
+    }
+    onboardingStep = 1;
+    chrome.storage.sync.set({ onboardingCompleted: false, onboardingStep });
+    showOnboarding();
+  });
 
   // Focus trap utilities
   let lastFocusedBeforeTrap = null;
@@ -428,6 +669,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const regionDisplayNames = (typeof Intl !== 'undefined' && typeof Intl.DisplayNames !== 'undefined')
     ? new Intl.DisplayNames(['ar'], { type: 'region' })
     : null;
+  const regionDisplayNamesEnglish = (typeof Intl !== 'undefined' && typeof Intl.DisplayNames !== 'undefined')
+    ? new Intl.DisplayNames(['en'], { type: 'region' })
+    : null;
 
   function translateValue(type, value) {
     if (!value) return 'N/A';
@@ -436,90 +680,320 @@ document.addEventListener('DOMContentLoaded', () => {
     return value; // Fallback to original if not found
   }
 
-  function buildArabicDetailHTML(data) {
-    // Translate individual pieces
-    const ip = data.ip || 'N/A';
-    const ipType = data.type || 'N/A';
-    const continent = translateValue('continent', data.continent || 'N/A');
-    const continentCode = data.continent_code || 'N/A';
-    const country = (regionDisplayNames && data.country_code)
-      ? (regionDisplayNames.of(String(data.country_code).toUpperCase()) || translateValue('countries', data.country || 'N/A'))
-      : translateValue('countries', data.country || 'N/A');
-    const countryCode = data.country_code || 'N/A';
-    const capital = translateValue('cities', data.country_capital || data.country_capital || 'N/A');
-    const phone = data.country_phone || 'N/A';
-    const region = translateValue('regions', data.region || 'N/A');
-    const city = translateValue('cities', data.city || 'N/A');
-    const latitude = data.latitude || 'N/A';
-    const longitude = data.longitude || 'N/A';
-    const asn = data.asn || 'N/A';
-    const org = data.org || 'N/A';
-    const isp = data.isp || 'N/A';
-    const timezone = data.timezone || 'N/A';
-    const timezoneGMT = data.timezone_gmt || 'N/A';
-    const currency = translateValue('currency', data.currency || 'N/A');
-    const currencyCode = data.currency_code || 'N/A';
-    const currencyRates = data.currency_rates || 'N/A';
+  function escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function toDisplayValue(value, fallback) {
+    const fallbackText = fallback || 'N/A';
+    if (value == null) return fallbackText;
+    const text = String(value).trim();
+    if (!text) return fallbackText;
+    return text;
+  }
+
+  function normalizeIpInput(rawIp) {
+    const source = String(rawIp || '').trim();
+    if (!source) return '';
+    if (window.IPGeoClient && typeof window.IPGeoClient.normalizeIPv4 === 'function') {
+      return window.IPGeoClient.normalizeIPv4(source);
+    }
+    const parts = source.split('.');
+    if (parts.length !== 4) return '';
+    for (const part of parts) {
+      if (!/^\d+$/.test(part)) return '';
+      const n = Number(part);
+      if (!Number.isInteger(n) || n < 0 || n > 255) return '';
+    }
+    return source;
+  }
+
+  function toCoordinateNumber(value, min, max) {
+    const parsed = Number(String(value == null ? '' : value).trim());
+    if (!Number.isFinite(parsed)) return null;
+    if (parsed < min || parsed > max) return null;
+    return parsed;
+  }
+
+  function ipToDecimal(ip) {
+    const parts = String(ip || '').split('.');
+    if (parts.length !== 4) return 'N/A';
+    let total = 0;
+    for (const part of parts) {
+      if (!/^\d+$/.test(part)) return 'N/A';
+      const value = Number(part);
+      if (!Number.isInteger(value) || value < 0 || value > 255) return 'N/A';
+      total = (total * 256) + value;
+    }
+    return String(total);
+  }
+
+  function getHostname(data) {
+    const direct = toDisplayValue(data && data.hostname, '');
+    if (direct) return direct;
+    if (data && Array.isArray(data.hostnames) && data.hostnames.length > 0) {
+      const first = toDisplayValue(data.hostnames[0], '');
+      if (first) return first;
+    }
+    return 'N/A';
+  }
+
+  function formatAsnForDisplay(value) {
+    const text = toDisplayValue(value, 'N/A');
+    if (text === 'N/A') return text;
+    const match = text.match(/^AS\s*([0-9]{1,10})$/i);
+    if (match) return match[1];
+    return text;
+  }
+
+  function normalizeServiceLabel(value, isp, organization) {
+    const raw = toDisplayValue(value, '');
+    const hints = `${raw} ${toDisplayValue(isp, '')} ${toDisplayValue(organization, '')}`.toLowerCase();
+
+    if (/(hosting|data\s*center|datacenter|transit|colo|colocation|vps|server|cloud)/i.test(hints)) {
+      return 'Data Center/Transit';
+    }
+
+    if (!raw) return 'N/A';
+    if (/^residential$/i.test(raw)) return 'Residential';
+    if (/^business$/i.test(raw)) return 'Business';
+    if (/^mobile$/i.test(raw)) return 'Mobile';
+    return raw;
+  }
+
+  function toDmsText(value, isLatitude) {
+    const min = isLatitude ? -90 : -180;
+    const max = isLatitude ? 90 : 180;
+    const numeric = toCoordinateNumber(value, min, max);
+    if (numeric === null) return '';
+
+    const absolute = Math.abs(numeric);
+    const degrees = Math.floor(absolute);
+    const minutesFloat = (absolute - degrees) * 60;
+    const minutes = Math.floor(minutesFloat);
+    const seconds = ((minutesFloat - minutes) * 60).toFixed(2);
+    const direction = isLatitude ? (numeric >= 0 ? 'N' : 'S') : (numeric >= 0 ? 'E' : 'W');
+
+    return `${degrees} deg ${minutes}' ${seconds}" ${direction}`;
+  }
+
+  function formatCoordinateForDisplay(value, isLatitude) {
+    const min = isLatitude ? -90 : -180;
+    const max = isLatitude ? 90 : 180;
+    const numeric = toCoordinateNumber(value, min, max);
+    if (numeric === null) return 'N/A';
+    const decimalText = numeric.toFixed(4);
+    const dmsText = toDmsText(numeric, isLatitude);
+    if (!dmsText) return decimalText;
+    return `${decimalText} (${dmsText})`;
+  }
+
+  function buildMapUrls(latitude, longitude) {
+    const lat = toCoordinateNumber(latitude, -90, 90);
+    const lon = toCoordinateNumber(longitude, -180, 180);
+    if (lat === null || lon === null) return null;
+
+    const latDelta = 0.25;
+    const lonDelta = Math.max(0.25, 0.25 / Math.max(Math.cos(Math.abs(lat) * Math.PI / 180), 0.35));
+    const minLat = Math.max(-90, lat - latDelta);
+    const maxLat = Math.min(90, lat + latDelta);
+    const minLon = Math.max(-180, lon - lonDelta);
+    const maxLon = Math.min(180, lon + lonDelta);
+
+    const bbox = [minLon, minLat, maxLon, maxLat].join(',');
+    const marker = `${lat},${lon}`;
+    const embedUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(marker)}`;
+    const openUrl = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(String(lat))}&mlon=${encodeURIComponent(String(lon))}#map=9/${encodeURIComponent(String(lat))}/${encodeURIComponent(String(lon))}`;
+
+    return {
+      lat,
+      lon,
+      embedUrl,
+      openUrl
+    };
+  }
+
+  function buildRowsMarkup(rows) {
+    return rows.map((row) => {
+      return `<li class="ip-lookup-row"><span class="ip-lookup-key">${escapeHtml(row.label)}:</span><span class="ip-lookup-value">${escapeHtml(row.value)}</span></li>`;
+    }).join('');
+  }
+
+  function buildMapMarkup(latitude, longitude, locationTitle) {
+    const mapUrls = buildMapUrls(latitude, longitude);
+    if (!mapUrls) {
+      return `
+        <div class="ip-lookup-map-panel">
+          <div class="ip-map-unavailable">لا توجد إحداثيات كافية لعرض الخريطة.</div>
+        </div>
+      `;
+    }
 
     return `
-      <div class="ip-details-container" dir="rtl">
-        <div class="ip-detail-item"><strong>الآي بي:</strong> <span>${ip} (${ipType})</span></div>
-        <div class="ip-detail-item"><strong>القارة:</strong> <span>${continent} (${continentCode})</span></div>
-        <div class="ip-detail-item"><strong>الدولة:</strong> <span>${country} (${countryCode})</span></div>
-        <div class="ip-detail-item"><strong>العاصمة:</strong> <span>${capital}</span></div>
-        <div class="ip-detail-item"><strong>الهاتف:</strong> <span>${phone}</span></div>
-        <div class="ip-detail-item"><strong>المنطقة:</strong> <span>${region}</span></div>
-        <div class="ip-detail-item"><strong>المدينة:</strong> <span>${city}</span></div>
-        <div class="ip-detail-item"><strong>خط العرض:</strong> <span>${latitude}</span></div>
-        <div class="ip-detail-item"><strong>خط الطول:</strong> <span>${longitude}</span></div>
-        <div class="ip-detail-item"><strong>النظام المستقل (AS):</strong> <span>${asn}</span></div>
-        <div class="ip-detail-item"><strong>المنظمة:</strong> <span>${org}</span></div>
-        <div class="ip-detail-item"><strong>مزود الخدمة (ISP):</strong> <span>${isp}</span></div>
-        <div class="ip-detail-item"><strong>المنطقة الزمنية:</strong> <span>${timezone}</span></div>
-        <div class="ip-detail-item"><strong>التوقيت العالمي المنسق (UTC):</strong> <span>${timezoneGMT}</span></div>
-        <div class="ip-detail-item"><strong>العملة:</strong> <span>${currency} (${currencyCode})</span></div>
-        <div class="ip-detail-item"><strong>سعر الصرف:</strong> <span>${currencyRates}</span></div>
+      <div class="ip-lookup-map-panel">
+        <iframe
+          class="ip-map-frame"
+          title="IP Map - ${escapeHtml(locationTitle)}"
+          src="${escapeHtml(mapUrls.embedUrl)}"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <a class="ip-map-link" href="${escapeHtml(mapUrls.openUrl)}" target="_blank" rel="noopener noreferrer">Open full map</a>
       </div>
     `;
+  }
+
+  function buildArabicDetailHTML(data, searchedIp) {
+    const normalizedData = data && typeof data === 'object' ? data : {};
+    const ip = toDisplayValue(normalizedData.ip || searchedIp, searchedIp || 'N/A');
+    const countryCode = toDisplayValue(normalizedData.country_code || normalizedData.countryCode, '');
+    const country = toDisplayValue(
+      (regionDisplayNamesEnglish && countryCode ? regionDisplayNamesEnglish.of(String(countryCode).toUpperCase()) : '') ||
+      normalizedData.country ||
+      normalizedData.country_name,
+      'N/A'
+    );
+    const region = toDisplayValue(normalizedData.region || normalizedData.region_name, 'N/A');
+    const city = toDisplayValue(normalizedData.city || normalizedData.city_name, 'N/A');
+    const latitude = toDisplayValue(normalizedData.latitude || normalizedData.lat, 'N/A');
+    const longitude = toDisplayValue(normalizedData.longitude || normalizedData.lon, 'N/A');
+    const asn = formatAsnForDisplay(normalizedData.asn || normalizedData.as);
+    const isp = toDisplayValue(
+      normalizedData.isp ||
+      (normalizedData.connection && normalizedData.connection.isp) ||
+      normalizedData.org ||
+      normalizedData.organization,
+      'N/A'
+    );
+    const org = toDisplayValue(normalizedData.org || normalizedData.organization, 'N/A');
+    const serviceType = normalizeServiceLabel(
+      normalizedData.connection_type ||
+      normalizedData.usage_type ||
+      (normalizedData.connection && normalizedData.connection.type),
+      isp,
+      org
+    );
+    const ipVersion = toDisplayValue(normalizedData.type, 'IPv4');
+    const decimalValue = ipToDecimal(ip);
+    const timezone = toDisplayValue(normalizedData.timezone, 'N/A');
+    const hostname = getHostname(normalizedData);
+    const latitudeDisplay = formatCoordinateForDisplay(latitude, true);
+    const longitudeDisplay = formatCoordinateForDisplay(longitude, false);
+
+    const locationTitle = [city, region, country].filter((value) => value && value !== 'N/A').join(', ') || ip;
+    const detailsRows = [
+      { label: 'Decimal', value: decimalValue },
+      { label: 'Hostname', value: hostname },
+      { label: 'ASN', value: asn },
+      { label: 'ISP', value: isp },
+      { label: 'Services', value: serviceType },
+      { label: 'Country', value: country },
+      { label: 'State/Region', value: region },
+      { label: 'City', value: city },
+      { label: 'IP Version', value: ipVersion },
+      { label: 'Latitude', value: latitudeDisplay },
+      { label: 'Longitude', value: longitudeDisplay },
+      { label: 'Timezone', value: timezone },
+      { label: 'Organization', value: org }
+    ];
+
+    return `
+      <section class="ip-lookup-card" dir="ltr">
+        <div class="ip-lookup-head">
+          <span class="ip-lookup-title">IP Details For:</span>
+          <span class="ip-lookup-target">${escapeHtml(ip)}</span>
+        </div>
+        <div class="ip-lookup-grid">
+          <ul class="ip-lookup-list">
+            ${buildRowsMarkup(detailsRows)}
+          </ul>
+          ${buildMapMarkup(latitude, longitude, locationTitle)}
+        </div>
+      </section>
+    `;
+  }
+
+  async function lookupIpData(ip) {
+    if (window.IPGeoClient && typeof window.IPGeoClient.lookup === 'function') {
+      return window.IPGeoClient.lookup(ip, { forceRefresh: true });
+    }
+
+    if (window.IPGeoClient && typeof window.IPGeoClient.lookupWithRetry === 'function') {
+      return window.IPGeoClient.lookupWithRetry(ip, { attempts: 3, retryDelayMs: 120, forceRefresh: true });
+    }
+
+    const response = await chrome.runtime.sendMessage({ type: 'lookupIp', ip: ip, forceRefresh: true });
+    if (response && response.data) return { success: true, data: response.data };
+    return {
+      success: false,
+      error: (response && response.error) || 'تعذر استرداد معلومات IP.'
+    };
+  }
+
+  function renderLookupStatus(message, tone) {
+    if (!ipLookupResults) return;
+    const safeMessage = escapeHtml(message || '');
+    const statusClass = tone ? `ip-lookup-status ${tone}` : 'ip-lookup-status';
+    ipLookupResults.innerHTML = `<div class="${statusClass}" dir="rtl">${safeMessage}</div>`;
   }
 
   const ipInput = document.getElementById('ip-input');
   const lookupIpButton = document.getElementById('lookup-ip-button');
   const ipLookupResults = document.getElementById('ip-lookup-results');
+  let ipLookupInProgress = false;
 
-  lookupIpButton.addEventListener('click', async () => {
-    const ip = ipInput.value.trim();
-    const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+  async function handleIpLookup() {
+    if (!ipInput || !lookupIpButton || !ipLookupResults || ipLookupInProgress) return;
 
-  // Clear previous data on new search
-  currentGeoData = null;
+    const rawIp = String(ipInput.value || '').trim();
+    const normalizedIp = normalizeIpInput(rawIp);
+    currentGeoData = null;
 
-    if (!ipRegex.test(ip)) {
-      ipLookupResults.textContent = 'الرجاء إدخال عنوان IP صالح.';
-      ipLookupResults.style.color = 'red';
+    if (!normalizedIp) {
+      renderLookupStatus('الرجاء إدخال عنوان IP صحيح.', 'error');
       return;
     }
 
-    ipLookupResults.textContent = 'جاري البحث عن IP...';
-    ipLookupResults.style.color = 'white';
+    ipInput.value = normalizedIp;
+    ipLookupInProgress = true;
+    lookupIpButton.disabled = true;
+    renderLookupStatus('جاري البحث عن IP...', 'loading');
 
     try {
-      const response = await chrome.runtime.sendMessage({ type: 'lookupIp', ip: ip });
-      console.log('Response from background:', response); // Added logging
-      if (response && response.data) {
-  currentGeoData = response.data; // Store the data
-  ipLookupResults.innerHTML = buildArabicDetailHTML(response.data);
-      } else if (response && response.error) {
-        ipLookupResults.textContent = `خطأ: ${response.error}`;        ipLookupResults.style.color = 'white';
+      const result = await lookupIpData(normalizedIp);
+      if (result && result.success && result.data) {
+        currentGeoData = result.data;
+        ipLookupResults.innerHTML = buildArabicDetailHTML(result.data, normalizedIp);
       } else {
-        ipLookupResults.textContent = 'تعذر استرداد معلومات IP.';
-        ipLookupResults.style.color = 'white';
+        const errorMessage = result && result.error ? result.error : 'تعذر استرداد معلومات IP.';
+        renderLookupStatus(`خطأ: ${errorMessage}`, 'error');
       }
     } catch (error) {
-      ipLookupResults.textContent = `Error: ${error.message}`;
-      ipLookupResults.style.color = 'red';
+      const message = error && error.message ? error.message : String(error);
+      renderLookupStatus(`خطأ: ${message}`, 'error');
+    } finally {
+      ipLookupInProgress = false;
+      lookupIpButton.disabled = false;
     }
-  });
+  }
+
+  if (lookupIpButton) {
+    lookupIpButton.addEventListener('click', handleIpLookup);
+  }
+
+  if (ipInput) {
+    ipInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        handleIpLookup();
+      }
+    });
+  }
 
   // Removed big magnifier feature; results are shown inline only
 });
+

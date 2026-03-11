@@ -24,22 +24,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Focus input
     const accountInput = document.getElementById('accountNumber');
+    const errorMsg = document.getElementById('errorMsg');
     accountInput.focus();
+
+    // Account number validation regex (6-7 digits only)
+    const accountRegex = /^\d{6,7}$/;
+
+    // Show/hide error message
+    const showError = (msg) => {
+        if (errorMsg) {
+            errorMsg.textContent = msg;
+            errorMsg.classList.remove('hidden');
+        }
+    };
+
+    const hideError = () => {
+        if (errorMsg) {
+            errorMsg.classList.add('hidden');
+        }
+    };
+
+    // Validate account number
+    const validateAccount = (value) => {
+        const trimmed = value.trim();
+        if (!trimmed) {
+            return false; // Empty is NOT allowed (required field)
+        }
+        if (!accountRegex.test(trimmed)) {
+            return false;
+        }
+        return true;
+    };
+
+    // Real-time validation on input
+    accountInput.addEventListener('input', () => {
+        const val = accountInput.value.trim();
+        if (val && !accountRegex.test(val)) {
+            showError('⚠️ رقم الحساب يجب أن يكون 6-7 أرقام فقط');
+        } else {
+            hideError();
+        }
+    });
+
+    // Hide error when group type is selected
+    const groupTypeSelect = document.getElementById('groupType');
+    if (groupTypeSelect) {
+        groupTypeSelect.addEventListener('change', () => {
+            hideError();
+        });
+    }
 
     const sendReport = () => {
         const accountNumber = accountInput.value.trim();
+        const groupType = groupTypeSelect ? groupTypeSelect.value.trim() : '';
+        
+        // Check required fields
+        if (!accountNumber) {
+            showError('⚠️ رقم الحساب مطلوب!');
+            accountInput.focus();
+            return;
+        }
+        
+        if (!groupType) {
+            showError('⚠️ نوع الجروب مطلوب!');
+            if (groupTypeSelect) groupTypeSelect.focus();
+            return;
+        }
+        
+        // Validate account number format
+        if (!validateAccount(accountNumber)) {
+            showError('⚠️ رقم الحساب غير صحيح! يجب أن يكون 6-7 أرقام فقط');
+            accountInput.focus();
+            return;
+        }
+
         const btn = document.getElementById('sendBtn');
         btn.disabled = true;
-        btn.textContent = '...';
+        const defaultText = 'إرسال التقرير';
+        btn.textContent = 'جاري الإرسال...';
         
         chrome.runtime.sendMessage({
             action: 'sendSecurityAlert',
             ipMessage: ipMessage,
             country: country,
             type: type,
-            accountNumber: accountNumber
+            accountNumber: accountNumber,
+            groupType: groupType
         }, (response) => {
-            // Close immediately without showing success screen
+            if (chrome.runtime.lastError) {
+                showError(`⚠️ فشل الإرسال: ${chrome.runtime.lastError.message}`);
+                btn.disabled = false;
+                btn.textContent = defaultText;
+                return;
+            }
+
+            if (!response || response.success !== true) {
+                const reason = response && response.error ? response.error : 'سبب غير معروف';
+                showError(`⚠️ لم يتم الإرسال إلى Telegram: ${reason}`);
+                btn.disabled = false;
+                btn.textContent = defaultText;
+                return;
+            }
+
             window.close();
         });
     };
@@ -54,13 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Auto-submit on Paste
+    // Auto-submit on Paste (only if valid account number)
     accountInput.addEventListener('paste', (e) => {
-        // Allow the paste to happen first, then submit
+        // Allow the paste to happen first, then validate and submit
         setTimeout(() => {
              const val = accountInput.value.trim();
-             if (val.length >= 5) { // Basic sanity check
+             if (val && accountRegex.test(val)) {
                  sendReport();
+             } else if (val) {
+                 showError('⚠️ رقم الحساب غير صحيح! يجب أن يكون 6-7 أرقام فقط');
              }
         }, 100);
     });

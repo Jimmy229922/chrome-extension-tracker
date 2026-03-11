@@ -26,14 +26,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     // CONSTANTS & WEIGHTS
     // -------------------------------------------------------------------------
     const REPORT_WEIGHTS = {
-        suspicious: 14,
-        depositPercentage: 14,
-        kpi3DaysBalance: 10, 
-        newPositions: 8,
-        profitWatching: 8,
-        profitSummary: 8,
-        samePriceSL: 6,
-        dealsProfit: 6,
+        suspicious: 8,
+        depositPercentage: 8,
+        kpi3DaysBalance: 5,
+        newPositions: 5,
+        profitWatching: 5,
+        profitSummary: 5,
+        samePriceSL: 4,
+        dealsProfit: 4,
         creditOut: 4,
         profitOver0: 4,
         floatingProfit: 4,
@@ -43,8 +43,17 @@ document.addEventListener('DOMContentLoaded', async () => {
         excellence: 0
     };
 
+    const SENT_MULTIPLIERS = {
+        suspicious: 10,
+        kpi3DaysBalance: 5,
+        newPositions: 10,
+        dealsProfit: 20,
+        twoActions: 10
+    };
+
     const STORAGE_KEY = 'weeklyEvaluationData_v2';
     const EMPLOYEES_LIST_KEY = 'employeeList_v1';
+    const ARCHIVE_STORAGE_KEY = 'evaluationArchive_v1';
 
     const DEFAULT_EMPLOYEES = [
         "ABBASS", "AHMED MAGDY", "zahraa Shaqir", "Zainab",
@@ -80,18 +89,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     };
 
     const REPORT_RULES = {
-        suspicious: { formula: '(Done + Sent) × 14', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 14' },
-        depositPercentage: { formula: '(Done + Sent) × 14', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 14' },
-        kpi3DaysBalance: { formula: '(Done + Sent) × 10', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 10' },
-        newPositions: { formula: '(Done + Sent) × 8', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 8' },
-        profitWatching: { formula: '(Done + Sent) × 8', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 8' },
-        profitSummary: { formula: '(Done + Sent) × 8', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 8' },
-        samePriceSL: { formula: '(Done + Sent) × 6', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 6' },
-        dealsProfit: { formula: '(Done + Sent) × 6', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 6' },
+        suspicious: { formula: '(Done + (Sent × 10))', desc: 'يتم احتساب النقاط بناءً على مجموع (Done) مضافًا إليه (Sent) مضروبًا في 10. والناتج تتم مقارنته بأعلى أداء لتحديد الدرجة من الوزن 8.' },
+        depositPercentage: { formula: '(Done + Sent) × 8', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 8' },
+        kpi3DaysBalance: { formula: '(Done + (Sent × 5))', desc: 'يتم احتساب النقاط بناءً على مجموع (Done) مضافًا إليه (Sent) مضروبًا في 5. والناتج تتم مقارنته بأعلى أداء لتحديد الدرجة من الوزن 5.' },
+        newPositions: { formula: '(Done + (Sent × 10))', desc: 'يتم احتساب النقاط بناءً على مجموع (Done) مضافًا إليه (Sent) مضروبًا في 10. والناتج تتم مقارنته بأعلى أداء لتحديد الدرجة من الوزن 5.' },
+        profitWatching: { formula: '(Done + Sent) × 5', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 5' },
+        profitSummary: { formula: '(Done + Sent) × 5', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 5' },
+        samePriceSL: { formula: '(Done + Sent) × 4', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 4' },
+        dealsProfit: { formula: '(Done + (Sent × 20))', desc: 'يتم احتساب النقاط بناءً على مجموع (Done) مضافًا إليه (Sent) مضروبًا في 20. والناتج تتم مقارنته بأعلى أداء لتحديد الدرجة من الوزن 4.' },
         creditOut: { formula: '(Done + Sent) × 4', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 4' },
         profitOver0: { formula: '(Done + Sent) × 4', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 4' },
         floatingProfit: { formula: '(Done + Sent) × 4', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 4' },
-        twoActions: { formula: '(Done + Sent) × 3', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 3' },
+        twoActions: { formula: '(Done + (Sent × 10))', desc: 'يتم احتساب النقاط بناءً على مجموع (Done) مضافًا إليه (Sent) مضروبًا في 10. والناتج تتم مقارنته بأعلى أداء لتحديد الدرجة من الوزن 3.' },
         marketWarnings: { formula: 'متابع = 1 / غير متابع = 0', desc: 'يتم تسجيل حالة المتابعة فقط بدون وزن' },
         profitLeverage: { formula: '(Done + Sent) × 1', desc: 'يتم احتساب عدد التقارير المنجزة والمرسلة مضروبة في الوزن 1' },
         excellence: { formula: 'نقاط إضافية (0-3)', desc: 'نقاط تميز إضافية يمنحها المدير للأداء المتميز' }
@@ -191,6 +200,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const excellenceBonusSelect = document.getElementById('inp-excellence-bonus');
     const accuracyTotalInput = document.getElementById('inp-accuracy-total');
 
+    // Archive Elements
+    const saveToArchiveBtn = document.getElementById('save-to-archive-btn');
+    const openArchiveBtn = document.getElementById('open-archive-btn');
+    const goToEvaluationBtn = document.getElementById('go-to-evaluation-btn');
+    const archiveModal = document.getElementById('archive-modal');
+    const archiveCloseBtn = document.getElementById('archive-close-btn');
+    const archiveMonthsPanel = document.getElementById('archive-months-panel');
+    const archiveWeeksPanel = document.getElementById('archive-weeks-panel');
+    const archiveDataPanel = document.getElementById('archive-data-panel');
+    const archiveToast = document.getElementById('archive-toast');
+    const deleteArchiveWeekModal = document.getElementById('delete-archive-week-modal');
+    const confirmDeleteArchiveWeekBtn = document.getElementById('confirm-delete-archive-week-btn');
+    const cancelDeleteArchiveWeekBtn = document.getElementById('cancel-delete-archive-week-btn');
+    const deleteArchiveWeekMsg = document.getElementById('delete-archive-week-msg');
+
+    // Archive Edit Elements
+    const archiveEditModal = document.getElementById('archive-edit-modal');
+    const archiveEditCloseBtn = document.getElementById('archive-edit-close-btn');
+    const archiveEditSaveBtn = document.getElementById('archive-edit-save-btn');
+    const archiveEditCancelBtn = document.getElementById('archive-edit-cancel-btn');
+    const archiveEditEmployeeName = document.getElementById('archive-edit-employee-name');
+    const archiveEditWeekInfo = document.getElementById('archive-edit-week-info');
+    const archiveEditReportsContainer = document.getElementById('archive-edit-reports-container');
+    const archiveEditExcellence = document.getElementById('archive-edit-excellence');
+    const archiveEditExcellenceNote = document.getElementById('archive-edit-excellence-note');
+    const archiveEditAccuracy = document.getElementById('archive-edit-accuracy');
+    const archiveEditShiftScore = document.getElementById('archive-edit-shift-score');
+    const archiveEditDeptScore = document.getElementById('archive-edit-dept-score');
+
     // -------------------------------------------------------------------------
     // STATE
     // -------------------------------------------------------------------------
@@ -201,6 +239,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     let currentShiftScore = null;
     let currentDeptScore = null;
     let currentModalEmployee = null;
+    let reportMaxValues = {};
+    let archiveData = {};
+    let currentArchiveMonth = null;
+    let currentArchiveWeek = null;
+    let pendingDeleteArchiveWeek = null;
+    let currentArchiveEditEmployee = null;
 
     // -------------------------------------------------------------------------
     // HELPER FUNCTIONS
@@ -221,25 +265,56 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (el) el.value = value || '';
     }
 
+    function calculateReportMaxValues(currentEmployeeName, currentEmployeeData) {
+        const tempWeeklyData = { ...weeklyData };
+        if (currentEmployeeName && currentEmployeeData) {
+            tempWeeklyData[currentEmployeeName] = currentEmployeeData;
+        }
+
+        reportMaxValues = {}; // Reset
+        for (const key of REPORT_KEYS) {
+            if (key === 'marketWarnings') continue;
+
+            let maxTotal = 0;
+            for (const emp in tempWeeklyData) {
+                const data = tempWeeklyData[emp];
+                if (!data) continue;
+                const done = data[key]?.done || 0;
+                const sent = data[key]?.sent || 0;
+                const multiplier = SENT_MULTIPLIERS[key] || 1;
+                const total = done + (sent * multiplier);
+                if (total > maxTotal) {
+                    maxTotal = total;
+                }
+            }
+            reportMaxValues[key] = maxTotal > 0 ? maxTotal : 1; // Avoid division by zero
+        }
+    }
+
     function calculateStage1Score(data) {
-        let totalWeightedScore = 0;
-        let totalWeight = 0;
+        let employeeScore = 0;
+
+        if (REPORT_WEIGHT_TOTAL === 0) return 0;
 
         for (const key of REPORT_KEYS) {
             if (key === 'marketWarnings') continue;
+            
             const weight = REPORT_WEIGHTS[key] || 0;
             if (weight === 0) continue;
 
             const done = data[key]?.done || 0;
             const sent = data[key]?.sent || 0;
-            const total = done + sent;
+            const multiplier = SENT_MULTIPLIERS[key] || 1;
+            const total = done + (sent * multiplier);
 
-            totalWeightedScore += total * weight;
-            totalWeight += weight;
+            const maxTotal = reportMaxValues[key] || 1;
+
+            const reportScore = (total / maxTotal) * weight;
+            employeeScore += reportScore;
         }
+        
+        const normalized = (employeeScore / REPORT_WEIGHT_TOTAL) * STAGE1_MAX;
 
-        if (totalWeight === 0) return 0;
-        const normalized = (totalWeightedScore / (totalWeight * 10)) * STAGE1_MAX;
         return Math.min(normalized, STAGE1_MAX);
     }
 
@@ -261,6 +336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         const data = collectFormData();
+        calculateReportMaxValues(selectedEmployee, data); // Recalculate max values with live data
         const total = calculateTotalScore(data);
         currentTotalScoreEl.textContent = formatScore(total);
     }
@@ -357,9 +433,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // STORAGE FUNCTIONS
     // -------------------------------------------------------------------------
     async function loadData() {
-        const result = await chrome.storage.local.get([STORAGE_KEY, EMPLOYEES_LIST_KEY]);
+        const result = await chrome.storage.local.get([STORAGE_KEY, EMPLOYEES_LIST_KEY, ARCHIVE_STORAGE_KEY]);
         weeklyData = result[STORAGE_KEY] || {};
         employeeList = result[EMPLOYEES_LIST_KEY] || [...DEFAULT_EMPLOYEES];
+        archiveData = result[ARCHIVE_STORAGE_KEY] || {};
         populateEmployeeSelect();
         renderLeaderboard();
     }
@@ -395,6 +472,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderLeaderboard() {
+        calculateReportMaxValues(null, null); // Recalculate maxes before rendering
         const entries = [];
 
         for (const emp of employeeList) {
@@ -465,57 +543,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         const excellence = data.excellence?.bonus || 0;
 
         let detailsHtml = `
-            <div style="background:#0f3460; border-radius:15px; padding:20px; margin-bottom:15px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <span style="color:#aaa;">الترتيب</span>
-                    <span style="font-size:1.5rem; font-weight:800; color:#ffd700;">#${rank}</span>
+            <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05)); border-radius:18px; padding:22px; margin-bottom:18px; border: 1px solid rgba(99, 102, 241, 0.25);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;">
+                    <span style="color:#d0d0e0; font-size: 1.05rem;">الترتيب العام</span>
+                    <span style="font-size:1.8rem; font-weight:800; color:#fbbf24; text-shadow: 0 0 15px rgba(251, 191, 36, 0.4);">#${rank}</span>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="color:#aaa;">الدرجة الإجمالية</span>
-                    <span style="font-size:1.8rem; font-weight:800; color:#00d2ff;">${formatScore(score)}</span>
+                    <span style="color:#d0d0e0; font-size: 1.05rem;">الدرجة الإجمالية</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size:2.2rem; font-weight:800; color:#fff;">${formatScore(score)}</span>
+                        <span style="font-size: 1rem; color: #aaa; align-self: flex-end; margin-bottom: 6px;">%</span>
+                    </div>
                 </div>
             </div>
 
-            <div style="background:#0f3460; border-radius:15px; padding:20px; margin-bottom:15px;">
-                <h4 style="margin:0 0 15px 0; color:#fff; font-size:1rem;">تفاصيل الدرجات</h4>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div style="background:rgba(0,210,255,0.1); padding:10px; border-radius:8px; text-align:center;">
-                        <div style="color:#aaa; font-size:0.8rem;">التقارير</div>
-                        <div style="color:#00d2ff; font-weight:bold; font-size:1.2rem;">${formatScore(stage1)}/60</div>
+            <div style="background: rgba(30, 41, 59, 0.6); border-radius:18px; padding:22px; margin-bottom:18px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin:0 0 18px 0; color:#a5b4fc; font-size:1.1rem; font-weight:700;">تفاصيل الدرجات</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div style="background:rgba(59, 130, 246, 0.1); padding:15px; border-radius:12px; text-align:center; border: 1px solid rgba(59, 130, 246, 0.2);">
+                        <div style="color:#93c5fd; font-size:0.85rem; margin-bottom: 5px;">التقارير</div>
+                        <div style="color:#fff; font-weight:800; font-size:1.3rem;">${formatScore(stage1)}<span style="font-size:0.9rem; color:#60a5fa;">/60</span></div>
                     </div>
-                    <div style="background:rgba(0,210,255,0.1); padding:10px; border-radius:8px; text-align:center;">
-                        <div style="color:#aaa; font-size:0.8rem;">الدقة</div>
-                        <div style="color:#00d2ff; font-weight:bold; font-size:1.2rem;">${formatScore(accuracy)}/30</div>
+                    <div style="background:rgba(16, 185, 129, 0.1); padding:15px; border-radius:12px; text-align:center; border: 1px solid rgba(16, 185, 129, 0.2);">
+                        <div style="color:#6ee7b7; font-size:0.85rem; margin-bottom: 5px;">الدقة</div>
+                        <div style="color:#fff; font-weight:800; font-size:1.3rem;">${formatScore(accuracy)}<span style="font-size:0.9rem; color:#34d399;">/30</span></div>
                     </div>
-                    <div style="background:rgba(255,159,243,0.1); padding:10px; border-radius:8px; text-align:center;">
-                        <div style="color:#aaa; font-size:0.8rem;">تقييم الشيفت</div>
-                        <div style="color:#ff9ff3; font-weight:bold; font-size:1.2rem;">${formatScore(shiftScore)}/5</div>
+                    <div style="background:rgba(236, 72, 153, 0.1); padding:15px; border-radius:12px; text-align:center; border: 1px solid rgba(236, 72, 153, 0.2);">
+                        <div style="color:#f9a8d4; font-size:0.85rem; margin-bottom: 5px;">تقييم الشيفت</div>
+                        <div style="color:#fff; font-weight:800; font-size:1.3rem;">${formatScore(shiftScore)}<span style="font-size:0.9rem; color:#f472b6;">/5</span></div>
                     </div>
-                    <div style="background:rgba(0,210,255,0.1); padding:10px; border-radius:8px; text-align:center;">
-                        <div style="color:#aaa; font-size:0.8rem;">تقييم القسم</div>
-                        <div style="color:#00d2ff; font-weight:bold; font-size:1.2rem;">${formatScore(deptScore)}/5</div>
+                    <div style="background:rgba(139, 92, 246, 0.1); padding:15px; border-radius:12px; text-align:center; border: 1px solid rgba(139, 92, 246, 0.2);">
+                        <div style="color:#c4b5fd; font-size:0.85rem; margin-bottom: 5px;">تقييم القسم</div>
+                        <div style="color:#fff; font-weight:800; font-size:1.3rem;">${formatScore(deptScore)}<span style="font-size:0.9rem; color:#a78bfa;">/5</span></div>
                     </div>
                 </div>
                 ${excellence > 0 ? `
-                <div style="margin-top:10px; background:rgba(255,215,0,0.1); padding:10px; border-radius:8px; text-align:center;">
-                    <div style="color:#aaa; font-size:0.8rem;">نقاط التميز</div>
-                    <div style="color:#ffd700; font-weight:bold; font-size:1.2rem;">+${excellence}</div>
-                    ${data.excellence?.note ? `<div style="color:#ccc; font-size:0.8rem; margin-top:5px;">${data.excellence.note}</div>` : ''}
+                <div style="margin-top:12px; background:linear-gradient(135deg, rgba(251, 191, 36, 0.15), rgba(251, 191, 36, 0.05)); padding:15px; border-radius:12px; text-align:center; border: 1px solid rgba(251, 191, 36, 0.3);">
+                    <div style="color:#fbbf24; font-size:0.9rem; margin-bottom: 5px; font-weight: 600;">⭐ نقاط التميز</div>
+                    <div style="color:#fff; font-weight:800; font-size:1.4rem; text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);">+${excellence}</div>
+                    ${data.excellence?.note ? `<div style="color:#fcd34d; font-size:0.85rem; margin-top:8px; border-top: 1px dashed rgba(251, 191, 36, 0.3); padding-top: 6px;">"${data.excellence.note}"</div>` : ''}
                 </div>
                 ` : ''}
             </div>
 
-            <div style="background:#0f3460; border-radius:15px; padding:20px;">
-                <h4 style="margin:0 0 15px 0; color:#fff; font-size:1rem;">تفاصيل التقارير</h4>
-                <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
-                    <thead>
-                        <tr style="color:#aaa; border-bottom:1px solid rgba(255,255,255,0.1);">
-                            <th style="text-align:right; padding:8px;">التقرير</th>
-                            <th style="text-align:center; padding:8px;">Done</th>
-                            <th style="text-align:center; padding:8px;">Sent</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+            <div style="background: rgba(30, 41, 59, 0.6); border-radius:18px; padding:22px; border: 1px solid rgba(255,255,255,0.05);">
+                <h4 style="margin:0 0 18px 0; color:#a5b4fc; font-size:1.1rem; font-weight:700;">تفاصيل التقارير</h4>
+                <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+                        <thead>
+                            <tr style="background: rgba(0,0,0,0.3); color:#94a3b8;">
+                                <th style="text-align:right; padding:12px 15px; font-weight: 600;">التقرير</th>
+                                <th style="text-align:center; padding:12px 10px; font-weight: 600;">Done</th>
+                                <th style="text-align:center; padding:12px 10px; font-weight: 600;">Sent</th>
+                            </tr>
+                        </thead>
+                        <tbody>
         `;
 
         for (const key of REPORT_KEYS) {
@@ -526,24 +608,29 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (key === 'marketWarnings') {
                 detailsHtml += `
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <td style="padding:8px; color:#fff;">${title}</td>
-                        <td colspan="2" style="text-align:center; padding:8px; color:${done ? '#4cd137' : '#e74c3c'};">${done ? 'متابع' : 'غير متابع'}</td>
+                        <td style="padding:12px 15px; color:#e2e8f0;">${title}</td>
+                        <td colspan="2" style="text-align:center; padding:12px 10px;">
+                            <span style="background: ${done ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${done ? '#34d399' : '#f87171'}; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                                ${done ? 'متابع ✅' : 'غير متابع ❌'}
+                            </span>
+                        </td>
                     </tr>
                 `;
             } else {
                 detailsHtml += `
                     <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                        <td style="padding:8px; color:#fff;">${title}</td>
-                        <td style="text-align:center; padding:8px; color:#00d2ff;">${done}</td>
-                        <td style="text-align:center; padding:8px; color:#00d2ff;">${sent}</td>
+                        <td style="padding:12px 15px; color:#e2e8f0;">${title}</td>
+                        <td style="text-align:center; padding:12px 10px; color:#38bdf8; font-weight: 600;">${done}</td>
+                        <td style="text-align:center; padding:12px 10px; color:#fbbf24; font-weight: 600;">${sent}</td>
                     </tr>
                 `;
             }
         }
 
         detailsHtml += `
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         `;
 
@@ -556,12 +643,23 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         employeeList.forEach(emp => {
             const row = document.createElement('div');
-            row.style.cssText = 'display:flex; align-items:center; gap:10px; background:#0f3460; padding:12px 15px; border-radius:10px;';
+            row.style.cssText = 'display:flex; align-items:center; gap:12px; background: linear-gradient(90deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05)); padding:14px 18px; border-radius:12px; border: 1px solid rgba(99, 102, 241, 0.2); transition: all 0.2s;';
+            row.onmouseover = () => {
+                row.style.background = 'linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(99, 102, 241, 0.1))';
+                row.style.transform = 'translateX(-5px)';
+            };
+            row.onmouseout = () => {
+                row.style.background = 'linear-gradient(90deg, rgba(99, 102, 241, 0.1), rgba(99, 102, 241, 0.05))';
+                row.style.transform = 'none';
+            };
 
             row.innerHTML = `
-                <span style="flex-grow:1; color:#fff; font-weight:500;">${emp}</span>
-                <button class="edit-emp-btn" data-name="${emp}" style="background:none; border:none; color:#00d2ff; cursor:pointer; font-size:1.1rem;" title="تعديل">✏️</button>
-                <button class="delete-emp-btn" data-name="${emp}" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-size:1.1rem;" title="حذف">🗑️</button>
+                <div style="width: 36px; height: 36px; background: rgba(99, 102, 241, 0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.1rem;">👤</div>
+                <span style="flex-grow:1; color:#fff; font-weight:600; font-size: 1.05rem;">${emp}</span>
+                <div style="display: flex; gap: 8px;">
+                    <button class="edit-emp-btn" data-name="${emp}" style="background: rgba(46, 204, 113, 0.15); border: 1px solid rgba(46, 204, 113, 0.3); color:#2ecc71; cursor:pointer; font-size:0.95rem; padding: 6px 12px; border-radius: 8px; transition: all 0.2s;" title="تعديل">✏️ تعديل</button>
+                    <button class="delete-emp-btn" data-name="${emp}" style="background: rgba(231, 76, 60, 0.15); border: 1px solid rgba(231, 76, 60, 0.3); color:#e74c3c; cursor:pointer; font-size:0.95rem; padding: 6px 12px; border-radius: 8px; transition: all 0.2s;" title="حذف">🗑️ حذف</button>
+                </div>
             `;
 
             manageListContainer.appendChild(row);
@@ -569,7 +667,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Add event listeners
         document.querySelectorAll('.edit-emp-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent row click if any
                 currentEditingEmployee = btn.dataset.name;
                 editEmployeeInput.value = currentEditingEmployee;
                 editEmployeeModal.style.display = 'flex';
@@ -577,7 +676,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         document.querySelectorAll('.delete-emp-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 currentDeletingEmployee = btn.dataset.name;
                 deleteConfirmMsg.textContent = `هل أنت متأكد من حذف "${currentDeletingEmployee}"؟`;
                 deleteConfirmModal.style.display = 'flex';
@@ -802,6 +902,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     function showComparisonModal(employees) {
+        calculateReportMaxValues(null, null); // Make sure maxes are correct
         // Calculate scores and find winner
         const employeeScores = employees.map(emp => {
             const data = weeklyData[emp] || {};
@@ -1287,6 +1388,567 @@ document.addEventListener('DOMContentLoaded', async () => {
             printWin.document.write(htmlContent);
             printWin.document.close();
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // ARCHIVE FUNCTIONS
+    // -------------------------------------------------------------------------
+    const ARABIC_MONTHS = [
+        'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+        'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
+    ];
+
+    function getWeekOfMonth(date) {
+        const d = new Date(date);
+        const dayOfMonth = d.getDate();
+        if (dayOfMonth <= 7) return 1;
+        if (dayOfMonth <= 14) return 2;
+        if (dayOfMonth <= 21) return 3;
+        if (dayOfMonth <= 28) return 4;
+        return 5;
+    }
+
+    function getWeekDateRange(year, month, weekNum) {
+        const startDay = (weekNum - 1) * 7 + 1;
+        const lastDayOfMonth = new Date(year, month + 1, 0).getDate();
+        const endDay = weekNum === 5 ? lastDayOfMonth : Math.min(weekNum * 7, lastDayOfMonth);
+        return `${startDay} - ${endDay}`;
+    }
+
+    function showArchiveToast(message, isError = false) {
+        archiveToast.textContent = message;
+        archiveToast.classList.toggle('error', isError);
+        archiveToast.classList.add('show');
+        setTimeout(() => {
+            archiveToast.classList.remove('show');
+        }, 3000);
+    }
+
+    async function saveArchiveData() {
+        await chrome.storage.local.set({ [ARCHIVE_STORAGE_KEY]: archiveData });
+    }
+
+    // --- Archive Confirm Modal Logic ---
+    const archiveConfirmModal = document.getElementById('archive-confirm-modal');
+    const confirmArchiveBtn = document.getElementById('confirm-archive-btn');
+    const cancelArchiveBtn = document.getElementById('cancel-archive-btn');
+
+    async function saveToArchive() {
+        const hasData = Object.keys(weeklyData).some(emp => {
+            const data = weeklyData[emp];
+            return data && Object.keys(data).some(key => {
+                if (key === 'excellence') return data[key]?.bonus > 0;
+                if (key === 'accuracyTotal' || key === 'shiftManagerScore' || key === 'deptManagerScore') return data[key] > 0;
+                return data[key]?.done > 0 || data[key]?.sent > 0;
+            });
+        });
+
+        if (!hasData) {
+            showArchiveToast('⚠️ لا توجد بيانات لحفظها في الأرشيف!', true);
+            return;
+        }
+
+        // Show Custom Modal instead of confirm()
+        if (archiveConfirmModal) {
+            archiveConfirmModal.style.display = 'flex';
+        }
+    }
+
+    // Handle Confirm Archive Click
+    confirmArchiveBtn?.addEventListener('click', async () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const weekNum = getWeekOfMonth(now);
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+        const weekKey = `week-${weekNum}`;
+
+        if (!archiveData[monthKey]) {
+            archiveData[monthKey] = {};
+        }
+
+        const archiveEntry = {
+            savedAt: now.toISOString(),
+            weekNumber: weekNum,
+            dateRange: getWeekDateRange(year, month, weekNum),
+            employeeList: [...employeeList],
+            data: JSON.parse(JSON.stringify(weeklyData))
+        };
+
+        archiveData[monthKey][weekKey] = archiveEntry;
+        await saveArchiveData();
+
+        // --- NEW WEEK RESET LOGIC ---
+        weeklyData = {}; // Clear Data
+        await saveData(); // Save Empty State
+        clearForm(); // Reset Inputs
+        renderLeaderboard(); // Reset Table
+        
+        // Reset displayed totals if any
+        if (currentTotalScoreEl) currentTotalScoreEl.textContent = '0';
+        currentEmployeeTotalScore = 0;
+
+        const monthName = ARABIC_MONTHS[month];
+        showArchiveToast(`✅ تم الأرشفة وبدء أسبوع جديد بنجاح!`);
+        
+        // Update Archive UI if needed
+        renderArchiveMonths();
+        
+        // Hide Modal
+        if (archiveConfirmModal) {
+            archiveConfirmModal.style.display = 'none';
+        }
+    });
+
+    // Handle Cancel Archive Click
+    cancelArchiveBtn?.addEventListener('click', () => {
+        if (archiveConfirmModal) {
+            archiveConfirmModal.style.display = 'none';
+        }
+    });
+
+    // Close on click outside
+    archiveConfirmModal?.addEventListener('click', (e) => {
+        if (e.target === archiveConfirmModal) {
+            archiveConfirmModal.style.display = 'none';
+        }
+    });
+
+    function renderArchiveMonths() {
+        const months = Object.keys(archiveData).sort().reverse();
+
+        if (months.length === 0) {
+            archiveMonthsPanel.innerHTML = `
+                <div class="archive-empty-state">
+                    <div class="icon">📅</div>
+                    <div>لا توجد بيانات محفوظة</div>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        months.forEach(monthKey => {
+            const [year, monthNum] = monthKey.split('-');
+            const monthName = ARABIC_MONTHS[parseInt(monthNum) - 1];
+            const weeksCount = Object.keys(archiveData[monthKey]).length;
+            const isActive = currentArchiveMonth === monthKey ? 'active' : '';
+
+            html += `
+                <button class="archive-month-btn ${isActive}" data-month="${monthKey}">
+                    <div style="font-weight: bold;">${monthName} ${year}</div>
+                    <div style="font-size: 0.8rem; color: #888; margin-top: 3px;">${weeksCount} ${weeksCount === 1 ? 'أسبوع' : 'أسابيع'}</div>
+                </button>
+            `;
+        });
+
+        archiveMonthsPanel.innerHTML = html;
+
+        archiveMonthsPanel.querySelectorAll('.archive-month-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentArchiveMonth = btn.dataset.month;
+                currentArchiveWeek = null;
+                renderArchiveMonths();
+                renderArchiveWeeks();
+                renderArchiveData();
+            });
+        });
+    }
+
+    function renderArchiveWeeks() {
+        if (!currentArchiveMonth || !archiveData[currentArchiveMonth]) {
+            archiveWeeksPanel.innerHTML = `
+                <div class="archive-empty-state">
+                    <div class="icon">📆</div>
+                    <div>اختر شهراً</div>
+                </div>
+            `;
+            return;
+        }
+
+        const weeks = Object.keys(archiveData[currentArchiveMonth]).sort();
+        let html = '';
+
+        weeks.forEach(weekKey => {
+            const weekData = archiveData[currentArchiveMonth][weekKey];
+            const isActive = currentArchiveWeek === weekKey ? 'active' : '';
+
+            html += `
+                <button class="archive-week-btn ${isActive}" data-week="${weekKey}">
+                    <div style="font-weight: bold;">الأسبوع ${weekData.weekNumber}</div>
+                    <div style="font-size: 0.75rem; color: #888; margin-top: 2px;">${weekData.dateRange}</div>
+                </button>
+            `;
+        });
+
+        archiveWeeksPanel.innerHTML = html;
+
+        archiveWeeksPanel.querySelectorAll('.archive-week-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                currentArchiveWeek = btn.dataset.week;
+                renderArchiveWeeks();
+                renderArchiveData();
+            });
+        });
+    }
+
+    function renderArchiveData() {
+        if (!currentArchiveMonth || !currentArchiveWeek || !archiveData[currentArchiveMonth]?.[currentArchiveWeek]) {
+            archiveDataPanel.innerHTML = `
+                <div class="archive-empty-state">
+                    <div class="icon">📊</div>
+                    <div>اختر أسبوعاً لعرض البيانات</div>
+                </div>
+            `;
+            return;
+        }
+
+        const weekData = archiveData[currentArchiveMonth][currentArchiveWeek];
+        const savedWeeklyData = weekData.data;
+        const savedEmployeeList = weekData.employeeList;
+
+        // Calculate scores for archive data
+        const tempReportMaxValues = {};
+        for (const key of REPORT_KEYS) {
+            if (key === 'marketWarnings') continue;
+            let maxTotal = 0;
+            for (const emp of savedEmployeeList) {
+                const data = savedWeeklyData[emp];
+                if (!data) continue;
+                const done = data[key]?.done || 0;
+                const sent = data[key]?.sent || 0;
+                const multiplier = SENT_MULTIPLIERS[key] || 1;
+                const total = done + (sent * multiplier);
+                if (total > maxTotal) maxTotal = total;
+            }
+            tempReportMaxValues[key] = maxTotal > 0 ? maxTotal : 1;
+        }
+
+        function calcArchiveStage1(data) {
+            let score = 0;
+            if (REPORT_WEIGHT_TOTAL === 0) return 0;
+            for (const key of REPORT_KEYS) {
+                if (key === 'marketWarnings') continue;
+                const weight = REPORT_WEIGHTS[key] || 0;
+                if (weight === 0) continue;
+                const done = data[key]?.done || 0;
+                const sent = data[key]?.sent || 0;
+                const multiplier = SENT_MULTIPLIERS[key] || 1;
+                const total = done + (sent * multiplier);
+                const maxTotal = tempReportMaxValues[key] || 1;
+                score += (total / maxTotal) * weight;
+            }
+            return Math.min((score / REPORT_WEIGHT_TOTAL) * STAGE1_MAX, STAGE1_MAX);
+        }
+
+        function calcArchiveTotalScore(data) {
+            const stage1 = calcArchiveStage1(data);
+            const accuracy = Math.min(data.accuracyTotal || 0, STAGE2_MAX);
+            const shiftScore = Math.min(data.shiftManagerScore || 0, SHIFT_MAX);
+            const deptScore = Math.min(data.deptManagerScore || 0, DEPT_MAX);
+            const excellence = data.excellence?.bonus || 0;
+            return stage1 + accuracy + shiftScore + deptScore + excellence;
+        }
+
+        const entries = savedEmployeeList.map(emp => ({
+            name: emp,
+            score: calcArchiveTotalScore(savedWeeklyData[emp] || {}),
+            data: savedWeeklyData[emp] || {}
+        })).sort((a, b) => b.score - a.score);
+
+        const [year, monthNum] = currentArchiveMonth.split('-');
+        const monthName = ARABIC_MONTHS[parseInt(monthNum) - 1];
+        const savedDate = new Date(weekData.savedAt);
+        const formattedDate = savedDate.toLocaleDateString('ar-EG', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        let html = `
+            <div class="archive-leaderboard">
+                <div class="archive-leaderboard-header">
+                    <div class="archive-week-info">
+                        <div class="archive-week-title">الأسبوع ${weekData.weekNumber} - ${monthName} ${year}</div>
+                        <div class="archive-week-date">📅 تم الحفظ: ${formattedDate}</div>
+                    </div>
+                    <button class="archive-delete-week-btn" data-month="${currentArchiveMonth}" data-week="${currentArchiveWeek}">
+                        🗑️ حذف
+                    </button>
+                </div>
+        `;
+
+        if (entries.length > 0 && entries[0].score > 0) {
+            html += `
+                <div class="archive-winner-badge">
+                    <div class="crown">👑</div>
+                    <div class="winner-name">${entries[0].name}</div>
+                    <div class="winner-score">الموظف المثالي - ${formatScore(entries[0].score)} نقطة</div>
+                </div>
+            `;
+        }
+
+        entries.forEach((entry, index) => {
+            const rankClass = index === 0 ? 'rank-1' : index === 1 ? 'rank-2' : index === 2 ? 'rank-3' : '';
+            html += `
+                <div class="archive-employee-row" data-employee="${entry.name}">
+                    <div class="archive-rank ${rankClass}">${index + 1}</div>
+                    <div class="archive-employee-name">${entry.name}</div>
+                    <span class="edit-hint">✏️ تعديل</span>
+                    <div class="archive-employee-score">${formatScore(entry.score)}</div>
+                </div>
+            `;
+        });
+
+        html += '</div>';
+        archiveDataPanel.innerHTML = html;
+
+        // Add click listeners for editing employees
+        archiveDataPanel.querySelectorAll('.archive-employee-row').forEach(row => {
+            row.addEventListener('click', () => {
+                const empName = row.dataset.employee;
+                openArchiveEditModal(empName);
+            });
+        });
+
+        archiveDataPanel.querySelector('.archive-delete-week-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const month = e.target.dataset.month;
+            const week = e.target.dataset.week;
+            pendingDeleteArchiveWeek = { month, week };
+            const weekInfo = archiveData[month][week];
+            deleteArchiveWeekMsg.innerHTML = `هل أنت متأكد من حذف <b style="color:#00d2ff;">الأسبوع ${weekInfo.weekNumber}</b>؟<br><small style="color:#888;">هذا الإجراء لا يمكن التراجع عنه</small>`;
+            deleteArchiveWeekModal.style.display = 'flex';
+        });
+    }
+
+    async function deleteArchiveWeek(month, week) {
+        if (archiveData[month]) {
+            delete archiveData[month][week];
+            if (Object.keys(archiveData[month]).length === 0) {
+                delete archiveData[month];
+            }
+            await saveArchiveData();
+
+            if (currentArchiveMonth === month && currentArchiveWeek === week) {
+                currentArchiveWeek = null;
+            }
+            if (!archiveData[month]) {
+                currentArchiveMonth = null;
+            }
+
+            renderArchiveMonths();
+            renderArchiveWeeks();
+            renderArchiveData();
+            showArchiveToast('تم حذف الأسبوع من الأرشيف');
+        }
+    }
+
+    function openArchiveModal() {
+        currentArchiveMonth = null;
+        currentArchiveWeek = null;
+        renderArchiveMonths();
+        renderArchiveWeeks();
+        renderArchiveData();
+        archiveModal.style.display = 'flex';
+    }
+
+    function closeArchiveModal() {
+        archiveModal.style.display = 'none';
+    }
+
+    // Archive Edit Functions
+    function openArchiveEditModal(employeeName) {
+        if (!currentArchiveMonth || !currentArchiveWeek) return;
+        
+        const weekData = archiveData[currentArchiveMonth]?.[currentArchiveWeek];
+        if (!weekData) return;
+        
+        currentArchiveEditEmployee = employeeName;
+        const empData = weekData.data[employeeName] || {};
+        
+        const [year, monthNum] = currentArchiveMonth.split('-');
+        const monthName = ARABIC_MONTHS[parseInt(monthNum) - 1];
+        
+        archiveEditEmployeeName.textContent = employeeName;
+        archiveEditWeekInfo.textContent = `الأسبوع ${weekData.weekNumber} - ${monthName} ${year}`;
+        
+        // Generate reports inputs
+        let reportsHtml = '';
+        for (const key of REPORT_KEYS) {
+            const title = REPORT_TITLE_MAP[key];
+            const weight = REPORT_WEIGHTS[key];
+            const done = empData[key]?.done || 0;
+            const sent = empData[key]?.sent || 0;
+            
+            if (key === 'marketWarnings') {
+                reportsHtml += `
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: center; padding: 10px 12px; background: linear-gradient(90deg, rgba(99, 102, 241, 0.08), transparent); border-radius: 10px; border-right: 3px solid #6366f1;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: #e2e8f0;">
+                            <span style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 0.7rem; font-weight: 700;">${weight}</span>
+                            <span style="font-weight: 500;">${title}</span>
+                        </div>
+                        <div style="grid-column: span 2;">
+                            <select id="archive-edit-${key}-done" style="width: 100%; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(99, 102, 241, 0.3); color: #fff; padding: 10px 12px; border-radius: 8px; font-size: 0.9rem; cursor: pointer;">
+                                <option value="0" ${done == 0 ? 'selected' : ''}>❌ غير متابع</option>
+                                <option value="1" ${done == 1 ? 'selected' : ''}>✅ متابع</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+            } else {
+                reportsHtml += `
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: center; padding: 10px 12px; background: linear-gradient(90deg, rgba(99, 102, 241, 0.05), transparent); border-radius: 10px; transition: all 0.2s;">
+                        <div style="display: flex; align-items: center; gap: 10px; color: #e2e8f0;">
+                            <span style="background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 4px 8px; border-radius: 6px; color: #fff; font-size: 0.7rem; font-weight: 700;">${weight}</span>
+                            <span style="font-weight: 500;">${title}</span>
+                        </div>
+                        <div>
+                            <input type="number" id="archive-edit-${key}-done" value="${done}" min="0" placeholder="0" style="width: 100%; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(52, 211, 153, 0.3); color: #34d399; padding: 10px; border-radius: 8px; text-align: center; box-sizing: border-box; font-weight: 600; font-size: 0.95rem;">
+                        </div>
+                        <div>
+                            <input type="number" id="archive-edit-${key}-sent" value="${sent}" min="0" placeholder="0" style="width: 100%; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(251, 191, 36, 0.3); color: #fbbf24; padding: 10px; border-radius: 8px; text-align: center; box-sizing: border-box; font-weight: 600; font-size: 0.95rem;">
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        archiveEditReportsContainer.innerHTML = reportsHtml;
+        
+        // Set other values
+        archiveEditExcellence.value = empData.excellence?.bonus || 0;
+        archiveEditExcellenceNote.value = empData.excellence?.note || '';
+        archiveEditAccuracy.value = empData.accuracyTotal || '';
+        archiveEditShiftScore.value = empData.shiftManagerScore ?? '';
+        archiveEditDeptScore.value = empData.deptManagerScore ?? '';
+        
+        archiveEditModal.style.display = 'flex';
+    }
+
+    function closeArchiveEditModal() {
+        archiveEditModal.style.display = 'none';
+        currentArchiveEditEmployee = null;
+    }
+
+    async function saveArchiveEdit() {
+        if (!currentArchiveMonth || !currentArchiveWeek || !currentArchiveEditEmployee) return;
+        
+        const weekData = archiveData[currentArchiveMonth]?.[currentArchiveWeek];
+        if (!weekData) return;
+        
+        // Collect data from form
+        const newData = {};
+        
+        for (const key of REPORT_KEYS) {
+            if (key === 'marketWarnings') {
+                const doneEl = document.getElementById(`archive-edit-${key}-done`);
+                newData[key] = { done: parseInt(doneEl?.value) || 0 };
+            } else {
+                const doneEl = document.getElementById(`archive-edit-${key}-done`);
+                const sentEl = document.getElementById(`archive-edit-${key}-sent`);
+                newData[key] = {
+                    done: parseFloat(doneEl?.value) || 0,
+                    sent: parseFloat(sentEl?.value) || 0
+                };
+            }
+        }
+        
+        newData.excellence = {
+            bonus: parseInt(archiveEditExcellence.value) || 0,
+            note: archiveEditExcellenceNote.value || ''
+        };
+        
+        newData.accuracyTotal = parseFloat(archiveEditAccuracy.value) || 0;
+        newData.shiftManagerScore = archiveEditShiftScore.value !== '' ? parseFloat(archiveEditShiftScore.value) : null;
+        newData.deptManagerScore = archiveEditDeptScore.value !== '' ? parseFloat(archiveEditDeptScore.value) : null;
+        
+        // Update archive data
+        weekData.data[currentArchiveEditEmployee] = newData;
+        weekData.lastModified = new Date().toISOString();
+        
+        await saveArchiveData();
+        
+        closeArchiveEditModal();
+        renderArchiveData();
+        showArchiveToast(`✅ تم تحديث بيانات ${currentArchiveEditEmployee}`);
+    }
+
+    // Archive Event Listeners
+    saveToArchiveBtn?.addEventListener('click', saveToArchive);
+    openArchiveBtn?.addEventListener('click', openArchiveModal);
+    archiveCloseBtn?.addEventListener('click', closeArchiveModal);
+    
+    // Evaluation Button: Should close archive if open and scroll to top
+    goToEvaluationBtn?.addEventListener('click', () => {
+        const archiveModal = document.getElementById('archive-modal');
+        if (archiveModal && archiveModal.style.display !== 'none') {
+             closeArchiveModal();
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Archive Edit Event Listeners
+    archiveEditCloseBtn?.addEventListener('click', closeArchiveEditModal);
+    archiveEditCancelBtn?.addEventListener('click', closeArchiveEditModal);
+    archiveEditSaveBtn?.addEventListener('click', saveArchiveEdit);
+    
+    archiveEditModal?.addEventListener('click', (e) => {
+        if (e.target === archiveEditModal) {
+            closeArchiveEditModal();
+        }
+    });
+
+    confirmDeleteArchiveWeekBtn?.addEventListener('click', async () => {
+        if (pendingDeleteArchiveWeek) {
+            await deleteArchiveWeek(pendingDeleteArchiveWeek.month, pendingDeleteArchiveWeek.week);
+            pendingDeleteArchiveWeek = null;
+        }
+        deleteArchiveWeekModal.style.display = 'none';
+    });
+
+    cancelDeleteArchiveWeekBtn?.addEventListener('click', () => {
+        pendingDeleteArchiveWeek = null;
+        deleteArchiveWeekModal.style.display = 'none';
+    });
+
+    archiveModal?.addEventListener('click', (e) => {
+        if (e.target === archiveModal) {
+            closeArchiveModal();
+        }
+    });
+
+    deleteArchiveWeekModal?.addEventListener('click', (e) => {
+        if (e.target === deleteArchiveWeekModal) {
+            deleteArchiveWeekModal.style.display = 'none';
+            pendingDeleteArchiveWeek = null;
+        }
+    });
+
+    // Sidebar Toggle Logic (Updated for Right Sidebar)
+    const sidebarToggleBtn = document.getElementById('sidebar-toggle-btn');
+    const sidebar = document.querySelector('.archive-sidebar');
+    
+    if (sidebarToggleBtn && sidebar) {
+        sidebarToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent document click from closing immediately
+            sidebar.classList.toggle('expanded');
+            document.body.classList.toggle('sidebar-expanded');
+        });
+
+        // Optional: Close when clicking outside if expanded
+        document.addEventListener('click', (e) => {
+            if (sidebar.classList.contains('expanded') && 
+                !sidebar.contains(e.target) && 
+                e.target !== sidebarToggleBtn) {
+                
+                sidebar.classList.remove('expanded');
+                document.body.classList.remove('sidebar-expanded');
+            }
+        });
     }
 
     // -------------------------------------------------------------------------

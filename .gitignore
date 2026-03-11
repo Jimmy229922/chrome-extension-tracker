@@ -105,6 +105,8 @@ public
 # Chrome extension build outputs
 build/
 dist/
+backend/
+account-copy-tracker-extension.zip
 
 # Temporary files
 *.tmp

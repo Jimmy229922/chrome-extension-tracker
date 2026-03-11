@@ -1,0 +1,90 @@
+:root {
+  --ds-font-ui: "Tajawal", "Cairo", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+
+  --ds-bg-page: #0f1f2f;
+  --ds-bg-surface: #12283b;
+  --ds-bg-surface-soft: #16324a;
+  --ds-bg-input: #0b2235;
+  --ds-bg-input-active: #102f48;
+
+  --ds-text-primary: #f8f4ea;
+  --ds-text-muted: #d3dddf;
+  --ds-text-label: #f4d68a;
+
+  --ds-border-soft: rgba(244, 214, 138, 0.22);
+  --ds-border-strong: rgba(244, 214, 138, 0.38);
+  --ds-focus: #f4d68a;
+  --ds-focus-ring: rgba(212, 167, 63, 0.24);
+  --ds-success: #38ef7d;
+  --ds-success-ring: rgba(56, 239, 125, 0.2);
+
+  --ds-accent-primary-1: #0f766e;
+  --ds-accent-primary-2: #0b4f4a;
+  --ds-accent-danger-1: #b3323b;
+  --ds-accent-danger-2: #87202b;
+
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 16px;
+
+  --ds-shadow-sm: 0 2px 8px rgba(3, 10, 18, 0.2);
+  --ds-shadow-md: 0 6px 16px rgba(2, 10, 19, 0.25);
+}
+
+body {
+  font-family: var(--ds-font-ui);
+}
+
+.report-container,
+.modal-content,
+.critical-watchlist-card,
+.setting-item {
+  border-radius: var(--ds-radius-lg);
+  border: 1px solid var(--ds-border-soft);
+}
+
+.report-label {
+  color: var(--ds-text-label);
+  font-weight: 700;
+}
+
+.report-input,
+select.report-input,
+textarea.report-input {
+  border-radius: var(--ds-radius-sm);
+  border: 1px solid var(--ds-border-strong);
+  background: linear-gradient(180deg, var(--ds-bg-input), var(--ds-bg-input-active));
+  color: var(--ds-text-primary);
+}
+
+.report-input::placeholder,
+textarea.report-input::placeholder {
+  color: rgba(244, 214, 138, 0.5);
+}
+
+.report-input:focus,
+select.report-input:focus,
+textarea.report-input:focus {
+  border-color: var(--ds-focus);
+  box-shadow: 0 0 0 3px var(--ds-focus-ring);
+  outline: none;
+}
+
+.report-btn {
+  border-radius: var(--ds-radius-md);
+  border: 1px solid rgba(255, 238, 197, 0.34);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.generate-btn,
+.telegram-btn {
+  background: linear-gradient(135deg, var(--ds-accent-primary-1), var(--ds-accent-primary-2));
+}
+
+.reset-btn {
+  background: linear-gradient(135deg, var(--ds-accent-danger-1), var(--ds-accent-danger-2));
+}
+
+.modal {
+  background-color: rgba(0, 0, 0, 0.45);
+}

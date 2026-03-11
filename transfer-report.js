@@ -12,7 +12,7 @@ const reportOldGroupInput = document.getElementById('report-old-group');
 const reportNewGroupInput = document.getElementById('report-new-group');
 const reportNotesInput = document.getElementById('report-notes');
 const reportShiftInput = document.getElementById('report-shift');
-const shiftBtns = document.querySelectorAll('.shift-btn');
+const shiftBtns = document.querySelectorAll('.shift-selector-container .shift-btn');
 const generateReportBtn = document.getElementById('generate-report-btn');
 const sendTelegramBtn = document.getElementById('send-telegram-btn');
 const deleteLastSentBtn = document.getElementById('delete-last-sent-btn');
@@ -192,6 +192,15 @@ const DEFAULT_GF_NOTES = 'entry.1364885040';
 
 let selectedImages = [];
 let savedNotes = [];
+const DEFAULT_REPORT_NOTE_TEMPLATES = [
+  'تم تحويل الحساب تلقائيا من الاداة الى B1 Clients كون IP متغاير وتم مطابقته بالنظام ارباح العميل بالسالب',
+  'تم تحويل الحساب الى Standard Acccount 2, وذلك بسبب ان العميل يستخدم ip من كركوك وغير محظور',
+  'تم تحويل الحساب الى   Standard Bonus كونه يعتمد اسلوب صفقات بسعر افتتاح مساوي  لسعر وقف الخسارة بالصفقات المغلقة من خلال اوامر معلقة',
+  'تم تحويل الحساب الى Standard Bonus بسبب ان الارباح تجاوزت 100$',
+  'تم اعادة الحساب الى B1 لانه مطابق اكثر من اسبوع',
+  'تم تحويل الحساب الى Standard Acccount 2, وذلك بسبب ان ارباح العميل خلال اخر اسبوع 1,821$ والكلية بالموجب'
+];
+
 
 // --- Toast Notification System ---
 let currentToast = null;
@@ -332,23 +341,59 @@ const isEmail = (text) => /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(
 const isAccount = (text) => /^\d{6,7}$/.test(text.trim());
 
 async function fetchIpInfo(ip) {
-  if (!ip) return;
+  if (!ip) return false;
   try {
     reportCountryInput.value = 'جاري البحث...';
     applyFieldCompletionState(reportCountryInput);
-    const response = await fetch(`https://ipwhois.app/json/${ip}?lang=ar`);
-    const data = await response.json();
-    if (data.success) {
-      reportCountryInput.value = `${data.country} - (${data.city})`;
-    } else {
-      reportCountryInput.value = 'Unknown';
+    const geoClient = window.IPGeoClient;
+    const result = geoClient
+      ? await (geoClient.lookupWithRetry
+        ? geoClient.lookupWithRetry(ip, { attempts: 3, retryDelayMs: 120 })
+        : geoClient.lookup(ip))
+      : { success: false, error: 'IPGeoClient unavailable' };
+
+    if (result.success) {
+      const display = geoClient.toCountryDisplay(result.data, 'Unknown');
+      reportCountryInput.value = display;
+      applyFieldCompletionState(reportCountryInput);
+      if (geoClient && typeof geoClient.isCountryTextResolved === 'function') {
+        return geoClient.isCountryTextResolved(display);
+      }
+      return !!display && display !== 'Unknown' && display !== 'Error';
     }
+
+    console.warn('Transfer report IP lookup failed:', result.error);
+    reportCountryInput.value = 'Unknown';
     applyFieldCompletionState(reportCountryInput);
+    return false;
   } catch (error) {
     console.error('Error fetching IP info:', error);
     reportCountryInput.value = 'Error';
     applyFieldCompletionState(reportCountryInput);
+    return false;
   }
+}
+
+async function ensureTransferReportCountry() {
+  const ipRaw = reportIpInput.value.trim();
+  const ip = extractIp(ipRaw);
+  if (!ip) return false;
+  if (ip !== ipRaw) reportIpInput.value = ip;
+
+  const geoClient = window.IPGeoClient;
+  const currentCountry = (reportCountryInput.value || '').trim();
+  if (geoClient && typeof geoClient.isCountryTextResolved === 'function' && geoClient.isCountryTextResolved(currentCountry)) {
+    return true;
+  }
+
+  const ok = await fetchIpInfo(ip);
+  if (ok) return true;
+
+  const finalCountry = (reportCountryInput.value || '').trim();
+  if (geoClient && typeof geoClient.isCountryTextResolved === 'function') {
+    return geoClient.isCountryTextResolved(finalCountry);
+  }
+  return !!finalCountry && finalCountry !== 'Unknown' && finalCountry !== 'Error';
 }
 
 // --- Smart Input Logic ---
@@ -923,12 +968,11 @@ document.addEventListener('paste', (e) => {
 // --- Notes Modal ---
 async function loadSavedNotes() {
   const result = await chrome.storage.local.get(['transferReportNotes']);
-  savedNotes = result.transferReportNotes || [
-    'تم تحويل الحساب تلقائيا من الاداة الى B1 Clients كون IP متغاير وتم مطابقته بالنظام ارباح العميل بالسالب',
-    'العميل يستخدم VPN',
-    'حساب متعدد',
-    'تداول مشبوه وقت الأخبار'
-  ];
+  const storedNotes = Array.isArray(result.transferReportNotes) ? result.transferReportNotes : [];
+  savedNotes = storedNotes.length ? storedNotes : [...DEFAULT_REPORT_NOTE_TEMPLATES];
+  if (!storedNotes.length) {
+    await chrome.storage.local.set({ transferReportNotes: savedNotes });
+  }
   renderSavedNotes();
 }
 
@@ -941,6 +985,7 @@ function renderSavedNotes() {
     li.innerHTML = `
       <span class="saved-note-text" style="flex: 1;">${note}</span>
       <div class="saved-note-actions">
+        <button class="saved-note-btn edit" style="background: none; border: none; cursor: pointer;">✏️</button>
         <button class="saved-note-btn delete" style="background: none; border: none; cursor: pointer; color: #e74c3c;">🗑️</button>
       </div>
     `;
@@ -950,13 +995,26 @@ function renderSavedNotes() {
       savedNotesModal.style.display = 'none';
     });
 
+    li.querySelector('.edit').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const next = prompt('تعديل الملاحظة:', note);
+      if (next === null) return;
+      const trimmed = next.trim();
+      if (!trimmed) {
+        showToast('تنبيه', 'لا يمكن حفظ ملاحظة فارغة', 'warning');
+        return;
+      }
+      savedNotes[index] = trimmed;
+      chrome.storage.local.set({ transferReportNotes: savedNotes });
+      renderSavedNotes();
+    });
+
     li.querySelector('.delete').addEventListener('click', (e) => {
       e.stopPropagation();
-      if (confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) {
-        savedNotes.splice(index, 1);
-        chrome.storage.local.set({ transferReportNotes: savedNotes });
-        renderSavedNotes();
-      }
+      if (!confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) return;
+      savedNotes.splice(index, 1);
+      chrome.storage.local.set({ transferReportNotes: savedNotes });
+      renderSavedNotes();
     });
 
     savedNotesList.appendChild(li);
@@ -965,12 +1023,14 @@ function renderSavedNotes() {
 
 addNoteBtn.addEventListener('click', () => {
   const text = newNoteInput.value.trim();
-  if (text) {
-    savedNotes.push(text);
-    chrome.storage.local.set({ transferReportNotes: savedNotes });
-    renderSavedNotes();
-    newNoteInput.value = '';
+  if (!text) {
+    showToast('تنبيه', 'الرجاء إدخال ملاحظة', 'warning');
+    return;
   }
+  savedNotes.push(text);
+  chrome.storage.local.set({ transferReportNotes: savedNotes });
+  renderSavedNotes();
+  newNoteInput.value = '';
 });
 
 openNotesModalBtn.addEventListener('click', () => {
@@ -1077,6 +1137,15 @@ telegramSettingsClose.addEventListener('click', () => {
 
 // --- Generate Report ---
 generateReportBtn.addEventListener('click', async () => {
+  const hasIpBeforeCopy = !!reportIpInput.value.trim();
+  if (hasIpBeforeCopy) {
+    const countryReady = await ensureTransferReportCountry();
+    if (!countryReady) {
+      showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+      return;
+    }
+  }
+
   const ip = reportIpInput.value.trim();
   const country = reportCountryInput.value.trim();
   const account = reportAccountInput.value.trim();
@@ -1161,6 +1230,15 @@ sendTelegramBtn.addEventListener('click', async () => {
 
   const token = DEFAULT_TELEGRAM_TOKEN;
   const chatId = DEFAULT_TELEGRAM_CHAT_ID;
+
+  const hasIpBeforeSend = !!reportIpInput.value.trim();
+  if (hasIpBeforeSend) {
+    const countryReady = await ensureTransferReportCountry();
+    if (!countryReady) {
+      showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+      return;
+    }
+  }
 
   const ip = reportIpInput.value.trim();
   const country = reportCountryInput.value.trim();
@@ -1459,7 +1537,7 @@ function convertToCustomSelect(selectId) {
     // Create trigger (the visible box)
     const trigger = document.createElement('div');
     trigger.className = 'custom-select-trigger';
-    trigger.innerHTML = '<span>' + (originalSelect.options[originalSelect.selectedIndex]?.text || '????...') + '</span>';
+    trigger.innerHTML = '<span>' + (originalSelect.options[originalSelect.selectedIndex]?.text || 'اختر...') + '</span>';
     
     // Create options container
     const optionsContainer = document.createElement('div');

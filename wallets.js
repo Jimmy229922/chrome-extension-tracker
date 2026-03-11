@@ -106,12 +106,9 @@ function setupReportForm() {
         if (ip && !countryInput.value) {
             try {
                 countryInput.placeholder = 'جاري البحث...';
-                const response = await fetch(`https://ipapi.co/${ip}/json/`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.country_name) {
-                        countryInput.value = data.country_name;
-                    }
+                const response = await chrome.runtime.sendMessage({ type: 'lookupIp', ip: ip, forceRefresh: false });
+                if (response && response.data && response.data.country) {
+                    countryInput.value = response.data.country;
                 }
             } catch (error) {
                 console.error('Error fetching country:', error);

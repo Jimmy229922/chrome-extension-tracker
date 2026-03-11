@@ -8,6 +8,17 @@
 <body class="dark-mode">
   <h1>إعدادات متتبع الحسابات</h1>
   
+  
+  <div class="setting-item ip-lookup-section">
+    <h2>البحث عن IP</h2>
+    <p class="setting-description">أداة للبحث عن معلومات حول عنوان IP محدد.</p>
+    <div class="ip-search-container">
+      <input type="text" id="ip-input" placeholder="أدخل عنوان IP (مثال: 8.8.8.8)">
+      <button id="lookup-ip-button">🔍 بحث</button>
+    </div>
+    <div id="ip-lookup-results"></div>
+  </div>
+
   <!-- عدّاد النتائج بعد الفلترة -->
   <div id="result-counter" style="margin: 10px 0 20px; font-weight:600; font-size: 1.05em; color:#2c3e50;"></div>
 
@@ -129,16 +140,6 @@
     <p class="setting-description">النص الذي سيتم نطقه عند اكتشاف عنصر VIP. إذا ترك فارغاً، سيتم استخدام النص الافتراضي.</p>
   </div>
 
-  <div class="setting-item ip-lookup-section">
-    <h2>البحث عن IP</h2>
-    <p class="setting-description">أداة للبحث عن معلومات حول عنوان IP محدد.</p>
-    <div class="ip-search-container">
-      <input type="text" id="ip-input" placeholder="أدخل عنوان IP (مثال: 8.8.8.8)">
-      <button id="lookup-ip-button">🔍 بحث</button>
-    </div>
-    <div id="ip-lookup-results"></div>
-  </div>
-
   <!-- شاشة إرشادية لأول تشغيل (Onboarding) -->
   <div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9999;align-items:center;justify-content:center;" role="dialog" aria-modal="true" aria-labelledby="onb-title">
     <div class="onb-modal" style="background:#fff;border-radius:16px;max-width:760px;width:94%;padding:0;box-shadow:0 18px 60px rgba(0,0,0,0.35);overflow:hidden;" dir="rtl">
@@ -177,6 +178,7 @@
     <p class="setting-description">يعيد عرض الجولة التعريفية للمبتدئين.</p>
   </div>
 
+  <script src="ip-geo-client.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

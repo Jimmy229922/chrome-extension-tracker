@@ -3,6 +3,7 @@
    Modern, Clean & Responsive Design
    ============================================ */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Tajawal:wght@400;500;700&display=swap');
+@import url('design-system.css');
 @import url('style-mentions.css');
 @import url('style_extras.css');
 
@@ -1945,77 +1946,256 @@ body.dark-mode .setting-item input[type="number"]:disabled {
 .ip-lookup-section {
   flex-direction: column !important;
   align-items: stretch !important;
+  background: linear-gradient(180deg, #1f4f78 0%, #1f486f 100%) !important;
+  border: 1px solid rgba(17, 62, 96, 0.9) !important;
+  border-radius: 12px;
+  color: #ecf5ff;
 }
 
 .ip-lookup-section h2 {
-  margin-bottom: 15px;
+  margin-bottom: 10px;
+  color: #f3f9ff;
+}
+
+.ip-lookup-section .setting-description {
+  color: rgba(227, 240, 255, 0.92);
+}
+
+body.dark-mode .ip-lookup-section {
+  background: linear-gradient(180deg, #173653 0%, #132f49 100%) !important;
+  border-color: rgba(49, 88, 125, 0.95) !important;
+  color: #edf4ff;
 }
 
 .ip-search-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
   gap: 10px;
   align-items: center;
-  margin-bottom: 15px;
-  flex-wrap: wrap;
+  margin-bottom: 12px;
 }
 
 #ip-input {
-  flex: 1;
-  min-width: 200px;
-  padding: 12px 18px;
-  border: 2px solid #ddd;
-  border-radius: 25px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid #7ea4c9;
+  border-radius: 8px;
   font-size: 1em;
-  transition: all 0.3s ease;
+  background: #f3f8fd;
+  color: #132a3f;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 #ip-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #5fb1ff;
+  box-shadow: 0 0 0 3px rgba(73, 163, 241, 0.2);
 }
 
 body.dark-mode #ip-input {
-  background: #2c3e50;
-  color: #ecf0f1;
-  border-color: #34495e;
+  background: #10304c;
+  color: #e7f3ff;
+  border-color: #355f84;
 }
 
 #lookup-ip-button {
-  padding: 12px 30px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 12px 24px;
+  background: linear-gradient(180deg, #158bc8 0%, #0e78b0 100%);
   color: white;
-  border: none;
-  border-radius: 25px;
+  border: 1px solid #0e6a9b;
+  border-radius: 8px;
   font-weight: 600;
   font-size: 1em;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  box-shadow: 0 5px 14px rgba(14, 120, 176, 0.35);
   white-space: nowrap;
 }
 
-#lookup-ip-button:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  box-shadow: 0 6px 15px rgba(102, 126, 234, 0.4);
+#lookup-ip-button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #1498d7 0%, #0f84bf 100%);
+  box-shadow: 0 8px 18px rgba(13, 131, 193, 0.4);
   transform: translateY(-2px);
 }
 
+#lookup-ip-button:disabled {
+  opacity: 0.68;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 #ip-lookup-results {
-  margin-top: 15px;
-  padding: 20px;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  color: #2c3e50;
-  font-size: 1em;
-  min-height: 50px;
+  margin-top: 10px;
+  padding: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(189, 218, 246, 0.35);
+  color: #eaf4ff;
+  min-height: 66px;
+  overflow: hidden;
 }
 
 body.dark-mode #ip-lookup-results {
-  background: #34495e;
-  color: #ecf0f1;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  background: rgba(9, 24, 39, 0.45);
+  border-color: rgba(80, 121, 159, 0.46);
+  color: #edf4ff;
+}
+
+.ip-lookup-status {
+  margin: 0;
+  padding: 14px 16px;
+  color: #eaf5ff;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.ip-lookup-status.loading {
+  color: #f7fbff;
+}
+
+.ip-lookup-status.error {
+  color: #ffd5d5;
+  background: rgba(148, 34, 34, 0.25);
+}
+
+.ip-lookup-card {
+  background: #28567f;
+  color: #eef6ff;
+}
+
+.ip-lookup-head {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(206, 224, 243, 0.22);
+  background: rgba(10, 24, 38, 0.18);
+}
+
+.ip-lookup-title {
+  font-size: 1.28rem;
+  font-weight: 500;
+}
+
+.ip-lookup-target {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.ip-lookup-grid {
+  display: grid;
+  grid-template-columns: minmax(340px, 1.35fr) minmax(260px, 1fr);
+  gap: 16px;
+  padding: 14px;
+}
+
+.ip-lookup-list {
+  margin: 0;
+  padding: 0 10px 0 0;
+  list-style: none;
+}
+
+.ip-lookup-row {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.ip-lookup-row:last-child {
+  margin-bottom: 0;
+}
+
+.ip-lookup-key {
+  color: #cde6ff;
+  font-size: 1.04rem;
+  line-height: 1.4;
+}
+
+.ip-lookup-value {
+  color: #ffffff;
+  font-size: 1.08rem;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.ip-lookup-map-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ip-map-frame {
+  width: 100%;
+  min-height: 320px;
+  border: 1px solid rgba(221, 238, 255, 0.44);
+  border-radius: 8px;
+  background: #f2f8ff;
+}
+
+.ip-map-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: max-content;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #113250;
+  background: #d6eafc;
+}
+
+.ip-map-link:hover {
+  background: #c6e1f9;
+}
+
+.ip-map-unavailable {
+  min-height: 320px;
+  border-radius: 8px;
+  border: 1px dashed rgba(212, 228, 244, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  color: #e7f4ff;
+  background: rgba(8, 20, 32, 0.14);
+}
+
+@media (max-width: 940px) {
+  .ip-lookup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ip-map-frame,
+  .ip-map-unavailable {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 760px) {
+  .ip-search-container {
+    grid-template-columns: 1fr;
+  }
+
+  #lookup-ip-button {
+    width: 100%;
+  }
+
+  .ip-lookup-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
 }
 
 /* === INFO ICON BUTTON === */
@@ -4392,3 +4572,998 @@ body.dark-mode .custom-option-category {
 }
 
 
+/* ============================================
+   RAMADAN THEME OVERRIDES (Visual Only)
+   ============================================ */
+:root {
+  --ramadan-paper: #f8f3e6;
+  --ramadan-sand: #f0e4c8;
+  --ramadan-ink: #17324a;
+  --ramadan-teal: #0f766e;
+  --ramadan-teal-deep: #0b4f4a;
+  --ramadan-gold: #d4a73f;
+  --ramadan-gold-soft: #f4d68a;
+  --ramadan-night-1: #0a1f33;
+  --ramadan-night-2: #12324d;
+}
+
+body::before {
+  background-color: var(--ramadan-paper) !important;
+  background-image:
+    radial-gradient(800px 420px at 84% 10%, rgba(243, 199, 97, 0.25), transparent 58%),
+    radial-gradient(920px 500px at 18% 88%, rgba(15, 118, 110, 0.14), transparent 62%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='rgba(22,60,87,0.08)' stroke-width='1'%3E%3Cpath d='M120 18l15 27 30 0-15 27 15 27-30 0-15 27-15-27-30 0 15-27-15-27 30 0z'/%3E%3Cpath d='M50 170l10 18 20 0-10 18 10 18-20 0-10 18-10-18-20 0 10-18-10-18 20 0z'/%3E%3Cpath d='M198 146l8 14 16 0-8 14 8 14-16 0-8 14-8-14-16 0 8-14-8-14 16 0z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(150deg, var(--ramadan-paper) 0%, var(--ramadan-sand) 45%, #e8d8b0 100%) !important;
+  background-size: 100% 100%, 100% 100%, 240px 240px, 100% 100% !important;
+  background-position: center, center, 0 0, center !important;
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat !important;
+}
+
+body::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 138px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.95;
+  transform-origin: top center;
+  animation: ramadanLanternSway 6s ease-in-out infinite;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='140' viewBox='0 0 420 140'%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23f7d98f'/%3E%3Cstop offset='1' stop-color='%23c4912f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 18 C35 36 70 2 105 18 C140 36 175 2 210 18 C245 36 280 2 315 18 C350 36 385 2 420 18' stroke='rgba(64,44,14,0.58)' stroke-width='2' fill='none'/%3E%3Cg stroke='rgba(60,41,14,0.62)' stroke-width='1.8'%3E%3Cline x1='72' y1='14' x2='72' y2='56'/%3E%3Cline x1='210' y1='14' x2='210' y2='66'/%3E%3Cline x1='348' y1='14' x2='348' y2='54'/%3E%3C/g%3E%3Cg%3E%3Crect x='58' y='56' width='28' height='34' rx='7' fill='url(%23g1)' stroke='rgba(65,45,13,0.62)'/%3E%3Ccircle cx='72' cy='72' r='6' fill='rgba(255,244,200,0.8)'/%3E%3Crect x='64' y='48' width='16' height='8' rx='3' fill='%23b9832b'/%3E%3C/g%3E%3Cg%3E%3Crect x='194' y='66' width='32' height='40' rx='8' fill='url(%23g1)' stroke='rgba(65,45,13,0.62)'/%3E%3Ccircle cx='210' cy='84' r='7' fill='rgba(255,244,200,0.82)'/%3E%3Crect x='201' y='56' width='18' height='10' rx='4' fill='%23b9832b'/%3E%3C/g%3E%3Cg%3E%3Crect x='334' y='54' width='28' height='34' rx='7' fill='url(%23g1)' stroke='rgba(65,45,13,0.62)'/%3E%3Ccircle cx='348' cy='71' r='6' fill='rgba(255,244,200,0.8)'/%3E%3Crect x='340' y='46' width='16' height='8' rx='3' fill='%23b9832b'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-position: top center;
+  background-size: 420px 138px;
+}
+
+@keyframes ramadanLanternSway {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(2px); }
+}
+
+body.dark-mode::before {
+  background-color: var(--ramadan-night-1) !important;
+  background-image:
+    radial-gradient(780px 420px at 84% 12%, rgba(244, 214, 138, 0.24), transparent 58%),
+    radial-gradient(900px 520px at 10% 94%, rgba(26, 161, 150, 0.16), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='rgba(245,214,138,0.12)' stroke-width='1'%3E%3Cpath d='M120 18l15 27 30 0-15 27 15 27-30 0-15 27-15-27-30 0 15-27-15-27 30 0z'/%3E%3Cpath d='M50 170l10 18 20 0-10 18 10 18-20 0-10 18-10-18-20 0 10-18-10-18 20 0z'/%3E%3Cpath d='M198 146l8 14 16 0-8 14 8 14-16 0-8 14-8-14-16 0 8-14-8-14 16 0z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(150deg, var(--ramadan-night-1) 0%, var(--ramadan-night-2) 45%, #16405f 100%) !important;
+}
+
+body.dark-mode::after {
+  opacity: 0.78;
+  filter: saturate(1.08) brightness(0.9);
+}
+
+.header {
+  background: linear-gradient(135deg, rgba(15, 89, 108, 0.9) 0%, rgba(12, 65, 90, 0.9) 100%) !important;
+  border: 1px solid rgba(242, 207, 122, 0.35) !important;
+  box-shadow: 0 10px 28px rgba(10, 28, 46, 0.22) !important;
+}
+
+.header h1,
+h1,
+h2,
+.report-title {
+  text-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, #f4d68a 0%, #d4a73f 100%) !important;
+  color: #442d08 !important;
+  border-color: rgba(93, 64, 18, 0.3) !important;
+}
+
+body.dark-mode .tab-button.active {
+  background: linear-gradient(135deg, #f4d68a 0%, #c8952f 100%) !important;
+  color: #35250a !important;
+}
+
+#search-bar,
+.report-input,
+input[type="text"],
+input[type="number"],
+input[type="email"],
+textarea,
+select {
+  border-color: rgba(180, 134, 33, 0.35) !important;
+}
+
+#search-bar:focus,
+.report-input:focus,
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--ramadan-gold) !important;
+  box-shadow: 0 0 0 3px rgba(212, 167, 63, 0.22) !important;
+}
+
+button:not(.icon-btn),
+.report-btn,
+.critical-add-btn,
+.clear-filters-btn,
+.opt-clear-filters-btn {
+  border: 1px solid rgba(255, 245, 224, 0.35);
+}
+
+.generate-btn,
+#open-settings,
+.telegram-btn {
+  background: linear-gradient(135deg, var(--ramadan-teal) 0%, var(--ramadan-teal-deep) 100%) !important;
+}
+
+.reset-btn,
+#clear-history {
+  background: linear-gradient(135deg, #b3323b 0%, #8f1f2a 100%) !important;
+}
+
+.setting-item,
+.report-container,
+.modal-content,
+.critical-watchlist-card,
+.ip-details-container {
+  border: 1px solid rgba(189, 145, 53, 0.25) !important;
+  box-shadow: 0 12px 28px rgba(26, 41, 56, 0.12) !important;
+}
+
+body.dark-mode .setting-item,
+body.dark-mode .report-container,
+body.dark-mode .modal-content,
+body.dark-mode .critical-watchlist-card,
+body.dark-mode .ip-details-container {
+  border-color: rgba(244, 214, 138, 0.22) !important;
+  box-shadow: 0 14px 30px rgba(2, 10, 19, 0.35) !important;
+}
+
+.toast-notification {
+  background: linear-gradient(135deg, #0f766e 0%, #134e4a 100%) !important;
+}
+
+.toast-notification.warning {
+  background: linear-gradient(135deg, #a62639 0%, #8a1d2f 100%) !important;
+}
+
+.toast-notification.ip {
+  background: linear-gradient(135deg, #0e7490 0%, #155e75 100%) !important;
+}
+
+.toast-notification.duplicate {
+  background: linear-gradient(135deg, #7c3f9f 0%, #5b2f7d 100%) !important;
+}
+
+@media (max-width: 900px) {
+  body::after {
+    opacity: 0.72;
+    background-size: 360px 118px;
+    height: 118px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   RAMADAN REPORT SURFACES (Transfer/Deposit/Credit Out)
+   ============================================ */
+body.ramadan-report-page {
+  background:
+    radial-gradient(1100px 620px at 86% 8%, rgba(244, 214, 138, 0.24), transparent 60%),
+    radial-gradient(980px 560px at 12% 92%, rgba(17, 119, 111, 0.28), transparent 62%),
+    linear-gradient(150deg, #081a2c 0%, #0f2f47 50%, #13465f 100%) !important;
+  background-attachment: fixed !important;
+}
+
+body.ramadan-report-page::before {
+  background-image:
+    radial-gradient(780px 420px at 84% 14%, rgba(244, 214, 138, 0.2), transparent 58%),
+    radial-gradient(860px 500px at 14% 88%, rgba(14, 112, 104, 0.16), transparent 60%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='none' stroke='rgba(245,221,152,0.24)' stroke-width='1'%3E%3Cpath d='M110 20l13 24 26 0-13 24 13 24-26 0-13 24-13-24-26 0 13-24-13-24 26 0z'/%3E%3Cpath d='M45 154l9 16 18 0-9 16 9 16-18 0-9 16-9-16-18 0 9-16-9-16 18 0z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(150deg, #081a2c 0%, #0f2f47 55%, #13465f 100%) !important;
+  background-size: 100% 100%, 100% 100%, 220px 220px, 100% 100% !important;
+}
+
+body.ramadan-report-page::after {
+  opacity: 0.85 !important;
+}
+
+body.ramadan-report-page .report-container,
+#transfer-report-section .report-container,
+#deposit-percentage-section .report-container,
+#credit-out-section .report-container {
+  background: linear-gradient(180deg, rgba(18, 48, 72, 0.9), rgba(8, 28, 45, 0.86)) !important;
+  border: 1px solid rgba(244, 214, 138, 0.3) !important;
+  box-shadow: 0 18px 42px rgba(2, 14, 28, 0.5) !important;
+  border-radius: 16px !important;
+  backdrop-filter: blur(8px) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+body.ramadan-report-page .report-container::before,
+#transfer-report-section .report-container::before,
+#deposit-percentage-section .report-container::before,
+#credit-out-section .report-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 4px;
+  background: linear-gradient(90deg, rgba(244, 214, 138, 0), rgba(244, 214, 138, 0.95), rgba(14, 112, 104, 0.95), rgba(244, 214, 138, 0)) !important;
+  pointer-events: none;
+}
+
+body.ramadan-report-page .report-title,
+#transfer-report-section .report-title,
+#deposit-percentage-section .report-title,
+#credit-out-section .report-title {
+  color: #ffe7bb !important;
+  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+body.ramadan-report-page .report-label,
+#transfer-report-section .report-label,
+#deposit-percentage-section .report-label,
+#credit-out-section .report-label {
+  color: #f5dd98 !important;
+  font-weight: 700 !important;
+}
+
+body.ramadan-report-page .report-input,
+body.ramadan-report-page .report-select,
+body.ramadan-report-page textarea,
+#transfer-report-section .report-input,
+#deposit-percentage-section .report-input,
+#credit-out-section .report-input {
+  background: linear-gradient(180deg, rgba(7, 24, 39, 0.92), rgba(10, 30, 48, 0.9)) !important;
+  border: 1px solid rgba(212, 167, 63, 0.4) !important;
+  color: #f8f4ea !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+}
+
+body.ramadan-report-page .report-input::placeholder,
+#transfer-report-section .report-input::placeholder,
+#deposit-percentage-section .report-input::placeholder,
+#credit-out-section .report-input::placeholder {
+  color: rgba(245, 221, 152, 0.5) !important;
+}
+
+body.ramadan-report-page .report-input:focus,
+body.ramadan-report-page .report-select:focus,
+body.ramadan-report-page textarea:focus,
+#transfer-report-section .report-input:focus,
+#deposit-percentage-section .report-input:focus,
+#credit-out-section .report-input:focus {
+  border-color: #f4d68a !important;
+  box-shadow: 0 0 0 3px rgba(212, 167, 63, 0.26) !important;
+}
+
+/* Green typing/fill state (requested behavior) */
+body.ramadan-report-page .report-input:not(.readonly-input):not([readonly]):focus,
+body.ramadan-report-page textarea.report-input:focus,
+#transfer-report-section .report-input:not(.readonly-input):not([readonly]):focus,
+#deposit-percentage-section .report-input:not(.readonly-input):not([readonly]):focus,
+#credit-out-section .report-input:not(.readonly-input):not([readonly]):focus {
+  border-color: #38ef7d !important;
+  box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.22), 0 8px 18px rgba(18, 138, 76, 0.2) !important;
+  background: linear-gradient(180deg, rgba(8, 34, 24, 0.92), rgba(10, 44, 30, 0.88)) !important;
+}
+
+body.ramadan-report-page .report-input.field-complete,
+body.ramadan-report-page .custom-select-wrapper.field-complete .custom-select-trigger,
+body.ramadan-report-page .custom-select-trigger.field-complete,
+#transfer-report-section .report-input.field-complete,
+#transfer-report-section .custom-select-wrapper.field-complete .custom-select-trigger,
+#transfer-report-section .custom-select-trigger.field-complete,
+#deposit-percentage-section .report-input.field-complete,
+#deposit-percentage-section .custom-select-wrapper.field-complete .custom-select-trigger,
+#deposit-percentage-section .custom-select-trigger.field-complete,
+#credit-out-section .report-input.field-complete,
+#credit-out-section .custom-select-wrapper.field-complete .custom-select-trigger,
+#credit-out-section .custom-select-trigger.field-complete {
+  border-color: rgba(56, 239, 125, 0.72) !important;
+  box-shadow: 0 0 0 3px rgba(56, 239, 125, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+  background: linear-gradient(180deg, rgba(8, 36, 26, 0.9), rgba(10, 48, 34, 0.88)) !important;
+}
+
+body.ramadan-report-page .report-field-group.field-complete .report-label,
+#transfer-report-section .report-field-group.field-complete .report-label,
+#deposit-percentage-section .report-field-group.field-complete .report-label,
+#credit-out-section .report-field-group.field-complete .report-label {
+  color: #7ff2ac !important;
+}
+
+body.ramadan-report-page .report-input.readonly-input,
+#transfer-report-section .report-input.readonly-input,
+#deposit-percentage-section .report-input.readonly-input,
+#credit-out-section .report-input.readonly-input {
+  background: linear-gradient(180deg, rgba(8, 20, 33, 0.78), rgba(9, 23, 38, 0.72)) !important;
+  color: #cdd9df !important;
+}
+
+body.ramadan-report-page .shift-btn,
+#transfer-report-section .shift-btn,
+#deposit-percentage-section .shift-btn,
+#credit-out-section .shift-btn {
+  background: linear-gradient(180deg, rgba(15, 41, 63, 0.95), rgba(10, 30, 46, 0.95)) !important;
+  border: 1px solid rgba(244, 214, 138, 0.34) !important;
+  color: #f8f1e2 !important;
+  box-shadow: 0 8px 18px rgba(2, 13, 24, 0.28) !important;
+}
+
+body.ramadan-report-page .shift-btn.active,
+#transfer-report-section .shift-btn.active,
+#deposit-percentage-section .shift-btn.active,
+#credit-out-section .shift-btn.active {
+  position: relative;
+  border-color: rgba(255, 241, 208, 0.7) !important;
+  box-shadow: 0 0 0 2px rgba(244, 214, 138, 0.28), 0 12px 28px rgba(10, 35, 51, 0.5) !important;
+  transform: translateY(-1px);
+  font-weight: 800 !important;
+}
+
+body.ramadan-report-page .shift-btn.active::after,
+#transfer-report-section .shift-btn.active::after,
+#deposit-percentage-section .shift-btn.active::after,
+#credit-out-section .shift-btn.active::after {
+  content: "✓";
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 900;
+  color: #0b2118;
+  background: #f4d68a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+body.ramadan-report-page .shift-btn[data-value="الصباحي"].active,
+#transfer-report-section .shift-btn[data-value="الصباحي"].active,
+#deposit-percentage-section .shift-btn[data-value="الصباحي"].active,
+#credit-out-section .shift-btn[data-value="الصباحي"].active {
+  background: linear-gradient(135deg, #ffd873 0%, #e0a92f 100%) !important;
+  color: #2f250e !important;
+}
+
+body.ramadan-report-page .shift-btn[data-value="المسائي"].active,
+#transfer-report-section .shift-btn[data-value="المسائي"].active,
+#deposit-percentage-section .shift-btn[data-value="المسائي"].active,
+#credit-out-section .shift-btn[data-value="المسائي"].active {
+  background: linear-gradient(135deg, #4fbeec 0%, #2187cf 100%) !important;
+  color: #ffffff !important;
+}
+
+body.ramadan-report-page .shift-btn[data-value="الخفر"].active,
+#transfer-report-section .shift-btn[data-value="الخفر"].active,
+#deposit-percentage-section .shift-btn[data-value="الخفر"].active,
+#credit-out-section .shift-btn[data-value="الخفر"].active {
+  background: linear-gradient(135deg, #4b5f7a 0%, #273447 100%) !important;
+  color: #f8f4ea !important;
+}
+
+body.ramadan-report-page .file-upload-container,
+body.ramadan-report-page .image-upload-area,
+#transfer-report-section .file-upload-container,
+#deposit-percentage-section .file-upload-container,
+#credit-out-section .image-upload-area {
+  border: 2px dashed rgba(244, 214, 138, 0.42) !important;
+  background: linear-gradient(180deg, rgba(8, 31, 49, 0.55), rgba(8, 31, 49, 0.35)) !important;
+}
+
+body.ramadan-report-page .file-upload-container:hover,
+body.ramadan-report-page .image-upload-area:hover,
+#transfer-report-section .file-upload-container:hover,
+#deposit-percentage-section .file-upload-container:hover,
+#credit-out-section .image-upload-area:hover {
+  border-color: #f4d68a !important;
+  background: linear-gradient(180deg, rgba(10, 38, 60, 0.74), rgba(10, 38, 60, 0.48)) !important;
+}
+
+body.ramadan-report-page .mention-btn,
+#transfer-report-section .mention-btn,
+#deposit-percentage-section .mention-btn,
+#credit-out-section .mention-btn {
+  background: linear-gradient(135deg, rgba(15, 51, 74, 0.92), rgba(13, 41, 62, 0.9)) !important;
+  border: 1px solid rgba(244, 214, 138, 0.34) !important;
+  color: #f8f4ea !important;
+}
+
+body.ramadan-report-page .mention-btn.active,
+#transfer-report-section .mention-btn.active,
+#deposit-percentage-section .mention-btn.active,
+#credit-out-section .mention-btn.active {
+  background: linear-gradient(135deg, #0f766e 0%, #0b4f4a 100%) !important;
+  border-color: rgba(244, 214, 138, 0.62) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 22px rgba(8, 59, 54, 0.42) !important;
+}
+
+body.ramadan-report-page .report-btn,
+#transfer-report-section .report-btn,
+#deposit-percentage-section .report-btn,
+#credit-out-section .report-btn {
+  border: 1px solid rgba(255, 238, 197, 0.36) !important;
+  box-shadow: 0 10px 22px rgba(1, 11, 19, 0.35) !important;
+}
+
+body.ramadan-report-page .generate-btn,
+body.ramadan-report-page .telegram-btn,
+#transfer-report-section .generate-btn,
+#transfer-report-section .telegram-btn,
+#deposit-percentage-section .generate-btn,
+#deposit-percentage-section .telegram-btn,
+#credit-out-section .generate-btn,
+#credit-out-section .telegram-btn {
+  background: linear-gradient(135deg, #0f766e 0%, #0b4f4a 100%) !important;
+}
+
+body.ramadan-report-page .reset-btn,
+#transfer-report-section .reset-btn,
+#deposit-percentage-section .reset-btn,
+#credit-out-section .reset-btn {
+  background: linear-gradient(135deg, #b3323b 0%, #87202b 100%) !important;
+}
+
+/* ============================================
+   PERFORMANCE LITE OVERRIDES
+   ============================================ */
+.toast-notification,
+.toast-icon,
+.report-container,
+.modal-content,
+.critical-watchlist-card,
+.glass-effect,
+.image-upload-area,
+.file-upload-container {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.report-container,
+.modal-content,
+.critical-watchlist-card,
+.setting-item,
+.toast-notification,
+.report-btn,
+.shift-btn {
+  box-shadow: 0 6px 16px rgba(2, 10, 19, 0.22) !important;
+}
+
+.report-container,
+.modal-content,
+.custom-select-options,
+.step-item,
+.shift-btn {
+  will-change: auto !important;
+  transform: none !important;
+  backface-visibility: visible !important;
+  perspective: none !important;
+}
+
+.toast-notification.show {
+  animation: none !important;
+}
+
+body::after {
+  animation: none !important;
+}
+
+.report-btn,
+.shift-btn,
+.mention-btn,
+.tab-button,
+.custom-select-trigger {
+  transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.12s ease !important;
+}
+
+/* ============================================
+   TAB SKELETON / LOADING STATE
+   ============================================ */
+.data-list.loading-state {
+  position: relative;
+  min-height: 180px;
+}
+
+.data-list.loading-state > :not(.section-skeleton) {
+  visibility: hidden;
+}
+
+.section-skeleton {
+  position: absolute;
+  inset: 12px;
+  z-index: 3;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(244, 214, 138, 0.16);
+  background: linear-gradient(180deg, rgba(11, 31, 49, 0.9), rgba(10, 26, 42, 0.86));
+  pointer-events: none;
+}
+
+.section-skeleton.hidden {
+  display: none;
+}
+
+.section-skeleton-line {
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(244, 214, 138, 0.08) 0%, rgba(244, 214, 138, 0.2) 50%, rgba(244, 214, 138, 0.08) 100%);
+  background-size: 220px 100%;
+  animation: skeletonPulse 1.2s ease-in-out infinite;
+}
+
+.section-skeleton-line.w-90 { width: 90%; }
+.section-skeleton-line.w-75 { width: 75%; }
+.section-skeleton-line.w-60 { width: 60%; }
+.section-skeleton-line.w-45 { width: 45%; }
+
+@keyframes skeletonPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* ============================================
+   TRANSFER REPORT - RAMADAN VISUAL BOOST
+   ============================================ */
+#transfer-report-section {
+  position: relative;
+  isolation: isolate;
+  padding: 10px;
+  border-radius: 16px;
+  background:
+    radial-gradient(900px 420px at 84% 8%, rgba(244, 214, 138, 0.14), transparent 60%),
+    radial-gradient(860px 500px at 10% 92%, rgba(15, 118, 110, 0.14), transparent 62%),
+    linear-gradient(160deg, rgba(8, 25, 40, 0.78) 0%, rgba(12, 39, 58, 0.76) 100%) !important;
+}
+
+#transfer-report-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  opacity: 0.32;
+  background:
+    radial-gradient(80px 80px at 14% 12%, rgba(244, 214, 138, 0.22), transparent 70%),
+    radial-gradient(130px 130px at 86% 18%, rgba(245, 219, 144, 0.16), transparent 72%),
+    radial-gradient(320px 110px at 50% 100%, rgba(15, 118, 110, 0.2), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260' viewBox='0 0 260 260'%3E%3Cg fill='none' stroke='rgba(244,214,138,0.14)' stroke-width='1.15'%3E%3Cpath d='M130 24l14 25h28l-14 25 14 25h-28l-14 25-14-25h-28l14-25-14-25h28z'/%3E%3Cpath d='M48 172l10 18h20l-10 18 10 18H58l-10 18-10-18H18l10-18-10-18h20z'/%3E%3Cpath d='M212 164l8 14h16l-8 14 8 14h-16l-8 14-8-14h-16l8-14-8-14h16z'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  background-size: 100% 100%, 100% 100%, 100% 100%, 260px 260px;
+}
+
+#transfer-report-section .report-container {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding-bottom: 24px;
+  background:
+    radial-gradient(1200px 600px at 90% -8%, rgba(244, 214, 138, 0.15), transparent 64%),
+    radial-gradient(1000px 520px at -2% 104%, rgba(15, 118, 110, 0.14), transparent 66%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cg fill='none' stroke='rgba(244,214,138,0.12)' stroke-width='1'%3E%3Cpath d='M110 20l13 24 26 0-13 24 13 24-26 0-13 24-13-24-26 0 13-24-13-24 26 0z'/%3E%3Cpath d='M45 154l9 16 18 0-9 16 9 16-18 0-9 16-9-16-18 0 9-16-9-16 18 0z'/%3E%3C/g%3E%3C/svg%3E"),
+    linear-gradient(180deg, rgba(16, 43, 65, 0.95), rgba(8, 27, 42, 0.9)) !important;
+  background-size: 100% 100%, 100% 100%, 220px 220px, 100% 100% !important;
+  background-repeat: no-repeat, no-repeat, repeat, no-repeat !important;
+  border: 1px solid rgba(244, 214, 138, 0.32) !important;
+  box-shadow: 0 10px 22px rgba(2, 10, 20, 0.26) !important;
+}
+
+#transfer-report-section .report-container::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 116px;
+  pointer-events: none;
+  opacity: 0.42;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='180' viewBox='0 0 1200 180'%3E%3Cpath fill='rgba(212,167,63,0.35)' d='M0 180V145c56 0 80-57 128-57 48 0 72 57 120 57 48 0 72-76 126-76 54 0 78 76 127 76 49 0 72-61 123-61 51 0 76 61 124 61 48 0 71-42 119-42 48 0 69 42 113 42v35z'/%3E%3Cpath fill='rgba(12,66,74,0.52)' d='M0 180V154c69 0 95-44 148-44 53 0 75 44 129 44 54 0 79-57 132-57 53 0 82 57 136 57 54 0 83-28 136-28 53 0 81 28 133 28 52 0 79-17 126-17 47 0 69 17 110 17v26z'/%3E%3Cpath fill='rgba(244,214,138,0.20)' d='M145 135h18v-34h-6v-8h6v-10h5v10h8v8h-8v34h22v-24h6v24h20v-18h7v18h22v-28h6v-12h6v12h8v28h22v-20h6v20h17v45H145z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: bottom center;
+  background-size: 100% 100%;
+}
+
+#transfer-report-section .report-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='130' viewBox='0 0 420 130'%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23f7d98f'/%3E%3Cstop offset='1' stop-color='%23c4912f'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M0 17 C35 33 70 2 105 17 C140 33 175 2 210 17 C245 33 280 2 315 17 C350 33 385 2 420 17' stroke='rgba(64,44,14,0.55)' stroke-width='2' fill='none'/%3E%3Cline x1='72' y1='14' x2='72' y2='52' stroke='rgba(60,41,14,0.55)'/%3E%3Cline x1='210' y1='14' x2='210' y2='62' stroke='rgba(60,41,14,0.55)'/%3E%3Cline x1='348' y1='14' x2='348' y2='50' stroke='rgba(60,41,14,0.55)'/%3E%3Crect x='58' y='52' width='28' height='34' rx='7' fill='url(%23g1)' stroke='rgba(65,45,13,0.62)'/%3E%3Crect x='194' y='62' width='32' height='38' rx='8' fill='url(%23g1)' stroke='rgba(65,45,13,0.62)'/%3E%3Crect x='334' y='50' width='28' height='34' rx='7' fill='url(%23g1)' stroke='rgba(65,45,13,0.62)'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: top center;
+  background-size: 100% 120px;
+}
+
+#transfer-report-section .report-field-group {
+  position: relative;
+  background: linear-gradient(180deg, rgba(9, 32, 49, 0.76), rgba(8, 25, 39, 0.66));
+  border: 1px solid rgba(244, 214, 138, 0.22);
+  border-radius: 12px;
+  padding: 12px 12px 10px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 10px rgba(3, 12, 22, 0.18);
+}
+
+#transfer-report-section .report-field-group::before {
+  content: "";
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(244, 214, 138, 0.46), transparent);
+  opacity: 0.9;
+}
+
+#transfer-report-section .report-field-group:focus-within {
+  border-color: rgba(56, 239, 125, 0.58);
+  box-shadow: 0 0 0 2px rgba(56, 239, 125, 0.16), 0 8px 16px rgba(9, 45, 30, 0.3);
+}
+
+#transfer-report-section .report-actions {
+  border: 1px solid rgba(244, 214, 138, 0.2);
+  border-radius: 14px;
+  padding: 14px;
+  background:
+    radial-gradient(420px 120px at 50% 0%, rgba(244, 214, 138, 0.16), transparent 68%),
+    linear-gradient(180deg, rgba(10, 30, 47, 0.72), rgba(9, 24, 38, 0.66));
+  box-shadow: inset 0 1px 0 rgba(244, 214, 138, 0.2);
+}
+
+#transfer-report-section .shift-selector-container {
+  border: 1px solid rgba(244, 214, 138, 0.26);
+  border-radius: 12px;
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(11, 34, 53, 0.66), rgba(8, 24, 38, 0.58));
+}
+
+/* ============================================
+   RAMADAN VISUAL EXPANSION - ALL TABS
+   ============================================ */
+#account-list,
+#ip-list,
+#critical-section,
+#wallets-section,
+#profit-section,
+#withdrawal-report-section,
+#deposit-percentage-section,
+#credit-out-section {
+  position: relative;
+  isolation: isolate;
+  margin: 8px 8px 14px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(244, 214, 138, 0.26);
+  background:
+    radial-gradient(820px 300px at 90% 0%, rgba(244, 214, 138, 0.15), transparent 62%),
+    radial-gradient(720px 320px at 8% 100%, rgba(15, 118, 110, 0.16), transparent 64%),
+    linear-gradient(170deg, rgba(10, 30, 47, 0.72), rgba(8, 25, 39, 0.68)) !important;
+}
+
+#account-list::before,
+#ip-list::before,
+#critical-section::before,
+#wallets-section::before,
+#profit-section::before,
+#withdrawal-report-section::before,
+#deposit-percentage-section::before,
+#credit-out-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  pointer-events: none;
+  opacity: 0.26;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='360' height='88' viewBox='0 0 360 88'%3E%3Cpath d='M0 12 C30 24 60 3 90 12 C120 24 150 3 180 12 C210 24 240 3 270 12 C300 24 330 3 360 12' stroke='rgba(77,53,18,0.56)' stroke-width='2' fill='none'/%3E%3Cline x1='66' y1='12' x2='66' y2='40' stroke='rgba(77,53,18,0.56)'/%3E%3Cline x1='180' y1='12' x2='180' y2='44' stroke='rgba(77,53,18,0.56)'/%3E%3Cline x1='294' y1='12' x2='294' y2='38' stroke='rgba(77,53,18,0.56)'/%3E%3Ccircle cx='66' cy='49' r='10' fill='rgba(244,214,138,0.65)'/%3E%3Ccircle cx='180' cy='54' r='12' fill='rgba(244,214,138,0.65)'/%3E%3Ccircle cx='294' cy='47' r='10' fill='rgba(244,214,138,0.65)'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 360px 72px;
+  background-position: top center;
+}
+
+#account-list::after,
+#ip-list::after,
+#critical-section::after,
+#wallets-section::after,
+#profit-section::after,
+#withdrawal-report-section::after,
+#deposit-percentage-section::after,
+#credit-out-section::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 80px;
+  pointer-events: none;
+  opacity: 0.24;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1000' height='120' viewBox='0 0 1000 120'%3E%3Cpath fill='rgba(212,167,63,0.34)' d='M0 120V100c35 0 50-40 85-40 35 0 50 40 85 40s50-54 90-54 55 54 90 54 50-31 86-31 53 31 88 31 52-20 88-20 53 20 88 20 52-10 85-10 48 10 75 10v20z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-position: bottom center;
+}
+
+#account-list > *,
+#ip-list > *,
+#critical-section > *,
+#wallets-section > *,
+#profit-section > *,
+#withdrawal-report-section > *,
+#deposit-percentage-section > *,
+#credit-out-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+#account-list li,
+#ip-list li,
+#critical-section .critical-watchlist-card,
+#wallets-section .wallet-item,
+#profit-section .profit-input-area,
+#profit-section .profit-summary,
+#profit-section .trades-details,
+#profit-section .profit-filter-container,
+#withdrawal-report-section .report-container {
+  border: 1px solid rgba(244, 214, 138, 0.24) !important;
+  background: linear-gradient(180deg, rgba(11, 33, 50, 0.78), rgba(9, 26, 40, 0.68)) !important;
+  box-shadow: 0 6px 14px rgba(4, 14, 24, 0.18) !important;
+}
+
+#account-list li:hover,
+#ip-list li:hover,
+#critical-section .critical-watchlist-card:hover,
+#wallets-section .wallet-item:hover {
+  border-color: rgba(244, 214, 138, 0.42) !important;
+  box-shadow: 0 8px 18px rgba(5, 17, 29, 0.24) !important;
+}
+
+#wallets-section .empty-state,
+#profit-section .empty-state {
+  border: 1px dashed rgba(244, 214, 138, 0.34);
+  border-radius: 12px;
+  background: rgba(9, 28, 43, 0.45);
+}
+
+.tab-button {
+  border: 1px solid rgba(244, 214, 138, 0.28) !important;
+  background: linear-gradient(180deg, rgba(18, 62, 80, 0.86), rgba(13, 44, 62, 0.82)) !important;
+  color: #f8e8c2 !important;
+}
+
+.tab-button:hover:not(.active) {
+  border-color: rgba(244, 214, 138, 0.46) !important;
+  background: linear-gradient(180deg, rgba(22, 72, 92, 0.92), rgba(15, 53, 71, 0.9)) !important;
+  color: #fff4d8 !important;
+}
+
+.tab-button.active {
+  border-color: rgba(127, 93, 27, 0.45) !important;
+  background: linear-gradient(135deg, #f2cf7b 0%, #cf9b34 100%) !important;
+  color: #392709 !important;
+}
+
+/* ============================================
+   RAMADAN HEADER / NAV POLISH
+   ============================================ */
+.header {
+  position: relative;
+  overflow: hidden;
+  margin: 10px 8px 16px;
+  padding: 24px 14px 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(244, 214, 138, 0.38) !important;
+  background:
+    radial-gradient(700px 220px at 88% -20%, rgba(244, 214, 138, 0.2), transparent 62%),
+    radial-gradient(620px 250px at 12% 112%, rgba(15, 118, 110, 0.2), transparent 66%),
+    linear-gradient(165deg, rgba(10, 43, 64, 0.9), rgba(8, 32, 50, 0.86)) !important;
+  box-shadow: 0 12px 24px rgba(2, 12, 22, 0.26) !important;
+}
+
+.header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 84px;
+  pointer-events: none;
+  opacity: 0.32;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='90' viewBox='0 0 420 90'%3E%3Cpath d='M0 12 C35 24 70 4 105 12 C140 24 175 4 210 12 C245 24 280 4 315 12 C350 24 385 4 420 12' stroke='rgba(77,53,18,0.56)' stroke-width='2' fill='none'/%3E%3Cline x1='72' y1='12' x2='72' y2='42' stroke='rgba(77,53,18,0.56)'/%3E%3Cline x1='210' y1='12' x2='210' y2='50' stroke='rgba(77,53,18,0.56)'/%3E%3Cline x1='348' y1='12' x2='348' y2='40' stroke='rgba(77,53,18,0.56)'/%3E%3Ccircle cx='72' cy='50' r='9' fill='rgba(244,214,138,0.66)'/%3E%3Ccircle cx='210' cy='57' r='11' fill='rgba(244,214,138,0.66)'/%3E%3Ccircle cx='348' cy='49' r='9' fill='rgba(244,214,138,0.66)'/%3E%3C/svg%3E");
+  background-size: 420px 84px;
+  background-repeat: repeat-x;
+  background-position: top center;
+}
+
+.header::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 2px;
+  pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(244, 214, 138, 0.68), transparent);
+}
+
+.header h1 {
+  position: relative;
+  z-index: 1;
+  color: #fef2d1 !important;
+  letter-spacing: 0.4px;
+  text-shadow: 0 2px 8px rgba(6, 18, 28, 0.65) !important;
+}
+
+#paused-indicator {
+  background: linear-gradient(135deg, #b3323b 0%, #7f1e27 100%) !important;
+  color: #fff4d9 !important;
+  border: 1px solid rgba(255, 219, 143, 0.42);
+}
+
+.tab-container {
+  position: relative;
+  z-index: 1;
+  padding: 8px;
+  gap: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(244, 214, 138, 0.28);
+  background: linear-gradient(180deg, rgba(6, 28, 44, 0.46), rgba(9, 38, 56, 0.32));
+}
+
+.tab-button {
+  border: 1px solid rgba(244, 214, 138, 0.22) !important;
+  border-radius: 12px !important;
+  background: linear-gradient(180deg, rgba(16, 62, 81, 0.88), rgba(11, 45, 64, 0.84)) !important;
+  color: #f9e6bb !important;
+  box-shadow: inset 0 1px 0 rgba(255, 233, 182, 0.12);
+}
+
+.tab-button:hover:not(.active) {
+  border-color: rgba(244, 214, 138, 0.46) !important;
+  background: linear-gradient(180deg, rgba(20, 74, 94, 0.94), rgba(13, 55, 73, 0.92)) !important;
+  color: #fff7de !important;
+}
+
+.tab-button.active {
+  border-color: rgba(127, 93, 27, 0.52) !important;
+  box-shadow: 0 6px 14px rgba(48, 33, 9, 0.2), inset 0 1px 0 rgba(255, 247, 225, 0.36) !important;
+}
+
+.tracking-toggle-wrapper {
+  position: relative;
+  z-index: 1;
+  margin: 10px 0 12px;
+  padding: 8px 12px;
+  border: 1px solid rgba(244, 214, 138, 0.3);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(8, 31, 49, 0.56), rgba(9, 29, 46, 0.48));
+}
+
+.toggle-label {
+  color: #f8e2ae !important;
+  font-weight: 600;
+}
+
+.switch .slider {
+  background: linear-gradient(180deg, rgba(235, 198, 113, 0.34), rgba(165, 120, 36, 0.32));
+  border: 1px solid rgba(244, 214, 138, 0.42);
+}
+
+.switch .slider:before {
+  background: #fff7e5;
+  box-shadow: 0 2px 6px rgba(75, 52, 17, 0.35);
+}
+
+.switch input:checked + .slider {
+  background: linear-gradient(135deg, #1a8a80 0%, #0f6f66 100%) !important;
+}
+
+.header-buttons {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+#clear-history,
+#open-settings {
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 236, 194, 0.38) !important;
+  box-shadow: 0 6px 14px rgba(4, 14, 24, 0.25) !important;
+}
+
+#open-settings {
+  background: linear-gradient(135deg, #0f7f75 0%, #0d685f 100%) !important;
+}
+
+#open-settings:hover {
+  background: linear-gradient(135deg, #118a7f 0%, #0f746a 100%) !important;
+}
+
+#clear-history {
+  background: linear-gradient(135deg, #b7393f 0%, #8a252c 100%) !important;
+}
+
+#clear-history:hover {
+  background: linear-gradient(135deg, #c13f45 0%, #952a31 100%) !important;
+}
+
+/* ============================================
+   ACCOUNTS TAGS + MENTION EMPHASIS
+   ============================================ */
+.tag-filter-btn[data-filter="none"] {
+  border-color: rgba(255, 173, 173, 0.5) !important;
+  background: rgba(183, 57, 63, 0.25) !important;
+  color: #ffe7e7 !important;
+}
+
+.tag-filter-btn[data-filter="none"].active {
+  background: linear-gradient(135deg, #b7393f 0%, #8a252c 100%) !important;
+  color: #fff !important;
+  border-color: rgba(255, 223, 223, 0.55) !important;
+}
+
+.tag-selector-container {
+  z-index: 8;
+}
+
+.tag-button {
+  border: 1px solid rgba(244, 214, 138, 0.34) !important;
+  border-radius: 10px !important;
+  background: linear-gradient(180deg, rgba(16, 62, 81, 0.88), rgba(11, 45, 64, 0.84)) !important;
+  color: #f8e9c4 !important;
+  padding: 5px 8px !important;
+}
+
+.tag-button:hover {
+  transform: translateY(-1px) scale(1.06) !important;
+  border-color: rgba(244, 214, 138, 0.58) !important;
+  box-shadow: 0 6px 12px rgba(4, 14, 24, 0.24) !important;
+}
+
+.account-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.76em;
+  font-weight: 700;
+}
+
+.mention-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.mention-btn.active {
+  border-color: rgba(91, 255, 189, 0.74) !important;
+  outline: 2px solid rgba(91, 255, 189, 0.35);
+  outline-offset: 1px;
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 0 0 2px rgba(26, 132, 101, 0.26), 0 10px 20px rgba(8, 59, 54, 0.42) !important;
+}
+
+.mention-btn.active::after {
+  content: "✓";
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+}

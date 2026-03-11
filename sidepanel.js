@@ -1,919 +1,7 @@
-const accountList = document.getElementById('account-list');
-const ipList = document.getElementById('ip-list');
-const clearButton = document.getElementById('clear-history');
-const searchBar = document.getElementById('search-bar');
-const accountItemTemplate = document.getElementById('account-item-template');
-const ipItemTemplate = document.getElementById('ip-item-template');
-const accountsTab = document.getElementById('accounts-tab');
-const ipsTab = document.getElementById('ips-tab');
-const criticalTab = document.getElementById('critical-tab');
-const walletsTab = document.getElementById('wallets-tab');
-const profitTab = document.getElementById('profit-tab');
-const profitSection = document.getElementById('profit-section');
-const transferReportTab = document.getElementById('transfer-report-tab');
-const transferReportSection = document.getElementById('transfer-report-section');
-const depositPercentageSection = document.getElementById('deposit-percentage-section');
-const depositReportIpInput = document.getElementById('deposit-report-ip');
-const depositReportCountryInput = document.getElementById('deposit-report-country');
-const depositReportAccountInput = document.getElementById('deposit-report-account');
-const depositReportEmailInput = document.getElementById('deposit-report-email');
-const depositReportMarginInput = document.getElementById('deposit-report-margin');
-const depositReportProfitsStatusInput = document.getElementById('deposit-report-profits-status');
-const depositReportIpStatusInput = document.getElementById('deposit-report-ip-status');
-const depositReportBonusStatusInput = document.getElementById('deposit-report-bonus-status');
-const depositReportNotesInput = document.getElementById('deposit-report-notes');
-const depositGenerateReportBtn = document.getElementById('deposit-generate-report-btn');
-const depositSendTelegramBtn = document.getElementById('deposit-send-telegram-btn');
-const depositResetReportBtn = document.getElementById('deposit-reset-report-btn');
-const depositTelegramSettingsBtn = document.getElementById('deposit-telegram-settings-btn');
-const depositMentionAhmedBtn = document.getElementById('deposit-mention-ahmed-btn');
-const depositMentionBatoulBtn = document.getElementById('deposit-mention-batoul-btn');
-const depositImagePreviewContainer = document.getElementById('deposit-image-preview-container');
-const depositReportImagesInput = document.getElementById('deposit-report-images');
-const withdrawalSection = document.getElementById('withdrawal-report-section');
-const withdrawalWalletInput = document.getElementById('withdrawal-wallet');
-const withdrawalEmailInput = document.getElementById('withdrawal-email');
-const withdrawalDropZone = document.getElementById('withdrawal-drop-zone');
-const withdrawalFileInput = document.getElementById('withdrawal-file-input');
-const withdrawalPreviewContainer = document.getElementById('withdrawal-preview-container');
-const withdrawalResetBtn = document.getElementById('withdrawal-reset-btn');
-const withdrawalSubmitBtn = document.getElementById('withdrawal-submit-btn');
-const withdrawalReportBtn = document.getElementById('withdrawal-report-btn');
-
-// --- Image Preview Modal (Click to Preview) ---
-function setupImageClickPreviewModal() {
-  if (window.__imagePreviewModalInitialized) return;
-  window.__imagePreviewModalInitialized = true;
-
-  function ensureModal() {
-    let modal = document.getElementById('image-preview-modal');
-    if (!modal) {
-      modal = document.createElement('div');
-      modal.id = 'image-preview-modal';
-      modal.className = 'modal';
-      modal.setAttribute('aria-hidden', 'true');
-      modal.style.display = 'none';
-      modal.innerHTML = `
-        <div class="modal-content">
-          <span class="close-button" role="button" aria-label="إغلاق">×</span>
-          <div class="image-preview-zoom-wrap">
-            <img class="image-preview-modal-img" alt="معاينة الصورة">
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-    }
-
-    const wrap = modal.querySelector('.image-preview-zoom-wrap');
-    const img = modal.querySelector('.image-preview-modal-img');
-    const closeBtn = modal.querySelector('.close-button');
-    return { modal, wrap, img, closeBtn };
-  }
-
-  let previousBodyOverflow = '';
-
-  function openPreview(src) {
-    const { modal, wrap, img } = ensureModal();
-    if (!src) return;
-    img.src = src;
-
-    setupZoomHandlers();
-
-    if (wrap) wrap.classList.remove('is-zooming');
-    if (img) {
-      img.style.transformOrigin = '50% 50%';
-      img.style.transform = 'scale(1)';
-    }
-
-    previousBodyOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    modal.style.display = 'block';
-    modal.setAttribute('aria-hidden', 'false');
-  }
-
-  function closePreview() {
-    const modal = document.getElementById('image-preview-modal');
-    if (!modal) return;
-    const wrap = modal.querySelector('.image-preview-zoom-wrap');
-    const img = modal.querySelector('.image-preview-modal-img');
-    if (wrap) wrap.classList.remove('is-zooming');
-    if (img) {
-      img.src = '';
-      img.style.transformOrigin = '50% 50%';
-      img.style.transform = 'scale(1)';
-    }
-    modal.style.display = 'none';
-    modal.setAttribute('aria-hidden', 'true');
-    document.body.style.overflow = previousBodyOverflow;
-  }
-
-  function setupZoomHandlers() {
-    const modal = document.getElementById('image-preview-modal');
-    if (!modal) return;
-    if (modal.__zoomHandlersBound) return;
-    modal.__zoomHandlersBound = true;
-
-    const wrap = modal.querySelector('.image-preview-zoom-wrap');
-    const img = modal.querySelector('.image-preview-modal-img');
-    if (!wrap || !img) return;
-
-    const ZOOM_SCALE = 4;
-    let raf = 0;
-    let lastX = 50;
-    let lastY = 50;
-
-    function applyZoomFrame() {
-      raf = 0;
-      wrap.classList.add('is-zooming');
-      img.style.transformOrigin = `${lastX}% ${lastY}%`;
-      img.style.transform = `scale(${ZOOM_SCALE})`;
-    }
-
-    wrap.addEventListener('mousemove', (e) => {
-      const rect = wrap.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const x = ((e.clientX - rect.left) / rect.width) * 100;
-      const y = ((e.clientY - rect.top) / rect.height) * 100;
-      lastX = Math.max(0, Math.min(100, x));
-      lastY = Math.max(0, Math.min(100, y));
-      if (!raf) raf = requestAnimationFrame(applyZoomFrame);
-    });
-
-    wrap.addEventListener('mouseleave', () => {
-      if (raf) cancelAnimationFrame(raf);
-      raf = 0;
-      wrap.classList.remove('is-zooming');
-      img.style.transformOrigin = '50% 50%';
-      img.style.transform = 'scale(1)';
-    });
-  }
-
-  setupZoomHandlers();
-
-  document.addEventListener('click', (e) => {
-    const modal = document.getElementById('image-preview-modal');
-    if (modal && modal.style.display === 'block') {
-      if (e.target === modal) {
-        closePreview();
-        return;
-      }
-      const closeBtn = e.target.closest('.close-button');
-      if (closeBtn && closeBtn.closest('#image-preview-modal')) {
-        closePreview();
-        return;
-      }
-    }
-
-    const imgEl = e.target.closest('img');
-    if (!imgEl) return;
-
-    // Avoid hijacking UI icons/buttons/links.
-    if (imgEl.closest('button') || imgEl.closest('a')) return;
-    if (imgEl.closest('.custom-select-wrapper') || imgEl.closest('.custom-select-options')) return;
-    if (imgEl.closest('#image-preview-modal')) return;
-
-    const src = imgEl.currentSrc || imgEl.src;
-    if (!src) return;
-    openPreview(src);
-  }, true);
-
-  document.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    const modal = document.getElementById('image-preview-modal');
-    if (modal && modal.style.display === 'block') closePreview();
-  });
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupImageClickPreviewModal);
-} else {
-  setupImageClickPreviewModal();
-}
-
-// --- Field Completion Indicator (Filled field marker) ---
-function applyFieldCompletionState(el) {
-  if (!(el instanceof HTMLElement)) return;
-  if (!el.classList || !el.classList.contains('report-input')) return;
-  if (el.matches('input[type="hidden"]')) return;
-  const container = el.closest('.report-container');
-  if (!container) return;
-
-  let isComplete = false;
-  if (el instanceof HTMLSelectElement) {
-    isComplete = (el.value ?? '').toString().trim() !== '';
-  } else if (el instanceof HTMLInputElement) {
-    if (el.type === 'checkbox' || el.type === 'radio') isComplete = !!el.checked;
-    else isComplete = (el.value ?? '').toString().trim() !== '';
-  } else if (el instanceof HTMLTextAreaElement) {
-    isComplete = (el.value ?? '').toString().trim() !== '';
-  }
-
-  el.classList.toggle('field-complete', isComplete);
-  const group = el.closest('.report-field-group');
-  if (group) group.classList.toggle('field-complete', isComplete);
-
-  // If this is a hidden select (custom dropdown), reflect the state on the visible wrapper.
-  if (el instanceof HTMLSelectElement && el.style.display === 'none') {
-    const wrapper = el.previousElementSibling;
-    if (wrapper && wrapper.classList && wrapper.classList.contains('custom-select-wrapper')) {
-      wrapper.classList.toggle('field-complete', isComplete);
-      const trigger = wrapper.querySelector('.custom-select-trigger');
-      if (trigger) trigger.classList.toggle('field-complete', isComplete);
-    }
-  }
-}
-
-function setupFieldCompletionIndicators() {
-  if (window.__fieldCompletionIndicatorsInitialized) return;
-  window.__fieldCompletionIndicatorsInitialized = true;
-
-  const shouldHandle = (target) => {
-    if (!(target instanceof HTMLElement)) return false;
-    if (!target.classList || !target.classList.contains('report-input')) return false;
-    if (target.matches('input[type="hidden"]')) return false;
-    return !!target.closest('.report-container');
-  };
-
-  const onChangeOrBlur = (e) => {
-    const t = e.target;
-    if (!shouldHandle(t)) return;
-    applyFieldCompletionState(t);
-  };
-
-  const onInput = (e) => {
-    const t = e.target;
-    if (!shouldHandle(t)) return;
-    if ((t.value ?? '').toString().trim() === '') applyFieldCompletionState(t);
-  };
-
-  document.addEventListener('focusout', onChangeOrBlur, true);
-  document.addEventListener('change', onChangeOrBlur, true);
-  document.addEventListener('input', onInput, true);
-
-  // Initial scan
-  document.querySelectorAll('.report-container input.report-input, .report-container select.report-input, .report-container textarea.report-input').forEach((node) => {
-    applyFieldCompletionState(node);
-  });
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', setupFieldCompletionIndicators);
-} else {
-  setupFieldCompletionIndicators();
-}
-
-const reportIpInput = document.getElementById('report-ip');
-const reportCountryInput = document.getElementById('report-country');
-const reportAccountInput = document.getElementById('report-account');
-const reportEmailInput = document.getElementById('report-email');
-const reportSourceInput = document.getElementById('report-source');
-const reportSourceCustomInput = document.getElementById('report-source-custom');
-const reportProfitsInput = document.getElementById('report-profits');
-const reportProfitsCustomInput = document.getElementById('report-profits-custom');
-const reportNotesInput = document.getElementById('report-notes');
-const generateReportBtn = document.getElementById('generate-report-btn');
-const resetReportBtn = document.getElementById('reset-report-btn');
-const criticalSection = document.getElementById('critical-section');
-const walletsSection = document.getElementById('wallets-section');
-const walletsContainer = document.getElementById('wallets-container');
-const tradesInput = document.getElementById('trades-input');
-const calculateProfitBtn = document.getElementById('calculate-profit-btn');
-const pasteFromClipboardBtn = document.getElementById('paste-from-clipboard-btn');
-const clearInputBtn = document.getElementById('clear-input-btn');
-const profitResults = document.getElementById('profit-results');
-const pauseToggle = document.getElementById('pause-tracking-toggle');
-const pausedIndicator = document.getElementById('paused-indicator');
-const toggleLabelText = document.getElementById('toggle-label-text');
-const headerEl = document.querySelector('.header');
-
-// VIP / Critical Watchlist elements
-const criticalDefaultIpList = document.getElementById('critical-default-ip-list');
-const criticalCustomIpList = document.getElementById('critical-custom-ip-list');
-const criticalAccountListEl = document.getElementById('critical-account-list');
-const criticalIpInput = document.getElementById('critical-ip-input');
-const criticalIpNoteInput = document.getElementById('critical-ip-note');
-const criticalAccountInput = document.getElementById('critical-account-input');
-const criticalAccountNoteInput = document.getElementById('critical-account-note');
-const criticalAddIpBtn = document.getElementById('critical-add-ip');
-const criticalAddAccountBtn = document.getElementById('critical-add-account');
-const criticalClearCustomBtn = document.getElementById('critical-clear-custom');
-// Delete confirm modal elements
-const deleteConfirmModal = document.getElementById('delete-confirm-modal');
-const deleteConfirmMessage = document.getElementById('delete-confirm-message');
-const deleteConfirmCancel = document.getElementById('delete-confirm-cancel');
-const deleteConfirmOk = document.getElementById('delete-confirm-ok');
-
-// --- Telegram Integration Elements ---
-const telegramSettingsBtn = document.getElementById('telegram-settings-btn');
-const telegramSettingsModal = document.getElementById('telegram-settings-modal');
-const telegramSettingsClose = document.getElementById('telegram-settings-close');
-const saveTelegramSettingsBtn = document.getElementById('save-telegram-settings');
-const telegramBotTokenInput = document.getElementById('telegram-bot-token');
-const telegramChatIdInput = document.getElementById('telegram-chat-id');
-const sendTelegramBtn = document.getElementById('send-telegram-btn');
-
-// Filters removed from UI; will read from chrome.storage.sync
-let statusFilterValue = 'all';
-let dateFilterValue = 'all';
-
-const port = chrome.runtime.connect({ name: 'sidepanel' });
-port.onDisconnect.addListener(() => {
-  void chrome.runtime.lastError;
-});
-// --- Toast Notification System ---
-let currentToast = null;
-let tooltipsEnabled = true;
-
-function showToast(title, message, type = 'default', duration = 5000) {
-  const toast = document.getElementById('toast-notification');
-  const toastIcon = toast.querySelector('.toast-icon');
-  const toastTitle = toast.querySelector('.toast-title');
-  const toastMessage = toast.querySelector('.toast-message');
-  
-  // Hide current toast if exists
-  if (currentToast) {
-    toast.classList.remove('show');
-    toast.classList.add('hide');
-  }
-  
-  // Clear previous timeout
-  if (currentToast) {
-    clearTimeout(currentToast);
-  }
-  
-  // Reset classes
-  setTimeout(() => {
-    toast.classList.remove('hide', 'duplicate', 'ip', 'erbil', 'warning', 'wallet-new', 'wallet-duplicate', 'uk', 'netherlands');
-    
-    // Set icon based on type
-    if (type === 'duplicate' || type === 'wallet-duplicate') {
-      toastIcon.textContent = '🔄';
-      toast.classList.add('duplicate');
-    } else if (type === 'ip') {
-      toastIcon.textContent = '✅';
-      toast.classList.add('ip');
-    } else if (type === 'erbil') {
-      toastIcon.textContent = '⭐';
-      toast.classList.add('erbil');
-    } else if (type === 'warning') {
-      toastIcon.textContent = '⚠️';
-      toast.classList.add('warning');
-    } else if (type === 'wallet-new') {
-      toastIcon.textContent = '💼';
-      toast.classList.add('duplicate');
-    } else if (type === 'uk') {
-      toastIcon.textContent = '🇬🇧';
-      toast.classList.add('uk');
-    } else if (type === 'netherlands') {
-      toastIcon.textContent = '🇳🇱';
-      toast.classList.add('netherlands');
-    } else {
-      toastIcon.textContent = '✅';
-    }
-    
-    // Set content
-    toastTitle.textContent = title;
-    toastMessage.textContent = message;
-    
-    // Show toast
-    toast.classList.add('show');
-    
-    // Auto hide after duration
-    currentToast = setTimeout(() => {
-      toast.classList.remove('show');
-      toast.classList.add('hide');
-      currentToast = null;
-    }, duration);
-  }, currentToast ? 300 : 0);
-}
-
-// Toast close button handler
-document.querySelector('.toast-close').addEventListener('click', () => {
-  const toast = document.getElementById('toast-notification');
-  toast.classList.remove('show');
-  toast.classList.add('hide');
-  if (currentToast) {
-    clearTimeout(currentToast);
-    currentToast = null;
-  }
-});
-
-/* ======================================================================
-   SMART AUTO-SCROLL (Transfer Report) - Keep active field visible
-   ====================================================================== */
-const SMART_AUTO_SCROLL_ENABLED = true;
-
-function getScrollParent(el) {
-  let parent = el?.parentElement;
-  while (parent && parent !== document.body) {
-    const style = window.getComputedStyle(parent);
-    const overflowY = style.overflowY;
-    const isScrollable = (overflowY === 'auto' || overflowY === 'scroll');
-    if (isScrollable && parent.scrollHeight > parent.clientHeight + 4) {
-      return parent;
-    }
-    parent = parent.parentElement;
-  }
-  return document.scrollingElement || document.documentElement;
-}
-
-function smartRevealInView(el) {
-  if (!el || !(el instanceof HTMLElement)) return;
-  if (!transferReportSection || !transferReportSection.contains(el)) return;
-
-  // Only when Transfer Report tab/section is visible
-  const sectionStyle = window.getComputedStyle(transferReportSection);
-  if (sectionStyle.display === 'none' || sectionStyle.visibility === 'hidden') return;
-
-  // Avoid auto-scroll for non-text inputs
-  if (el.tagName === 'INPUT') {
-    const t = (el.getAttribute('type') || 'text').toLowerCase();
-    if (['hidden', 'checkbox', 'radio', 'button', 'submit', 'reset', 'file', 'range', 'color'].includes(t)) return;
-  }
-
-  const cs = window.getComputedStyle(el);
-  if (cs.display === 'none' || cs.visibility === 'hidden') return;
-
-  const margin = 20;
-  const scrollParent = getScrollParent(el);
-  const rect = el.getBoundingClientRect();
-
-  if (scrollParent === document.scrollingElement || scrollParent === document.documentElement || scrollParent === document.body) {
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-    if (rect.top >= margin && rect.bottom <= (vh - margin)) return;
-    const targetTop = window.scrollY + rect.top - Math.round(vh * 0.25);
-    window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-    return;
-  }
-
-  const parentRect = scrollParent.getBoundingClientRect();
-  const topWithin = rect.top - parentRect.top;
-  const bottomWithin = rect.bottom - parentRect.top;
-  const containerH = scrollParent.clientHeight;
-  if (topWithin >= margin && bottomWithin <= (containerH - margin)) return;
-
-  const targetTop = scrollParent.scrollTop + topWithin - Math.round(containerH * 0.25);
-  scrollParent.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-}
-
-let smartScrollLastAt = 0;
-let smartScrollRaf = 0;
-function scheduleSmartReveal(el) {
-  if (!SMART_AUTO_SCROLL_ENABLED) return;
-  const now = Date.now();
-  if (now - smartScrollLastAt < 120) return;
-  smartScrollLastAt = now;
-  cancelAnimationFrame(smartScrollRaf);
-  smartScrollRaf = requestAnimationFrame(() => smartRevealInView(el));
-}
-
-document.addEventListener('focusin', (e) => {
-  const el = e.target;
-  if (!(el instanceof HTMLElement)) return;
-  if (!el.matches('input, textarea, select')) return;
-  scheduleSmartReveal(el);
-});
-
-document.addEventListener('input', (e) => {
-  const el = e.target;
-  if (!(el instanceof HTMLElement)) return;
-  if (!el.matches('input, textarea')) return;
-  scheduleSmartReveal(el);
-});
-
-// Delete confirm modal functions
-let deleteCallback = null;
-
-function showDeleteConfirm(message, callback) {
-  deleteConfirmMessage.textContent = message;
-  deleteCallback = callback;
-  deleteConfirmModal.style.display = 'flex';
-}
-
-function hideDeleteConfirm() {
-  deleteConfirmModal.style.display = 'none';
-  deleteCallback = null;
-}
-
-// Modal event listeners
-if (deleteConfirmCancel) {
-  deleteConfirmCancel.addEventListener('click', hideDeleteConfirm);
-}
-
-if (deleteConfirmOk) {
-  deleteConfirmOk.addEventListener('click', () => {
-    if (deleteCallback) deleteCallback();
-    hideDeleteConfirm();
-  });
-}
-
-
-const modal = document.getElementById('history-modal');
-const closeButton = document.querySelector('.close-button');
-const historyContent = document.getElementById('history-content');
-
-const ipDetailsModal = document.getElementById('ip-details-modal');
-const ipDetailsContent = document.getElementById('ip-details-content');
-const ipDetailsCloseButton = ipDetailsModal.querySelector('.close-button');
-
-// VIP note edit modal (in-extension, no browser prompt)
-const noteEditModal = document.getElementById('note-edit-modal');
-const noteEditTitle = document.getElementById('note-edit-title');
-const noteEditKind = document.getElementById('note-edit-kind');
-const noteEditValue = document.getElementById('note-edit-value');
-const noteEditInput = document.getElementById('note-edit-input');
-const noteEditSaveBtn = document.getElementById('note-edit-save');
-const noteEditCancelBtn = document.getElementById('note-edit-cancel');
-const noteEditCloseBtn = document.getElementById('note-edit-close');
-let noteEditResolve = null;
-let noteEditOpen = false;
-
-function closeNoteEditModal(result) {
-  if (!noteEditModal) return;
-  noteEditModal.style.display = 'none';
-  noteEditOpen = false;
-  const resolve = noteEditResolve;
-  noteEditResolve = null;
-  if (resolve) resolve(result);
-}
-
-function openNoteEditModal({ kind, value, note }) {
-  if (!noteEditModal || !noteEditInput || !noteEditTitle || !noteEditKind || !noteEditValue) {
-    return Promise.resolve(null);
-  }
-
-  const safeValue = typeof value === 'string' ? value.trim() : '';
-  const safeNote = typeof note === 'string' ? note : '';
-  const isAccount = kind === 'AC';
-
-  noteEditTitle.textContent = isAccount ? 'تعديل ملاحظة رقم الحساب' : 'تعديل ملاحظة الـ IP';
-  noteEditKind.textContent = isAccount ? 'رقم حساب' : 'IP';
-  noteEditValue.textContent = safeValue;
-  noteEditInput.value = safeNote;
-
-  noteEditModal.style.display = 'block';
-  noteEditOpen = true;
-  setTimeout(() => {
-    try { noteEditInput.focus(); } catch (e) { /* ignore */ }
-    try { noteEditInput.select(); } catch (e) { /* ignore */ }
-  }, 0);
-
-  return new Promise((resolve) => {
-    noteEditResolve = resolve;
-  });
-}
-
-if (noteEditSaveBtn && noteEditCancelBtn && noteEditCloseBtn && noteEditInput && noteEditModal) {
-  noteEditSaveBtn.addEventListener('click', () => closeNoteEditModal(String(noteEditInput.value || '').trim()));
-  noteEditCancelBtn.addEventListener('click', () => closeNoteEditModal(null));
-  noteEditCloseBtn.addEventListener('click', () => closeNoteEditModal(null));
-
-  noteEditInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      closeNoteEditModal(String(noteEditInput.value || '').trim());
-    }
-  });
-
-  window.addEventListener('keydown', (e) => {
-    if (!noteEditOpen) return;
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      closeNoteEditModal(null);
-    }
-  });
-
-  window.addEventListener('click', (event) => {
-    if (event.target === noteEditModal) {
-      closeNoteEditModal(null);
-    }
-  });
-}
-
-let allAccounts = [];
-let allIPs = [];
-let maxAccounts = 50; // This can be reused for IPs or a new variable can be created
-let timestampFormat = 'locale';
-let activeTab = 'accounts'; // 'accounts' or 'ips'
-const filterState = {
-  accounts: { status: 'all', date: 'all' },
-  ips: { status: 'all', date: 'all' }
-};
-
-// --- Arabic Translation Maps (same as in options.js) ---
-const arabicMaps = {
-  continent: {
-    'Africa': 'أفريقيا',
-    'Asia': 'آسيا',
-    'Europe': 'أوروبا',
-    'North America': 'أمريكا الشمالية',
-    'South America': 'أمريكا الجنوبية',
-    'Oceania': 'أوقيانوسيا',
-    'Antarctica': 'أنتاركتيكا'
-  },
-  countries: {
-    'Yemen': 'اليمن',
-    'Syria': 'سوريا',
-    'Egypt': 'مصر',
-    'Saudi Arabia': 'السعودية',
-    'United Arab Emirates': 'الإمارات',
-    'Qatar': 'قطر',
-    'Oman': 'عُمان',
-    'Kuwait': 'الكويت',
-    'Bahrain': 'البحرين',
-    'Jordan': 'الأردن',
-    'Lebanon': 'لبنان',
-    'Iraq': 'العراق',
-    'Morocco': 'المغرب',
-    'Algeria': 'الجزائر',
-    'Tunisia': 'تونس',
-    'Libya': 'ليبيا',
-    'Palestine': 'فلسطين',
-    'Turkey': 'تركيا'
-  },
-  cities: {
-    "Sana'a": 'صنعاء',
-    'Aleppo': 'حلب',
-    'Najaf': 'النجف',
-    'Aden': 'عدن',
-    'Cairo': 'القاهرة',
-    'Riyadh': 'الرياض',
-    'Jeddah': 'جدة',
-    'Doha': 'الدوحة',
-    'Dubai': 'دبي',
-    'Abu Dhabi': 'أبوظبي',
-    'Muscat': 'مسقط',
-    'Kuwait City': 'مدينة الكويت',
-    'Manama': 'المنامة',
-    'Amman': 'عمّان',
-    'Beirut': 'بيروت',
-    'Damascus': 'دمشق',
-    'Baghdad': 'بغداد',
-    'Casablanca': 'الدار البيضاء',
-    'Rabat': 'الرباط',
-    'Algiers': 'الجزائر',
-    'Tunis': 'تونس',
-    'Tripoli': 'طرابلس'
-  },
-  regions: {
-    'Amanat Al Asimah': 'أمانة العاصمة',
-    'Aleppo Governorate': 'محافظة حلب',
-    'Al-Najaf Governorate': 'محافظة النجف',
-    'Baghdad Governorate': 'محافظة بغداد',
-    'Basra Governorate': 'محافظة البصرة'
-  },
-  currency: {
-    'Yemeni Rial': 'ريال يمني',
-    'Syrian Pound': 'ليرة سورية',
-    'Egyptian Pound': 'جنيه مصري',
-    'Saudi Riyal': 'ريال سعودي',
-    'Qatari Riyal': 'ريال قطري',
-    'UAE Dirham': 'درهم إماراتي',
-    'Omani Rial': 'ريال عماني',
-    'Kuwaiti Dinar': 'دينار كويتي',
-    'Bahraini Dinar': 'دينار بحريني',
-    'Jordanian Dinar': 'دينار أردني',
-    'Lebanese Pound': 'ليرة لبنانية',
-    'Syrian Pound': 'ليرة سورية',
-    'Iraqi Dinar': 'دينار عراقي',
-    'Moroccan Dirham': 'درهم مغربي',
-    'Algerian Dinar': 'دينار جزائري',
-    'Tunisian Dinar': 'دينار تونسي',
-    'Libyan Dinar': 'دينار ليبي',
-    'Turkish Lira': 'ليرة تركية'
-  }
-};
-
-const regionDisplayNames = (typeof Intl !== 'undefined' && typeof Intl.DisplayNames !== 'undefined')
-  ? new Intl.DisplayNames(['ar'], { type: 'region' })
-  : null;
-
-function translateValue(type, value) {
-  if (!value) return 'N/A';
-  const map = arabicMaps[type];
-  if (map && map[value]) return map[value];
-  return value;
-}
-
-function buildArabicDetailHTML(data) {
-  const ip = data.ip || 'N/A';
-  const ipType = data.type || 'N/A';
-  const continent = translateValue('continent', data.continent || 'N/A');
-  const continentCode = data.continent_code || 'N/A';
-  const country = (regionDisplayNames && data.country_code)
-    ? (regionDisplayNames.of(String(data.country_code).toUpperCase()) || translateValue('countries', data.country || 'N/A'))
-    : translateValue('countries', data.country || 'N/A');
-  const countryCode = data.country_code || 'N/A';
-  const capital = translateValue('cities', data.country_capital || data.country_capital || 'N/A');
-  const phone = data.country_phone || 'N/A';
-  const region = translateValue('regions', data.region || 'N/A');
-  const city = translateValue('cities', data.city || 'N/A');
-  const latitude = data.latitude || 'N/A';
-  const longitude = data.longitude || 'N/A';
-  const asn = data.asn || 'N/A';
-  const org = data.org || 'N/A';
-  const isp = data.isp || 'N/A';
-  const timezone = data.timezone || 'N/A';
-  const timezoneGMT = data.timezone_gmt || 'N/A';
-  const currency = translateValue('currency', data.currency || 'N/A');
-  const currencyCode = data.currency_code || 'N/A';
-  const currencyRates = data.currency_rates || 'N/A';
-
-  return `
-    <div class="ip-details-container" dir="rtl">
-      <div class="ip-detail-item"><strong>الآي بي:</strong> <span>${ip} (${ipType})</span></div>
-      <div class="ip-detail-item"><strong>القارة:</strong> <span>${continent} (${continentCode})</span></div>
-      <div class="ip-detail-item"><strong>الدولة:</strong> <span>${country} (${countryCode})</span></div>
-      <div class="ip-detail-item"><strong>العاصمة:</strong> <span>${capital}</span></div>
-      <div class="ip-detail-item"><strong>الهاتف:</strong> <span>${phone}</span></div>
-      <div class="ip-detail-item"><strong>المنطقة:</strong> <span>${region}</span></div>
-      <div class="ip-detail-item"><strong>المدينة:</strong> <span>${city}</span></div>
-      <div class="ip-detail-item"><strong>خط العرض:</strong> <span>${latitude}</span></div>
-      <div class="ip-detail-item"><strong>خط الطول:</strong> <span>${longitude}</span></div>
-      <div class="ip-detail-item"><strong>النظام المستقل (AS):</strong> <span>${asn}</span></div>
-      <div class="ip-detail-item"><strong>المنظمة:</strong> <span>${org}</span></div>
-      <div class="ip-detail-item"><strong>مزود الخدمة (ISP):</strong> <span>${isp}</span></div>
-      <div class="ip-detail-item"><strong>المنطقة الزمنية:</strong> <span>${timezone}</span></div>
-      <div class="ip-detail-item"><strong>التوقيت العالمي المنسق (UTC):</strong> <span>${timezoneGMT}</span></div>
-      <div class="ip-detail-item"><strong>العملة:</strong> <span>${currency} (${currencyCode})</span></div>
-      <div class="ip-detail-item"><strong>سعر الصرف:</strong> <span>${currencyRates}</span></div>
-    </div>
-  `;
-}
-
-// --- Tab Switching ---
-accountsTab.addEventListener('click', () => {
-  switchTab('accounts');
-});
-
-ipsTab.addEventListener('click', () => {
-  switchTab('ips');
-});
-
-criticalTab.addEventListener('click', () => {
-  switchTab('critical');
-});
-
-walletsTab.addEventListener('click', () => {
-  switchTab('wallets');
-});
-
-profitTab.addEventListener('click', () => {
-  switchTab('profit');
-});
-
-transferReportTab.addEventListener('click', () => {
-  switchTab('transfer-report');
-});
-
-const hedgeCheckerBtn = document.getElementById('hedge-checker-btn');
-if (hedgeCheckerBtn) {
-  hedgeCheckerBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'hedge-checker.html' });
-  });
-}
-
-const depositPercentageBtn = document.getElementById('deposit-percentage-btn');
-if (depositPercentageBtn) {
-  depositPercentageBtn.addEventListener('click', () => {
-    switchTab('deposit-percentage');
-  });
-}
-
-const classificationHelperBtn = document.getElementById('classification-helper-btn');
-if (classificationHelperBtn) {
-  classificationHelperBtn.addEventListener('click', () => {
-    chrome.tabs.create({ url: 'classification-helper.html' });
-  });
-}
-
-// Tag filter state
-let currentTagFilter = 'all';
-
-function switchTab(tabName) {
-  activeTab = tabName;
-
-  // Reset header static mode (default is sticky)
-  if (headerEl) headerEl.classList.remove('static-mode');
-
-  // Reset tab buttons
-  accountsTab.classList.remove('active');
-  ipsTab.classList.remove('active');
-  criticalTab.classList.remove('active');
-  walletsTab.classList.remove('active');
-  profitTab.classList.remove('active');
-  transferReportTab.classList.remove('active');
-  if (depositPercentageBtn) depositPercentageBtn.classList.remove('active');
-
-  // Hide all sections
-  accountList.classList.remove('active');
-  ipList.classList.remove('active');
-  walletsSection.style.display = 'none';
-  profitSection.style.display = 'none';
-  criticalSection.style.display = 'none';
-  transferReportSection.style.display = 'none';
-  if (depositPercentageSection) depositPercentageSection.style.display = 'none';
-  if (withdrawalSection) withdrawalSection.style.display = 'none';
-  if (withdrawalReportBtn) withdrawalReportBtn.classList.remove('active');
-
-  // Reset header UI
-  document.getElementById('tag-filter-bar').style.display = 'none';
-  searchBar.style.display = 'none';
-
-  if (tabName === 'accounts') {
-    accountsTab.classList.add('active');
-    accountList.classList.add('active');
-    document.getElementById('tag-filter-bar').style.display = 'flex';
-    searchBar.placeholder = 'Search accounts...';
-    searchBar.style.display = 'block';
-    renderAccounts();
-    return;
-  }
-
-  if (tabName === 'ips') {
-    ipsTab.classList.add('active');
-    ipList.classList.add('active');
-    searchBar.placeholder = 'Search IP...';
-    searchBar.style.display = 'block';
-    renderIPs();
-    return;
-  }
-
-  if (tabName === 'critical') {
-    criticalTab.classList.add('active');
-    criticalSection.style.display = 'block';
-    renderCriticalWatchlist();
-    return;
-  }
-
-  if (tabName === 'wallets') {
-    walletsTab.classList.add('active');
-    walletsSection.style.display = 'block';
-    searchBar.placeholder = 'Search wallets...';
-    searchBar.style.display = 'block';
-    loadWallets();
-    return;
-  }
-
-  if (tabName === 'profit') {
-    profitTab.classList.add('active');
-    profitSection.style.display = 'block';
-    return;
-  }
-
-  if (tabName === 'deposit-percentage') {
-    if (depositPercentageBtn) depositPercentageBtn.classList.add('active');
-    if (depositPercentageSection) depositPercentageSection.style.display = 'block';
-    
-    // Make header static (scrolls with page)
-    if (headerEl) {
-      headerEl.style.display = 'block';
-      headerEl.classList.add('static-mode');
-    }
-    return;
-  }
-
-  if (tabName === 'transfer-report') {
-    transferReportTab.classList.add('active');
-    transferReportSection.style.display = 'block';
-    
-    // Make header static (scrolls with page)
-    if (headerEl) {
-      headerEl.style.display = 'block';
-      headerEl.classList.add('static-mode');
-    }
-
-    // Auto-detect shift when entering the tab
-    if (typeof autoDetectShift === 'function') {
-      autoDetectShift();
-    }
-    
-    // Remove back button if exists
-    const backBtn = document.getElementById('report-back-btn');
-    if (backBtn) {
-        backBtn.remove();
-    }
-    
-    return;
-  }
-
-  if (tabName === 'withdrawal-report') {
-    if (withdrawalReportBtn) withdrawalReportBtn.classList.add('active');
-    if (withdrawalSection) withdrawalSection.style.display = 'block';
-    
-    // Make header static (scrolls with page)
-    if (headerEl) {
-      headerEl.style.display = 'block';
-      headerEl.classList.add('static-mode');
-    }
-    return;
-  } else {
-    // Show header for other tabs
-    if (headerEl) {
-      headerEl.style.display = 'block';
-    }
-  }
-}
+﻿// =====================================================
+// SIDEPANEL MAIN - Watchlist, Rendering, Reports, Integrations
+// Note: Core variables, modals, and tabs loaded from separate files
+// =====================================================
 
 // --- VIP / Critical Watchlist ---
 const DEFAULT_CRITICAL_IPS = ['166.88.54.203', '166.88.167.40', '77.76.9.250'];
@@ -1423,7 +511,6 @@ function renderAccounts(filter = searchBar.value) {
 
     // Display tag badge if exists
     if (item.tag && item.tag !== 'none') {
-      // Badge is hidden, only show in dropdown and on card background
       const tagConfig = {
         'suspicious': { text: '🔴 مشبوه', class: 'tag-suspicious' },
         'safe': { text: '🟢 آمن', class: 'tag-safe' },
@@ -1433,7 +520,16 @@ function renderAccounts(filter = searchBar.value) {
       const config = tagConfig[item.tag];
       if (config) {
         listItem.classList.add('tagged-' + item.tag);
+        if (tagBadge) {
+          tagBadge.style.display = 'inline-flex';
+          tagBadge.className = `account-tag-badge ${config.class}`;
+          tagBadge.textContent = config.text;
+        }
       }
+    } else if (tagBadge) {
+      tagBadge.style.display = 'none';
+      tagBadge.textContent = '';
+      tagBadge.className = 'account-tag-badge';
     }
 
     // Tooltips
@@ -1713,9 +809,30 @@ function renderIPs(filter = searchBar.value) {
     const lowerCity = (item.city || '').toLowerCase();
     const lowerCountry = (item.country || '').toLowerCase();
     
-    // Check if UK
+    // Check banned countries
     const isUK = ht === 'uk' || lowerCountry.includes('united kingdom') || lowerCountry === 'uk';
     const isNetherlands = ht === 'netherlands' || lowerCountry.includes('netherlands') || lowerCountry === 'nl';
+    const isSingapore = ht === 'singapore' || lowerCountry.includes('singapore');
+    const isFrance = ht === 'france' || lowerCountry.includes('france');
+    const isGermany = ht === 'germany' || lowerCountry.includes('germany');
+    const isCanada = ht === 'canada' || lowerCountry.includes('canada');
+    const isUSA = ht === 'usa' || lowerCountry.includes('united states') || lowerCountry.includes('usa');
+    const isTurkey = ht === 'turkey' || lowerCountry.includes('turkey') || lowerCountry.includes('türkiye');
+    const isItaly = ht === 'italy' || lowerCountry.includes('italy') || lowerCountry.includes('italia');
+    const isAustria = ht === 'austria' || lowerCountry.includes('austria');
+    const isRomania = ht === 'romania' || lowerCountry.includes('romania');
+    const isFinland = ht === 'finland' || lowerCountry.includes('finland');
+    const isPortugal = ht === 'portugal' || lowerCountry.includes('portugal');
+    const isSwitzerland = ht === 'switzerland' || lowerCountry.includes('switzerland') || lowerCountry.includes('suisse');
+    const isPakistan = ht === 'pakistan' || lowerCountry.includes('pakistan');
+    const isBelgium = ht === 'belgium' || lowerCountry.includes('belgium') || lowerCountry.includes('belgique');
+    const isDjibouti = ht === 'djibouti' || lowerCountry.includes('djibouti');
+    const isHungary = ht === 'hungary' || lowerCountry.includes('hungary');
+    const isKenya = ht === 'kenya' || lowerCountry.includes('kenya');
+    const isBulgaria = ht === 'bulgaria' || lowerCountry.includes('bulgaria');
+    const isChina = ht === 'china' || lowerCountry.includes('china');
+    const isSerbia = ht === 'serbia' || lowerCountry.includes('serbia');
+    const isBannedCountry = isUK || isNetherlands || isSingapore || isFrance || isGermany || isCanada || isUSA || isTurkey || isItaly || isAustria || isRomania || isFinland || isPortugal || isSwitzerland || isPakistan || isBelgium || isDjibouti || isHungary || isKenya || isBulgaria || isChina || isSerbia;
     
     // Check if Iraqi highlighted regions with comprehensive patterns
     const isKirkuk = ht === 'kirkuk' || lowerRegion.includes('kirkuk') || lowerCity.includes('kirkuk') || lowerRegion.includes('كركوك') || lowerCity.includes('كركوك');
@@ -1723,7 +840,7 @@ function renderIPs(filter = searchBar.value) {
     const isErbilRegion = ht === 'erbil' || lowerRegion.includes('erbil') || lowerCity.includes('erbil') || lowerRegion.includes('arbil') || lowerCity.includes('arbil') || lowerRegion.includes('أربيل') || lowerCity.includes('أربيل') || lowerRegion.includes('hewler') || lowerCity.includes('hewler');
     
     // Handle highlighted IPs with proper badge
-    if (isUK || isNetherlands || isKirkuk || isSulaymaniyah || isErbilRegion || item.isHighlighted || item.isErbil) {
+    if (isBannedCountry || isKirkuk || isSulaymaniyah || isErbilRegion || item.isHighlighted || item.isErbil) {
       listItem.classList.add('erbil');
       highlightBadge.style.display = 'inline-block';
       
@@ -1742,7 +859,167 @@ function renderIPs(filter = searchBar.value) {
         highlightBadge.style.background = 'linear-gradient(135deg, #f97316, #2563eb)';
         highlightBadge.style.color = '#fff';
         listItem.classList.add('nl-highlight');
-      } 
+      }
+      // Check Singapore
+      else if (isSingapore) {
+        highlightBadge.textContent = '🇸🇬 SG';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - سنغافورة';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #fff)';
+        highlightBadge.style.color = '#000';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check France
+      else if (isFrance) {
+        highlightBadge.textContent = '🇫🇷 FR';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - فرنسا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #1e40af, #dc2626)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Germany
+      else if (isGermany) {
+        highlightBadge.textContent = '🇩🇪 DE';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - ألمانيا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #000, #dc2626, #fbbf24)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Canada
+      else if (isCanada) {
+        highlightBadge.textContent = '🇨🇦 CA';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - كندا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #fff)';
+        highlightBadge.style.color = '#dc2626';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check USA
+      else if (isUSA) {
+        highlightBadge.textContent = '🇺🇸 US';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - الولايات المتحدة';
+        highlightBadge.style.background = 'linear-gradient(135deg, #1e40af, #dc2626)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Turkey
+      else if (isTurkey) {
+        highlightBadge.textContent = '🇹🇷 TR';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - تركيا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #fff)';
+        highlightBadge.style.color = '#dc2626';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Italy
+      else if (isItaly) {
+        highlightBadge.textContent = '🇮🇹 IT';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - إيطاليا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #22c55e, #fff, #dc2626)';
+        highlightBadge.style.color = '#000';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Austria
+      else if (isAustria) {
+        highlightBadge.textContent = '🇦🇹 AT';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - النمسا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #fff)';
+        highlightBadge.style.color = '#dc2626';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Romania
+      else if (isRomania) {
+        highlightBadge.textContent = '🇷🇴 RO';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - رومانيا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #1e40af, #fbbf24, #dc2626)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Finland
+      else if (isFinland) {
+        highlightBadge.textContent = '🇫🇮 FI';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - فنلندا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #fff, #1e40af)';
+        highlightBadge.style.color = '#1e40af';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Portugal
+      else if (isPortugal) {
+        highlightBadge.textContent = '🇵🇹 PT';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - البرتغال';
+        highlightBadge.style.background = 'linear-gradient(135deg, #22c55e, #dc2626, #fbbf24)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Switzerland
+      else if (isSwitzerland) {
+        highlightBadge.textContent = '🇨🇭 CH';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - سويسرا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #fff)';
+        highlightBadge.style.color = '#dc2626';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Pakistan
+      else if (isPakistan) {
+        highlightBadge.textContent = '🇵🇰 PK';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - باكستان';
+        highlightBadge.style.background = 'linear-gradient(135deg, #22c55e, #fff)';
+        highlightBadge.style.color = '#22c55e';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Belgium
+      else if (isBelgium) {
+        highlightBadge.textContent = '🇧🇪 BE';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - بلجيكا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #000, #fbbf24, #dc2626)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Djibouti
+      else if (isDjibouti) {
+        highlightBadge.textContent = '🇩🇯 DJ';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - جيبوتي';
+        highlightBadge.style.background = 'linear-gradient(135deg, #22c55e, #1e40af, #dc2626)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Hungary
+      else if (isHungary) {
+        highlightBadge.textContent = '🇭🇺 HU';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - المجر';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #fff, #22c55e)';
+        highlightBadge.style.color = '#dc2626';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Kenya
+      else if (isKenya) {
+        highlightBadge.textContent = '🇰🇪 KE';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - كينيا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #000, #dc2626, #22c55e)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Bulgaria
+      else if (isBulgaria) {
+        highlightBadge.textContent = '🇧🇬 BG';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - بلغاريا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #fff, #22c55e, #dc2626)';
+        highlightBadge.style.color = '#22c55e';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check China
+      else if (isChina) {
+        highlightBadge.textContent = '🇨🇳 CN';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - الصين';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #fbbf24)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
+      // Check Serbia
+      else if (isSerbia) {
+        highlightBadge.textContent = '🇷🇸 RS';
+        highlightBadge.title = '⚠️ هام جداً: دولة محظورة - صربيا';
+        highlightBadge.style.background = 'linear-gradient(135deg, #dc2626, #1e40af, #fff)';
+        highlightBadge.style.color = '#fff';
+        listItem.classList.add('banned-highlight');
+      }
       // Check Kirkuk
       else if (isKirkuk) {
         highlightBadge.textContent = '⭐ كركوك';
@@ -1838,11 +1115,12 @@ function renderIPs(filter = searchBar.value) {
       ipDetailsModal.style.display = 'block';
 
       try {
-        const response = await chrome.runtime.sendMessage({ type: 'lookupIp', ip: item.ip });
-        if (response && response.data) {
-          ipDetailsContent.innerHTML = buildArabicDetailHTML(response.data);
-        } else if (response && response.error) {
-          ipDetailsContent.innerHTML = `خطأ: ${response.error}`;
+        const geoClient = window.IPGeoClient;
+        const result = geoClient ? await geoClient.lookup(item.ip) : { success: false, error: 'IPGeoClient unavailable' };
+        if (result.success) {
+          ipDetailsContent.innerHTML = buildArabicDetailHTML(result.data);
+        } else if (result.error) {
+          ipDetailsContent.innerHTML = `خطأ: ${result.error}`;
         } else {
           ipDetailsContent.innerHTML = 'تعذر استرداد معلومات IP.';
         }
@@ -1855,80 +1133,15 @@ function renderIPs(filter = searchBar.value) {
   });
 }
 
-// --- Event Listeners ---
-searchBar.addEventListener('input', () => {
-  if (activeTab === 'accounts') {
-    renderAccounts(searchBar.value);
-  } else if (activeTab === 'ips') {
-    renderIPs(searchBar.value);
-  } else if (activeTab === 'wallets') {
-    renderWallets(searchBar.value);
-  }
-});
+// --- Delegated UI wiring lives in sidepanel-tabs.js / sidepanel-modals.js ---
 
-// Tag filter buttons
-document.querySelectorAll('.tag-filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentTagFilter = btn.getAttribute('data-filter');
-    renderAccounts();
-  });
-});
-
-// No filter UI events anymore; filters are controlled via options page.
-
-clearButton.addEventListener('click', async () => {
-  if (activeTab === 'accounts') {
-    if (confirm('Are you sure you want to clear all account history?')) {
-      await chrome.storage.local.set({ copiedAccounts: [] });
-    }
-  } else if (activeTab === 'ips') {
-    if (confirm('Are you sure you want to clear all IP history?')) {
-      await chrome.storage.local.set({ copiedIPs: [] });
-    }
-  } else if (activeTab === 'wallets') {
-    if (confirm('Are you sure you want to clear all wallet history?')) {
-      await chrome.storage.local.remove('walletNotes');
-      loadWallets();
-    }
-  }
-});
-
-document.getElementById('open-settings').addEventListener('click', () => {
-  chrome.runtime.openOptionsPage();
-});
-
-// --- Modal Listeners ---
-closeButton.addEventListener('click', () => {
-  modal.style.display = 'none';
-});
-
-window.addEventListener('click', (event) => {
-  if (event.target == modal) {
-    modal.style.display = 'none';
-  }
-});
-
-ipDetailsCloseButton.addEventListener('click', () => {
-  ipDetailsModal.style.display = 'none';
-});
-
-window.addEventListener('click', (event) => {
-  if (event.target == ipDetailsModal) {
-    ipDetailsModal.style.display = 'none';
-  }
-});
-
-// Initial Load
-switchTab('accounts'); // Start on accounts tab
+// Initial data load (tab selection is triggered once at file end)
 loadAllData();
 
 // Listen for toast notifications from background
 chrome.runtime.onMessage.addListener((message) => {
   console.log('Sidepanel received message:', message);
 
-  // Suppress notifications if in Transfer Report
   if (activeTab === 'transfer-report' && message.type === 'showToast') {
     return;
   }
@@ -1945,65 +1158,6 @@ chrome.runtime.onMessage.addListener((message) => {
     }
   }
 });
-
-// --- Pause Tracking Logic ---
-(async function initPauseToggle() {
-  const syncData = await chrome.storage.sync.get(['trackingPaused']);
-  const isPaused = !!syncData.trackingPaused;
-  applyPauseUI(isPaused);
-  pauseToggle.checked = !isPaused; // checked means running
-})();
-
-pauseToggle.addEventListener('change', async () => {
-  const isRunning = pauseToggle.checked;
-  const isPaused = !isRunning;
-  await chrome.storage.sync.set({ trackingPaused: isPaused });
-  applyPauseUI(isPaused);
-  if (isPaused) {
-    showToast('تم إيقاف التتبع مؤقتاً', 'لن يتم تسجيل النسخ حتى إعادة التشغيل.', 'duplicate');
-  } else {
-    showToast('تم استئناف التتبع', 'سيتم تسجيل النسخ مرة أخرى.', 'ip');
-  }
-});
-
-function applyPauseUI(isPaused) {
-  if (isPaused) {
-    pausedIndicator.style.display = 'inline-block';
-    toggleLabelText.textContent = 'إيقاف التتبع مفعل';
-  } else {
-    pausedIndicator.style.display = 'none';
-    toggleLabelText.textContent = 'تشغيل المراقبة';
-  }
-}
-
-// --- Header Auto-Hide on Scroll ---
-let lastScrollY = 0;
-let ticking = false;
-function handleScroll() {
-  // Keep header visible in Transfer Report
-  if (activeTab === 'transfer-report') {
-    headerEl.classList.remove('hidden');
-    ticking = false;
-    return;
-  }
-
-  const currentY = window.scrollY;
-  const goingDown = currentY > lastScrollY;
-  if (goingDown && currentY > 40) {
-    headerEl.classList.add('hidden');
-  } else {
-    headerEl.classList.remove('hidden');
-  }
-  lastScrollY = currentY;
-  ticking = false;
-}
-window.addEventListener('scroll', () => {
-  if (!ticking) {
-    window.requestAnimationFrame(handleScroll);
-    ticking = true;
-  }
-});
-
 // --- Sound Effects ---
 function playWarningSound() {
   try {
@@ -2531,21 +1685,70 @@ function renderWallets(filter = searchBar.value) {
 // --- Transfer Report Logic ---
 
 async function fetchIpInfo(ip) {
-  if (!ip) return;
+  if (!ip) return false;
   try {
-    const response = await fetch(`https://ipwhois.app/json/${ip}?lang=ar`);
-    const data = await response.json();
-    if (data.success) {
-      reportCountryInput.value = `${data.country} - (${data.city})`;
-    } else {
-      reportCountryInput.value = 'Unknown';
+    const geoClient = window.IPGeoClient;
+    const result = geoClient
+      ? await (geoClient.lookupWithRetry
+        ? geoClient.lookupWithRetry(ip, { attempts: 3, retryDelayMs: 120 })
+        : geoClient.lookup(ip))
+      : { success: false, error: 'IPGeoClient unavailable' };
+    if (result.success) {
+      const display = geoClient.toCountryDisplay(result.data, 'Unknown');
+      reportCountryInput.value = display;
+      if (reportCountryInput) applyFieldCompletionState(reportCountryInput);
+      if (geoClient && typeof geoClient.isCountryTextResolved === 'function') {
+        return geoClient.isCountryTextResolved(display);
+      }
+      return !!display && display !== 'Unknown' && display !== 'Error';
     }
+
+    console.warn('IP lookup failed:', result.error);
+    reportCountryInput.value = 'Unknown';
     if (reportCountryInput) applyFieldCompletionState(reportCountryInput);
+    return false;
   } catch (error) {
     console.error('Error fetching IP info:', error);
     reportCountryInput.value = 'Error';
     if (reportCountryInput) applyFieldCompletionState(reportCountryInput);
+    return false;
   }
+}
+
+async function ensureCountryForInputs(ipInputEl, countryInputEl, fetcherFn, normalizeIpFn) {
+  if (!ipInputEl || !countryInputEl || typeof fetcherFn !== 'function') return false;
+
+  const rawIp = (ipInputEl.value || '').trim();
+  if (!rawIp) return false;
+
+  let cleanIp = rawIp;
+  const extracted = rawIp.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/);
+  if (extracted && extracted[0]) cleanIp = extracted[0];
+  if (typeof normalizeIpFn === 'function') {
+    const normalized = normalizeIpFn(rawIp);
+    if (!normalized) return false;
+    cleanIp = normalized;
+  } else if (window.IPGeoClient && typeof window.IPGeoClient.normalizeIPv4 === 'function') {
+    const normalized = window.IPGeoClient.normalizeIPv4(rawIp);
+    if (normalized) cleanIp = normalized;
+  }
+
+  if (cleanIp !== rawIp) ipInputEl.value = cleanIp;
+
+  const geoClient = window.IPGeoClient;
+  const currentCountry = (countryInputEl.value || '').trim();
+  if (geoClient && typeof geoClient.isCountryTextResolved === 'function' && geoClient.isCountryTextResolved(currentCountry)) {
+    return true;
+  }
+
+  const ok = await fetcherFn(cleanIp);
+  if (ok) return true;
+
+  const finalCountry = (countryInputEl.value || '').trim();
+  if (geoClient && typeof geoClient.isCountryTextResolved === 'function') {
+    return geoClient.isCountryTextResolved(finalCountry);
+  }
+  return !!finalCountry && finalCountry !== 'Unknown' && finalCountry !== 'Error';
 }
 
 // Auto-fill IP Country & Navigation
@@ -2715,6 +1918,22 @@ if (reportProfitsInput && reportProfitsCustomInput) {
 // Generate and Copy Report
 if (generateReportBtn) {
   generateReportBtn.addEventListener('click', async () => {
+    const hasIpBeforeCopy = !!reportIpInput.value.trim();
+    if (hasIpBeforeCopy) {
+      const countryReady = await ensureCountryForInputs(
+        reportIpInput,
+        reportCountryInput,
+        fetchIpInfo,
+        window.IPGeoClient && window.IPGeoClient.normalizeIPv4
+          ? window.IPGeoClient.normalizeIPv4
+          : null
+      );
+      if (!countryReady) {
+        showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+        return;
+      }
+    }
+
     const ip = reportIpInput.value.trim();
     const country = reportCountryInput.value.trim();
     const account = reportAccountInput.value.trim();
@@ -2774,7 +1993,7 @@ if (resetReportBtn) {
     } else {
       // Fallback if function not ready
       const reportShiftInput = document.getElementById('report-shift');
-      const shiftBtns = document.querySelectorAll('.shift-btn');
+      const shiftBtns = document.querySelectorAll('#transfer-report-section .shift-btn:not(.deposit-shift-btn):not(.credit-out-shift-btn)');
       if (reportShiftInput) reportShiftInput.value = '';
       if (shiftBtns) shiftBtns.forEach(b => b.classList.remove('active'));
     }
@@ -2904,16 +2123,23 @@ const addNoteBtn = document.getElementById('add-note-btn');
 const savedNotesCloseBtn = document.getElementById('saved-notes-close');
 
 let savedNotes = [];
+const DEFAULT_REPORT_NOTE_TEMPLATES = [
+  'تم تحويل الحساب تلقائيا من الاداة الى B1 Clients كون IP متغاير وتم مطابقته بالنظام ارباح العميل بالسالب',
+  'تم تحويل الحساب الى Standard Acccount 2, وذلك بسبب ان العميل يستخدم ip من كركوك وغير محظور',
+  'تم تحويل الحساب الى   Standard Bonus كونه يعتمد اسلوب صفقات بسعر افتتاح مساوي  لسعر وقف الخسارة بالصفقات المغلقة من خلال اوامر معلقة',
+  'تم تحويل الحساب الى Standard Bonus بسبب ان الارباح تجاوزت 100$',
+  'تم اعادة الحساب الى B1 لانه مطابق اكثر من اسبوع',
+  'تم تحويل الحساب الى Standard Acccount 2, وذلك بسبب ان ارباح العميل خلال اخر اسبوع 1,821$ والكلية بالموجب'
+];
 
 // Load notes from storage
 async function loadSavedNotes() {
   const result = await chrome.storage.local.get(['transferReportNotes']);
-  savedNotes = result.transferReportNotes || [
-    'تم تحويل الحساب تلقائيا من الاداة الى B1 Clients كون IP متغاير وتم مطابقته بالنظام ارباح العميل بالسالب',
-    'العميل يستخدم VPN',
-    'حساب متعدد',
-    'تداول مشبوه وقت الأخبار'
-  ]; // Default notes if empty
+  const storedNotes = Array.isArray(result.transferReportNotes) ? result.transferReportNotes : [];
+  savedNotes = storedNotes.length ? storedNotes : [...DEFAULT_REPORT_NOTE_TEMPLATES];
+  if (!storedNotes.length) {
+    await chrome.storage.local.set({ transferReportNotes: savedNotes });
+  }
   renderSavedNotes();
 }
 
@@ -2937,25 +2163,26 @@ function renderSavedNotes() {
       savedNotesModal.style.display = 'none';
     });
 
-    // Edit button
     li.querySelector('.edit').addEventListener('click', (e) => {
       e.stopPropagation();
-      const newText = prompt('تعديل الملاحظة:', note);
-      if (newText !== null && newText.trim() !== '') {
-        savedNotes[index] = newText.trim();
-        saveNotesToStorage();
-        renderSavedNotes();
+      const next = prompt('تعديل الملاحظة:', note);
+      if (next === null) return;
+      const trimmed = next.trim();
+      if (!trimmed) {
+        showToast('تنبيه', 'لا يمكن حفظ ملاحظة فارغة', 'warning');
+        return;
       }
+      savedNotes[index] = trimmed;
+      saveNotesToStorage();
+      renderSavedNotes();
     });
 
-    // Delete button
     li.querySelector('.delete').addEventListener('click', (e) => {
       e.stopPropagation();
-      if (confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) {
-        savedNotes.splice(index, 1);
-        saveNotesToStorage();
-        renderSavedNotes();
-      }
+      if (!confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) return;
+      savedNotes.splice(index, 1);
+      saveNotesToStorage();
+      renderSavedNotes();
     });
 
     savedNotesList.appendChild(li);
@@ -2970,13 +2197,15 @@ function saveNotesToStorage() {
 // Add new note
 if (addNoteBtn) {
   addNoteBtn.addEventListener('click', () => {
-    const text = newNoteInput.value.trim();
-    if (text) {
-      savedNotes.push(text);
-      saveNotesToStorage();
-      renderSavedNotes();
-      newNoteInput.value = '';
+    const text = (newNoteInput?.value || '').trim();
+    if (!text) {
+      showToast('تنبيه', 'الرجاء إدخال ملاحظة', 'warning');
+      return;
     }
+    savedNotes.push(text);
+    saveNotesToStorage();
+    renderSavedNotes();
+    if (newNoteInput) newNoteInput.value = '';
   });
 }
 
@@ -3180,6 +2409,50 @@ function unlockEmployeeNameUI() {
   dbgUserSettings('unlockEmployeeNameUI: unlocked');
 }
 
+function getStoredEmployeeNameFromData(data) {
+  const fromUserSettings = (
+    data &&
+    data.userSettings &&
+    typeof data.userSettings.employeeName === 'string'
+  ) ? data.userSettings.employeeName.trim() : '';
+
+  const fromCreditOut = (
+    data &&
+    typeof data.creditOutEmployeeName === 'string'
+  ) ? data.creditOutEmployeeName.trim() : '';
+
+  return fromUserSettings || fromCreditOut || '';
+}
+
+function persistEmployeeNameOnce(name, onDone) {
+  const selectedName = typeof name === 'string' ? name.trim() : '';
+  if (!selectedName) {
+    if (typeof onDone === 'function') onDone(false, '', 'empty');
+    return;
+  }
+
+  chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (localData) => {
+    const existingName = getStoredEmployeeNameFromData(localData);
+    if (existingName && existingName !== selectedName) {
+      if (typeof onDone === 'function') onDone(false, existingName, 'locked');
+      return;
+    }
+
+    const finalName = existingName || selectedName;
+    const nextUserSettings = {
+      ...(localData.userSettings || {}),
+      employeeName: finalName
+    };
+
+    chrome.storage.local.set({
+      userSettings: nextUserSettings,
+      creditOutEmployeeName: finalName
+    }, () => {
+      if (typeof onDone === 'function') onDone(true, finalName, existingName ? 'existing' : 'saved');
+    });
+  });
+}
+
 function restoreNativeSelect(selectId) {
   const originalSelect = document.getElementById(selectId);
   if (!originalSelect) return;
@@ -3198,13 +2471,25 @@ function restoreNativeSelect(selectId) {
 
 // Load User Settings
 function loadUserSettings() {
-  chrome.storage.local.get(['userSettings'], (result) => {
+  chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (result) => {
     dbgUserSettings('loadUserSettings() -> storage result:', result);
-    const savedName = result.userSettings?.employeeName;
+    const savedName = getStoredEmployeeNameFromData(result);
     if (savedName) {
       employeeNameSelect.value = savedName;
       if (employeeNameSelect) employeeNameSelect.dispatchEvent(new Event('change'));
       lockEmployeeNameUI(savedName);
+      const userSettingsName = (
+        result &&
+        result.userSettings &&
+        typeof result.userSettings.employeeName === 'string'
+      ) ? result.userSettings.employeeName.trim() : '';
+      if (userSettingsName !== savedName) {
+        const nextUserSettings = {
+          ...(result.userSettings || {}),
+          employeeName: savedName
+        };
+        chrome.storage.local.set({ userSettings: nextUserSettings, creditOutEmployeeName: savedName });
+      }
       dbgUserSettings('Applied+locked employeeName:', employeeNameSelect.value);
     } else {
       unlockEmployeeNameUI();
@@ -3231,19 +2516,27 @@ if (saveUserSettingsBtn) {
       dbgUserSettings('Save blocked: no name selected');
       return;
     }
-    
-    chrome.storage.local.set({ 
-      userSettings: { 
-        employeeName: name
-      } 
-    }, () => {
+
+    persistEmployeeNameOnce(name, (saved, resolvedName, reason) => {
+      if (!saved) {
+        if (reason === 'locked' && resolvedName) {
+          lockEmployeeNameUI(resolvedName);
+          showToast('تنبيه', 'تم حفظ اسم الموظف مسبقًا ولا يمكن تغييره', 'warning');
+          telegramSettingsModal.style.display = 'none';
+          dbgUserSettings('Blocked overwrite attempt. Locked on existing name:', resolvedName);
+          return;
+        }
+        showToast('تنبيه', 'الرجاء اختيار اسم الموظف', 'warning');
+        return;
+      }
+
       dbgUserSettings('Saved. Now verifying storage...');
-      chrome.storage.local.get(['userSettings'], (verify) => {
+      chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (verify) => {
         dbgUserSettings('Verify after save ->', verify);
       });
 
       // Lock immediately after first save
-      lockEmployeeNameUI(name);
+      lockEmployeeNameUI(resolvedName || name);
 
       showToast('تم الحفظ', 'تم حفظ الإعدادات بنجاح', 'default');
       telegramSettingsModal.style.display = 'none';
@@ -3489,13 +2782,13 @@ function renderImagePreviews() {
 }
 
 // Shift Selector Logic
-const shiftBtns = document.querySelectorAll('.shift-btn');
+const transferReportShiftBtns = document.querySelectorAll('#transfer-report-section .shift-btn:not(.deposit-shift-btn):not(.credit-out-shift-btn)');
 const reportShiftInput = document.getElementById('report-shift');
 
 function setShift(shiftValue) {
   console.log('setShift called with:', shiftValue);
-  if (shiftBtns && shiftBtns.length > 0) {
-    shiftBtns.forEach(b => {
+  if (transferReportShiftBtns && transferReportShiftBtns.length > 0) {
+    transferReportShiftBtns.forEach(b => {
       // console.log('Checking button:', b.dataset.value, 'against', shiftValue);
       if (b.dataset.value === shiftValue) {
         b.classList.add('active');
@@ -3505,7 +2798,7 @@ function setShift(shiftValue) {
       }
     });
   } else {
-    console.warn('No shift buttons found in DOM');
+    console.warn('No transfer-report shift buttons found in DOM');
   }
   if (reportShiftInput) {
     reportShiftInput.value = shiftValue;
@@ -3558,15 +2851,12 @@ function autoDetectShift() {
 }
 
 // Initialize Shift Buttons
-if (shiftBtns.length > 0) {
-  shiftBtns.forEach(btn => {
+if (transferReportShiftBtns.length > 0) {
+  transferReportShiftBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       setShift(btn.dataset.value);
     });
   });
-  
-  // Auto-detect on load
-  autoDetectShift();
 }
 
 // Send to Telegram
@@ -3590,6 +2880,22 @@ if (sendTelegramBtn) {
     if (!token || !chatId) {
       showToast('خطأ', 'إعدادات Telegram غير صحيحة', 'warning');
       return;
+    }
+
+    const hasIpBeforeSend = !!reportIpInput.value.trim();
+    if (hasIpBeforeSend) {
+      const countryReady = await ensureCountryForInputs(
+        reportIpInput,
+        reportCountryInput,
+        fetchIpInfo,
+        window.IPGeoClient && window.IPGeoClient.normalizeIPv4
+          ? window.IPGeoClient.normalizeIPv4
+          : null
+      );
+      if (!countryReady) {
+        showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+        return;
+      }
     }
 
     const ip = reportIpInput.value.trim();
@@ -3861,20 +3167,33 @@ if (sendTelegramBtn) {
 // --- Deposit Percentage Report Logic ---
 
 async function fetchDepositIpInfo(ip) {
-  if (!ip) return;
+  if (!ip) return false;
   try {
-    const response = await fetch(`https://ipwhois.app/json/${ip}?lang=ar`);
-    const data = await response.json();
-    if (data.success) {
-      if (depositReportCountryInput) depositReportCountryInput.value = `${data.country} - (${data.city})`;
-    } else {
-      if (depositReportCountryInput) depositReportCountryInput.value = 'Unknown';
+    const geoClient = window.IPGeoClient;
+    const result = geoClient
+      ? await (geoClient.lookupWithRetry
+        ? geoClient.lookupWithRetry(ip, { attempts: 3, retryDelayMs: 120 })
+        : geoClient.lookup(ip))
+      : { success: false, error: 'IPGeoClient unavailable' };
+    if (result.success) {
+      const display = geoClient.toCountryDisplay(result.data, 'Unknown');
+      if (depositReportCountryInput) depositReportCountryInput.value = display;
+      if (depositReportCountryInput) applyFieldCompletionState(depositReportCountryInput);
+      if (geoClient && typeof geoClient.isCountryTextResolved === 'function') {
+        return geoClient.isCountryTextResolved(display);
+      }
+      return !!display && display !== 'Unknown' && display !== 'Error';
     }
+
+    console.warn('Deposit IP lookup failed:', result.error);
+    if (depositReportCountryInput) depositReportCountryInput.value = 'Unknown';
     if (depositReportCountryInput) applyFieldCompletionState(depositReportCountryInput);
+    return false;
   } catch (error) {
     console.error('Error fetching IP info:', error);
     if (depositReportCountryInput) depositReportCountryInput.value = 'Error';
     if (depositReportCountryInput) applyFieldCompletionState(depositReportCountryInput);
+    return false;
   }
 }
 
@@ -4162,18 +3481,6 @@ if (depositShiftBtns.length > 0) {
       setDepositShift(btn.dataset.value);
     });
   });
-  
-  // Auto-detect on load (reuse existing logic)
-  if (typeof autoDetectShift === 'function') {
-    // We can't easily reuse autoDetectShift because it targets the other report's input
-    // So we'll just run a quick detection here for this report too
-    const now = new Date();
-    const hour = now.getHours();
-    let shift = 'الخفر';
-    if (hour >= 7 && hour < 15) shift = 'الصباحي';
-    else if (hour >= 15 && hour < 23) shift = 'المسائي';
-    setDepositShift(shift);
-  }
 }
 
 // Reset Deposit Report
@@ -4215,6 +3522,22 @@ if (depositResetReportBtn) {
 // Generate Deposit Report (Copy)
 if (depositGenerateReportBtn) {
   depositGenerateReportBtn.addEventListener('click', async () => {
+    const hasIpBeforeCopy = !!depositReportIpInput.value.trim();
+    if (hasIpBeforeCopy) {
+      const countryReady = await ensureCountryForInputs(
+        depositReportIpInput,
+        depositReportCountryInput,
+        fetchDepositIpInfo,
+        window.IPGeoClient && window.IPGeoClient.normalizeIPv4
+          ? window.IPGeoClient.normalizeIPv4
+          : null
+      );
+      if (!countryReady) {
+        showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+        return;
+      }
+    }
+
     const ip = depositReportIpInput.value.trim();
     const country = depositReportCountryInput.value.trim();
     const account = depositReportAccountInput.value.trim();
@@ -4278,6 +3601,22 @@ if (depositSendTelegramBtn) {
 
     const token = DEFAULT_TELEGRAM_TOKEN;
     const chatId = DEFAULT_TELEGRAM_CHAT_ID;
+
+    const hasIpBeforeSend = !!depositReportIpInput.value.trim();
+    if (hasIpBeforeSend) {
+      const countryReady = await ensureCountryForInputs(
+        depositReportIpInput,
+        depositReportCountryInput,
+        fetchDepositIpInfo,
+        window.IPGeoClient && window.IPGeoClient.normalizeIPv4
+          ? window.IPGeoClient.normalizeIPv4
+          : null
+      );
+      if (!countryReady) {
+        showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+        return;
+      }
+    }
 
     const ip = depositReportIpInput.value.trim();
     const country = depositReportCountryInput.value.trim();
@@ -4464,8 +3803,6 @@ async function clearWithdrawalDraft() {
     }
 }
 
-// Initialize Draft Loading
-loadWithdrawalDraft();
 
 // Add Listeners for Saving
 if (withdrawalWalletInput) {
@@ -4951,7 +4288,7 @@ function convertToCustomSelect(selectId) {
     const trigger = document.createElement('div');
     trigger.className = 'custom-select-trigger';
 
-    trigger.innerHTML = '<span>' + (originalSelect.options[originalSelect.selectedIndex]?.text || '????...') + '</span>';
+    trigger.innerHTML = '<span>' + (originalSelect.options[originalSelect.selectedIndex]?.text || 'اختر...') + '</span>';
     
     // Create options container
     const optionsContainer = document.createElement('div');
@@ -5079,17 +4416,6 @@ function convertToCustomSelect(selectId) {
     originalSelect.style.display = 'none';
 }
 
-// Initialize Custom Selects
-document.addEventListener('DOMContentLoaded', () => {
-    // Wait a brief moment to ensure DOM is fully ready if script is early
-    setTimeout(() => {
-        convertToCustomSelect('report-old-group');
-        convertToCustomSelect('report-new-group');
-    // Ensure employee select is native
-    restoreNativeSelect('employee-name-select');
-    }, 100);
-});
-
 // Employee Evaluation Button Logic
 document.addEventListener('DOMContentLoaded', async () => {
     const evaluationBtn = document.getElementById('evaluation-btn');
@@ -5119,4 +4445,968 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 });
+
+// =====================================================
+// CREDIT OUT SECTION LOGIC
+// =====================================================
+
+(function() {
+  // DOM Elements
+  const creditOutEmailInput = document.getElementById('credit-out-email');
+  const creditOutAccountInput = document.getElementById('credit-out-account');
+  const creditOutIpInput = document.getElementById('credit-out-ip');
+  const creditOutCountryInput = document.getElementById('credit-out-country');
+  const creditOutDateInput = document.getElementById('credit-out-date');
+  const creditOutAmountInput = document.getElementById('credit-out-amount');
+  const creditOutNotesInput = document.getElementById('credit-out-notes');
+  const creditOutShiftInput = document.getElementById('credit-out-shift');
+  const creditOutShiftBtns = document.querySelectorAll('.credit-out-shift-btn');
+  
+  const creditOutCopyBtn = document.getElementById('credit-out-copy-btn');
+  const creditOutSendBtn = document.getElementById('credit-out-send-btn');
+  const creditOutResetBtn = document.getElementById('credit-out-reset-btn');
+  
+  const creditOutDropZone = document.getElementById('credit-out-drop-zone');
+  const creditOutFileInput = document.getElementById('credit-out-file-input');
+  const creditOutPreviewContainer = document.getElementById('credit-out-preview-container');
+  
+  const creditOutMentionAhmed = document.getElementById('credit-out-mention-ahmed');
+  const creditOutMentionBatoul = document.getElementById('credit-out-mention-batoul');
+  
+  // Modals
+  const creditOutNotesModal = document.getElementById('credit-out-notes-modal');
+  const creditOutNotesModalBtn = document.getElementById('credit-out-notes-modal-btn');
+  const creditOutNotesModalClose = document.getElementById('credit-out-notes-modal-close');
+  const creditOutNotesList = document.getElementById('credit-out-notes-list');
+  const creditOutNewNoteInput = document.getElementById('credit-out-new-note-input');
+  const creditOutAddNoteBtn = document.getElementById('credit-out-add-note-btn');
+  
+  const creditOutSettingsModal = document.getElementById('credit-out-settings-modal');
+  const creditOutSettingsBtn = document.getElementById('credit-out-settings-btn');
+  const creditOutSettingsClose = document.getElementById('credit-out-settings-close');
+  const creditOutEmployeeSelect = document.getElementById('credit-out-employee-select');
+  const creditOutSaveSettingsBtn = document.getElementById('credit-out-save-settings-btn');
+
+  // Constants - Use same token as main transfer report
+  const CREDIT_OUT_TELEGRAM_TOKEN = '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA';
+  const CREDIT_OUT_TELEGRAM_CHAT_ID = '-1003692121203';
+
+  let creditOutSelectedImages = [];
+  let creditOutSavedNotes = [];
+
+  // Helper functions
+  const extractIp = (text) => {
+    const match = text.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/);
+    return match ? match[0] : '';
+  };
+  const isEmail = (text) => /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(text);
+  const isAccount = (text) => /^\d{6,7}$/.test(text.trim());
+
+  function formatCreditOutAmountWithDollar(value) {
+    const cleaned = (value || '').toString().replace(/\$/g, '').trim();
+    if (!cleaned) return '';
+    return `${cleaned}$`;
+  }
+
+  // Extract date/time from raw data
+  function extractDateTime(rawText) {
+    const dateTimePattern = /(\d{4}\.\d{2}\.\d{2}\s+\d{2}:\d{2}:\d{2})/;
+    const match = rawText.match(dateTimePattern);
+    return match ? match[1] : '';
+  }
+
+  // Extract amount from a raw trade/balance line.
+  // Primary source: MT row "PROFIT" column (column 15, 1-based) when tab-separated data is available.
+  // Fallbacks handle non-tab text and notes like "... 961 From 3081770 P2P Account".
+  function extractTradeAmount(rawText) {
+    const text = (rawText || '').toString().trim();
+    if (!text) return '';
+
+    const normalizeNumericToken = (token) => {
+      const cleaned = (token || '').toString().replace(/\$/g, '').replace(/,/g, '').trim();
+      return /^[+-]?\d+(?:\.\d+)?$/.test(cleaned) ? cleaned : '';
+    };
+
+    // Preferred path: parse tab-separated MT row and read PROFIT column directly.
+    // PROFIT is column 15 (1-based) => index 14.
+    if (text.includes('\t')) {
+      const columns = text.split('\t').map((part) => part.trim());
+      if (columns.length >= 15) {
+        const profitColumnAmount = normalizeNumericToken(columns[14]);
+        if (profitColumnAmount) return profitColumnAmount;
+      }
+    }
+
+    const beforeTransferPartyMatch = text.match(/([+-]?\d[\d,]*(?:\.\d+)?)\s+(?:From|To)\b/i);
+    if (beforeTransferPartyMatch) {
+      return beforeTransferPartyMatch[1].replace(/,/g, '');
+    }
+
+    const tokens = text
+      .replace(/\$/g, ' ')
+      .split(/\s+/)
+      .map((token) => token.replace(/,/g, '').trim())
+      .filter(Boolean);
+
+    for (let i = tokens.length - 1; i >= 0; i -= 1) {
+      const amount = normalizeNumericToken(tokens[i]);
+      if (amount) {
+        return amount;
+      }
+    }
+    return '';
+  }
+
+  // Fetch IP info
+  async function creditOutFetchIpInfo(ip) {
+    if (!ip || !creditOutCountryInput) return false;
+    try {
+      creditOutCountryInput.value = 'جاري البحث...';
+      const geoClient = window.IPGeoClient;
+      const result = geoClient
+        ? await (geoClient.lookupWithRetry
+          ? geoClient.lookupWithRetry(ip, { attempts: 3, retryDelayMs: 120 })
+          : geoClient.lookup(ip))
+        : { success: false, error: 'IPGeoClient unavailable' };
+      if (result.success) {
+        const display = geoClient.toCountryDisplay(result.data, 'Unknown');
+        creditOutCountryInput.value = display;
+        if (geoClient && typeof geoClient.isCountryTextResolved === 'function') {
+          return geoClient.isCountryTextResolved(display);
+        }
+        return !!display && display !== 'Unknown' && display !== 'Error';
+      }
+
+      console.warn('Credit-out IP lookup failed:', result.error);
+      creditOutCountryInput.value = 'Unknown';
+      return false;
+    } catch (error) {
+      console.error('Error fetching IP info:', error);
+      creditOutCountryInput.value = 'Error';
+      return false;
+    }
+  }
+
+  async function ensureCreditOutCountry() {
+    if (!creditOutIpInput || !creditOutCountryInput) return false;
+    const ipRaw = (creditOutIpInput.value || '').trim();
+    if (!ipRaw) return false;
+
+    const ip = extractIp(ipRaw);
+    if (!ip) return false;
+    if (ip !== ipRaw) creditOutIpInput.value = ip;
+
+    const geoClient = window.IPGeoClient;
+    const currentCountry = (creditOutCountryInput.value || '').trim();
+    if (geoClient && typeof geoClient.isCountryTextResolved === 'function' && geoClient.isCountryTextResolved(currentCountry)) {
+      return true;
+    }
+
+    const ok = await creditOutFetchIpInfo(ip);
+    if (ok) return true;
+
+    const finalCountry = (creditOutCountryInput.value || '').trim();
+    if (geoClient && typeof geoClient.isCountryTextResolved === 'function') {
+      return geoClient.isCountryTextResolved(finalCountry);
+    }
+    return !!finalCountry && finalCountry !== 'Unknown' && finalCountry !== 'Error';
+  }
+
+  // Auto-detect shift
+  window.creditOutAutoDetectShift = function() {
+    const now = new Date();
+    const hour = now.getHours();
+    let shift = '';
+    
+    if (hour >= 8 && hour < 16) {
+      shift = 'الصباحي';
+    } else if (hour >= 16 && hour < 24) {
+      shift = 'المسائي';
+    } else {
+      shift = 'الخفر';
+    }
+    
+    creditOutShiftBtns.forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.value === shift) {
+        btn.classList.add('active');
+        if (creditOutShiftInput) creditOutShiftInput.value = shift;
+      }
+    });
+  };
+
+  // Amount input - auto add $
+  if (creditOutAmountInput) {
+    creditOutAmountInput.addEventListener('blur', () => {
+      const raw = creditOutAmountInput.value;
+      const formatted = formatCreditOutAmountWithDollar(raw);
+      creditOutAmountInput.value = formatted;
+    });
+  }
+
+  // Date input handlers - auto-filter to extract date/time
+  if (creditOutDateInput) {
+    creditOutDateInput.addEventListener('paste', () => {
+      setTimeout(() => {
+        const val = creditOutDateInput.value.trim();
+        const extractedDate = extractDateTime(val);
+        const extractedAmount = extractTradeAmount(val);
+
+        if (extractedDate) {
+          creditOutDateInput.value = extractedDate;
+        }
+
+        if (extractedAmount && creditOutAmountInput) {
+          creditOutAmountInput.value = formatCreditOutAmountWithDollar(extractedAmount);
+        }
+
+        if (extractedDate && extractedAmount) {
+          showToast('تم', 'تم استخراج التاريخ والوقت والمبلغ', 'success');
+        } else if (extractedDate) {
+          showToast('تم', 'تم استخراج التاريخ والوقت', 'success');
+        } else if (extractedAmount) {
+          showToast('تم', 'تم استخراج المبلغ', 'success');
+        }
+      }, 10);
+    });
+
+    creditOutDateInput.addEventListener('blur', () => {
+      const val = creditOutDateInput.value.trim();
+      if (val) {
+        const extracted = extractDateTime(val);
+        if (extracted && extracted !== val) {
+          creditOutDateInput.value = extracted;
+        }
+
+        const extractedAmount = extractTradeAmount(val);
+        if (
+          extractedAmount &&
+          creditOutAmountInput &&
+          !(creditOutAmountInput.value || '').trim()
+        ) {
+          creditOutAmountInput.value = formatCreditOutAmountWithDollar(extractedAmount);
+        }
+      }
+    });
+  }
+
+  // IP input handlers
+  if (creditOutIpInput) {
+    // Auto-fetch country when IP is typed (debounced)
+    let creditOutIpDebounceTimer = null;
+    creditOutIpInput.addEventListener('input', () => {
+      clearTimeout(creditOutIpDebounceTimer);
+      creditOutIpDebounceTimer = setTimeout(() => {
+        const val = creditOutIpInput.value.trim();
+        const cleanIp = extractIp(val);
+        if (cleanIp) {
+          creditOutFetchIpInfo(cleanIp);
+        }
+      }, 500);
+    });
+
+    creditOutIpInput.addEventListener('blur', () => {
+      const val = creditOutIpInput.value.trim();
+      
+      // Check for IP//Country format
+      if (val.includes('//')) {
+        const parts = val.split('//');
+        const ip = extractIp(parts[0]);
+        if (ip) {
+          creditOutIpInput.value = ip;
+          if (creditOutCountryInput) creditOutCountryInput.value = parts[1]?.trim() || '';
+          creditOutFetchIpInfo(ip);
+          return;
+        }
+      }
+      
+      const cleanIp = extractIp(val);
+      if (cleanIp) {
+        if (cleanIp !== val) creditOutIpInput.value = cleanIp;
+        creditOutFetchIpInfo(cleanIp);
+      } else if (val !== '') {
+        if (isAccount(val) && creditOutAccountInput) {
+          creditOutAccountInput.value = val;
+          creditOutIpInput.value = '';
+          showToast('تنبيه', 'تم نقل رقم الحساب للحقل المخصص', 'warning');
+        } else if (isEmail(val) && creditOutEmailInput) {
+          creditOutEmailInput.value = val;
+          creditOutIpInput.value = '';
+          showToast('تنبيه', 'تم نقل الإيميل للحقل المخصص', 'warning');
+        }
+      }
+    });
+
+    creditOutIpInput.addEventListener('paste', () => {
+      setTimeout(() => {
+        const val = creditOutIpInput.value.trim();
+        
+        if (val.includes('//')) {
+          const parts = val.split('//');
+          const ip = extractIp(parts[0]);
+          if (ip) {
+            creditOutIpInput.value = ip;
+            if (creditOutCountryInput) creditOutCountryInput.value = parts[1]?.trim() || '';
+            creditOutFetchIpInfo(ip);
+            return;
+          }
+        }
+        
+        const cleanIp = extractIp(val);
+        if (cleanIp) {
+          creditOutIpInput.value = cleanIp;
+          creditOutFetchIpInfo(cleanIp);
+        }
+      }, 10);
+    });
+  }
+
+  // Account input handlers
+  if (creditOutAccountInput) {
+    creditOutAccountInput.addEventListener('paste', () => {
+      setTimeout(() => {
+        const val = creditOutAccountInput.value.trim();
+        if (isEmail(val) && creditOutEmailInput) {
+          creditOutEmailInput.value = val;
+          creditOutAccountInput.value = '';
+          showToast('تنبيه', 'تم نقل الإيميل للحقل المخصص', 'warning');
+        } else if (extractIp(val) && creditOutIpInput) {
+          creditOutIpInput.value = extractIp(val);
+          creditOutAccountInput.value = '';
+          creditOutFetchIpInfo(extractIp(val));
+          showToast('تنبيه', 'تم نقل IP للحقل المخصص', 'warning');
+        }
+      }, 10);
+    });
+  }
+
+  // Email input handlers
+  if (creditOutEmailInput) {
+    creditOutEmailInput.addEventListener('paste', () => {
+      setTimeout(() => {
+        const val = creditOutEmailInput.value.trim();
+        if (isAccount(val) && creditOutAccountInput) {
+          creditOutAccountInput.value = val;
+          creditOutEmailInput.value = '';
+          showToast('تنبيه', 'تم نقل رقم الحساب للحقل المخصص', 'warning');
+        } else if (extractIp(val) && creditOutIpInput) {
+          creditOutIpInput.value = extractIp(val);
+          creditOutEmailInput.value = '';
+          creditOutFetchIpInfo(extractIp(val));
+          showToast('تنبيه', 'تم نقل IP للحقل المخصص', 'warning');
+        }
+      }, 10);
+    });
+  }
+
+  // Shift selection
+  creditOutShiftBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      creditOutShiftBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (creditOutShiftInput) creditOutShiftInput.value = btn.dataset.value;
+    });
+  });
+
+  // Mentions - Allow selecting both or one or none
+  if (creditOutMentionAhmed) {
+    creditOutMentionAhmed.addEventListener('click', () => {
+      creditOutMentionAhmed.classList.toggle('active');
+    });
+  }
+  if (creditOutMentionBatoul) {
+    creditOutMentionBatoul.addEventListener('click', () => {
+      creditOutMentionBatoul.classList.toggle('active');
+      if (creditOutMentionAhmed) creditOutMentionAhmed.classList.remove('active');
+    });
+  }
+
+  // Image handling
+  function renderCreditOutImagePreviews() {
+    if (!creditOutPreviewContainer) return;
+    creditOutPreviewContainer.innerHTML = '';
+    creditOutSelectedImages.forEach((img, index) => {
+      const item = document.createElement('div');
+      item.className = 'preview-item';
+      item.style.cssText = 'position: relative; width: 80px; height: 80px; border-radius: 8px; overflow: hidden; border: 1px solid #444;';
+      item.innerHTML = `
+        <img src="${img.data}" style="width: 100%; height: 100%; object-fit: cover;">
+        <button class="remove-credit-out-image" data-index="${index}" style="position: absolute; top: 2px; right: 2px; background: rgba(231, 76, 60, 0.9); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;">×</button>
+      `;
+      creditOutPreviewContainer.appendChild(item);
+    });
+
+    document.querySelectorAll('.remove-credit-out-image').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const index = parseInt(e.target.dataset.index);
+        creditOutSelectedImages.splice(index, 1);
+        renderCreditOutImagePreviews();
+      });
+    });
+  }
+
+  if (creditOutFileInput) {
+    creditOutFileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            creditOutSelectedImages.push({
+              name: file.name,
+              data: event.target.result,
+              file: file
+            });
+            renderCreditOutImagePreviews();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+      e.target.value = '';
+    });
+  }
+
+  if (creditOutDropZone) {
+    creditOutDropZone.addEventListener('click', () => {
+      if (creditOutFileInput) creditOutFileInput.click();
+    });
+
+    creditOutDropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      creditOutDropZone.style.borderColor = '#3498db';
+    });
+
+    creditOutDropZone.addEventListener('dragleave', () => {
+      creditOutDropZone.style.borderColor = '';
+    });
+
+    creditOutDropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      creditOutDropZone.style.borderColor = '';
+      const files = Array.from(e.dataTransfer.files);
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            creditOutSelectedImages.push({
+              name: file.name,
+              data: event.target.result,
+              file: file
+            });
+            renderCreditOutImagePreviews();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    });
+
+    // Paste from clipboard (Ctrl+V)
+    document.addEventListener('paste', (e) => {
+      // Only handle paste when credit-out section is visible
+      const creditOutSection = document.getElementById('credit-out-section');
+      if (!creditOutSection || creditOutSection.style.display === 'none') return;
+      
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const file = item.getAsFile();
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              creditOutSelectedImages.push({
+                name: `pasted-image-${Date.now()}.png`,
+                data: event.target.result,
+                file: file
+              });
+              renderCreditOutImagePreviews();
+              showToast('تم', 'تم لصق الصورة بنجاح', 'success');
+            };
+            reader.readAsDataURL(file);
+          }
+          break;
+        }
+      }
+    });
+  }
+
+  // Generate report text
+  function generateCreditOutReportText() {
+    const shift = creditOutShiftInput?.value || 'غير محدد';
+    const email = creditOutEmailInput?.value.trim() || 'غير محدد';
+    const account = creditOutAccountInput?.value.trim() || 'غير محدد';
+    const ip = creditOutIpInput?.value.trim() || 'غير محدد';
+    const country = creditOutCountryInput?.value.trim() || 'غير محدد';
+    const dateTime = creditOutDateInput?.value.trim() || 'غير محدد';
+    const rawAmount = creditOutAmountInput?.value.trim() || '';
+    const amount = rawAmount ? formatCreditOutAmountWithDollar(rawAmount) : 'غير محدد';
+    const notes = creditOutNotesInput?.value.trim() || 'لا توجد';
+
+    // Get employee name from settings
+    let employeeName = 'غير محدد';
+    
+    let reportText = `الموظف: ${employeeName}\n`;
+    reportText += `فترة الشفت: ${shift}\n`;
+    reportText += `ip country: ${country}\n`;
+    reportText += `IP: ${ip}\n`;
+    reportText += `الإيميل: ${email}\n`;
+    reportText += `رقم الحساب: ${account}\n`;
+    reportText += `التاريخ: ${dateTime}\n`;
+    reportText += `المبلغ: ${amount}\n`;
+    reportText += `الملاحظات: ${notes}`;
+
+    // Add mentions
+    const mentions = [];
+    if (creditOutMentionAhmed?.classList.contains('active')) {
+      mentions.push('@ahmedelgma');
+    }
+    if (creditOutMentionBatoul?.classList.contains('active')) {
+      mentions.push('@batoulhassan');
+    }
+    if (mentions.length > 0) {
+      reportText += `\n\n${mentions.join(' ')}`;
+    }
+
+    return reportText;
+  }
+
+  // Get employee name async
+  async function getCreditOutEmployeeName() {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(['creditOutEmployeeName', 'userSettings'], (data) => {
+        resolve(data.userSettings?.employeeName || data.creditOutEmployeeName || 'غير محدد');
+      });
+    });
+  }
+
+  // Generate report text with employee name
+  async function generateCreditOutReportTextAsync() {
+    const shift = creditOutShiftInput?.value || 'غير محدد';
+    const email = creditOutEmailInput?.value.trim() || 'غير محدد';
+    const account = creditOutAccountInput?.value.trim() || 'غير محدد';
+    const ip = creditOutIpInput?.value.trim() || 'غير محدد';
+    const country = creditOutCountryInput?.value.trim() || 'غير محدد';
+    const dateTime = creditOutDateInput?.value.trim() || 'غير محدد';
+    const rawAmount = creditOutAmountInput?.value.trim() || '';
+    const amount = rawAmount ? formatCreditOutAmountWithDollar(rawAmount) : 'غير محدد';
+    const notes = creditOutNotesInput?.value.trim() || 'لا توجد';
+    const employeeName = await getCreditOutEmployeeName();
+
+    let reportText = ``;
+    reportText += `فترة الشفت: ${shift}\n`;
+    reportText += `ip country: \`${country}\`\n`;
+    reportText += `IP: \`${ip}\`\n`;
+    reportText += `الإيميل: \`${email}\`\n`;
+    reportText += `رقم الحساب: \`${account}\`\n`;
+    reportText += `التاريخ: \`${dateTime}\`\n`;
+    reportText += `المبلغ: \`${amount}\`\n`;
+    reportText += `الملاحظات: ${notes}\n\n`;
+    reportText += `#credit-out`;
+
+    // Add mentions
+    const mentions = [];
+    if (creditOutMentionAhmed?.classList.contains('active')) {
+      mentions.push('@ahmedelgma');
+    }
+    if (creditOutMentionBatoul?.classList.contains('active')) {
+      mentions.push('@batoulhassan');
+    }
+    if (mentions.length > 0) {
+      reportText += `\n${mentions.join(' ')}`;
+    }
+
+    return reportText;
+  }
+
+  // Copy report
+  if (creditOutCopyBtn) {
+    creditOutCopyBtn.addEventListener('click', async () => {
+      const hasIpBeforeCopy = !!(creditOutIpInput && creditOutIpInput.value && creditOutIpInput.value.trim());
+      if (hasIpBeforeCopy) {
+        const countryReady = await ensureCreditOutCountry();
+        if (!countryReady) {
+          showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+          return;
+        }
+      }
+
+      const reportText = await generateCreditOutReportTextAsync();
+      try {
+        await navigator.clipboard.writeText(reportText);
+        showToast('تم النسخ', 'تم نسخ التقرير بنجاح', 'success');
+      } catch (err) {
+        showToast('خطأ', 'فشل في نسخ التقرير', 'error');
+      }
+    });
+  }
+
+  // Send to Telegram
+  if (creditOutSendBtn) {
+    creditOutSendBtn.addEventListener('click', async () => {
+      const hasIpBeforeSend = !!(creditOutIpInput && creditOutIpInput.value && creditOutIpInput.value.trim());
+      if (hasIpBeforeSend) {
+        const countryReady = await ensureCreditOutCountry();
+        if (!countryReady) {
+          showToast('تنبيه', 'تعذر تحديد الدولة لهذا الـ IP. تحقق من صحة العنوان ثم حاول مرة أخرى.', 'warning');
+          return;
+        }
+      }
+
+      creditOutSendBtn.disabled = true;
+      creditOutSendBtn.textContent = 'جاري الإرسال...';
+
+      try {
+        const reportText = await generateCreditOutReportTextAsync();
+        let response;
+
+        if (creditOutSelectedImages.length === 1) {
+          // Single image with caption
+          const firstImg = creditOutSelectedImages[0];
+          const formData = new FormData();
+          formData.append('chat_id', CREDIT_OUT_TELEGRAM_CHAT_ID);
+          const imgResponse = await fetch(firstImg.data);
+          const blob = await imgResponse.blob();
+          formData.append('photo', blob, firstImg.name);
+          formData.append('caption', reportText);
+          formData.append('parse_mode', 'Markdown');
+
+          response = await fetch(`https://api.telegram.org/bot${CREDIT_OUT_TELEGRAM_TOKEN}/sendPhoto`, {
+            method: 'POST',
+            body: formData
+          });
+        } else if (creditOutSelectedImages.length > 1) {
+          // Multiple images - use sendMediaGroup
+          const formData = new FormData();
+          formData.append('chat_id', CREDIT_OUT_TELEGRAM_CHAT_ID);
+
+          const mediaArray = [];
+          for (let i = 0; i < creditOutSelectedImages.length; i++) {
+            const img = creditOutSelectedImages[i];
+            const imgResponse = await fetch(img.data);
+            const blob = await imgResponse.blob();
+            const attachName = `file${i}`;
+            formData.append(attachName, blob, img.name || `image${i}.png`);
+
+            mediaArray.push({
+              type: 'photo',
+              media: `attach://${attachName}`,
+              caption: i === 0 ? reportText : '',
+              parse_mode: 'Markdown'
+            });
+          }
+
+          formData.append('media', JSON.stringify(mediaArray));
+
+          response = await fetch(`https://api.telegram.org/bot${CREDIT_OUT_TELEGRAM_TOKEN}/sendMediaGroup`, {
+            method: 'POST',
+            body: formData
+          });
+        } else {
+          // No images, just send text message
+          response = await fetch(`https://api.telegram.org/bot${CREDIT_OUT_TELEGRAM_TOKEN}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: CREDIT_OUT_TELEGRAM_CHAT_ID,
+              text: reportText,
+              parse_mode: 'Markdown'
+            })
+          });
+        }
+
+        const responseData = await response.json();
+        if (!response.ok || !responseData.ok) {
+          throw new Error(responseData.description || 'Failed to send message');
+        }
+
+        // Reset form after successful send
+        if (creditOutEmailInput) creditOutEmailInput.value = '';
+        if (creditOutAccountInput) creditOutAccountInput.value = '';
+        if (creditOutIpInput) creditOutIpInput.value = '';
+        if (creditOutCountryInput) creditOutCountryInput.value = '';
+        if (creditOutDateInput) creditOutDateInput.value = '';
+        if (creditOutAmountInput) creditOutAmountInput.value = '';
+        if (creditOutNotesInput) creditOutNotesInput.value = '';
+        creditOutSelectedImages = [];
+        renderCreditOutImagePreviews();
+        if (creditOutMentionAhmed) creditOutMentionAhmed.classList.remove('active');
+        if (creditOutMentionBatoul) creditOutMentionBatoul.classList.remove('active');
+
+        // Remove green/active states from shift buttons
+        creditOutShiftBtns.forEach(btn => btn.classList.remove('active'));
+        if (creditOutShiftInput) creditOutShiftInput.value = '';
+
+        // Scroll to top of Credit Out section
+        const creditOutSection = document.getElementById('credit-out-section');
+        if (creditOutSection) {
+          creditOutSection.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        showToast('تم الإرسال', 'تم إرسال التقرير إلى Telegram', 'success');
+      } catch (error) {
+        console.error('Telegram send error:', error);
+        showToast('خطأ', `فشل في الإرسال: ${error.message}`, 'error');
+      } finally {
+        creditOutSendBtn.disabled = false;
+        creditOutSendBtn.textContent = 'إرسال';
+      }
+    });
+  }
+
+  // Reset form
+  if (creditOutResetBtn) {
+    creditOutResetBtn.addEventListener('click', () => {
+      if (creditOutEmailInput) creditOutEmailInput.value = '';
+      if (creditOutAccountInput) creditOutAccountInput.value = '';
+      if (creditOutIpInput) creditOutIpInput.value = '';
+      if (creditOutCountryInput) creditOutCountryInput.value = '';
+      if (creditOutDateInput) creditOutDateInput.value = '';
+      if (creditOutAmountInput) creditOutAmountInput.value = '';
+      if (creditOutNotesInput) creditOutNotesInput.value = '';
+      if (creditOutShiftInput) creditOutShiftInput.value = '';
+      
+      creditOutShiftBtns.forEach(btn => btn.classList.remove('active'));
+      if (creditOutMentionAhmed) creditOutMentionAhmed.classList.remove('active');
+      if (creditOutMentionBatoul) creditOutMentionBatoul.classList.remove('active');
+      
+      creditOutSelectedImages = [];
+      renderCreditOutImagePreviews();
+      
+      showToast('تم', 'تم إعادة تعيين النموذج', 'success');
+    });
+  }
+
+  // Notes Modal
+  if (creditOutNotesModalBtn) {
+    creditOutNotesModalBtn.addEventListener('click', () => {
+      if (creditOutNotesModal) creditOutNotesModal.style.display = 'block';
+      loadCreditOutSavedNotes();
+    });
+  }
+
+  if (creditOutNotesModalClose) {
+    creditOutNotesModalClose.addEventListener('click', () => {
+      if (creditOutNotesModal) creditOutNotesModal.style.display = 'none';
+    });
+  }
+
+  if (creditOutNotesModal) {
+    creditOutNotesModal.addEventListener('click', (e) => {
+      if (e.target === creditOutNotesModal) {
+        creditOutNotesModal.style.display = 'none';
+      }
+    });
+  }
+
+  function loadCreditOutSavedNotes() {
+    chrome.storage.local.get(['creditOutSavedNotes'], (data) => {
+      const storedNotes = Array.isArray(data.creditOutSavedNotes) ? data.creditOutSavedNotes : [];
+      creditOutSavedNotes = storedNotes.length ? storedNotes : [...DEFAULT_REPORT_NOTE_TEMPLATES];
+      if (!storedNotes.length) {
+        chrome.storage.local.set({ creditOutSavedNotes: creditOutSavedNotes });
+      }
+      renderCreditOutSavedNotes();
+    });
+  }
+
+  function renderCreditOutSavedNotes() {
+    if (!creditOutNotesList) return;
+    creditOutNotesList.innerHTML = '';
+
+    creditOutSavedNotes.forEach((note, index) => {
+      const li = document.createElement('li');
+      li.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #444; cursor: pointer;';
+      li.innerHTML = `
+        <span style="flex: 1;">${note}</span>
+        <div style="display:flex; gap:6px;">
+          <button class="saved-note-btn edit" data-index="${index}" title="تعديل" style="background:none;border:none;cursor:pointer;">✏️</button>
+          <button class="saved-note-btn delete" data-index="${index}" title="حذف" style="background:none;border:none;cursor:pointer;color:#e74c3c;">🗑️</button>
+        </div>
+      `;
+
+      li.querySelector('span').addEventListener('click', () => {
+        if (creditOutNotesInput) creditOutNotesInput.value = note;
+        if (creditOutNotesModal) creditOutNotesModal.style.display = 'none';
+        showToast('تم', 'تم إضافة الملاحظة', 'success');
+      });
+
+      li.querySelector('.edit').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = Number(e.currentTarget.getAttribute('data-index'));
+        const next = prompt('تعديل الملاحظة:', creditOutSavedNotes[idx] || '');
+        if (next === null) return;
+        const trimmed = next.trim();
+        if (!trimmed) {
+          showToast('تنبيه', 'لا يمكن حفظ ملاحظة فارغة', 'warning');
+          return;
+        }
+        creditOutSavedNotes[idx] = trimmed;
+        chrome.storage.local.set({ creditOutSavedNotes }, () => renderCreditOutSavedNotes());
+      });
+
+      li.querySelector('.delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        const idx = Number(e.currentTarget.getAttribute('data-index'));
+        if (!confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) return;
+        creditOutSavedNotes.splice(idx, 1);
+        chrome.storage.local.set({ creditOutSavedNotes }, () => renderCreditOutSavedNotes());
+      });
+
+      creditOutNotesList.appendChild(li);
+    });
+  }
+
+  if (creditOutAddNoteBtn) {
+    creditOutAddNoteBtn.addEventListener('click', () => {
+      const newNote = (creditOutNewNoteInput?.value || '').trim();
+      if (!newNote) {
+        showToast('تنبيه', 'الرجاء إدخال ملاحظة', 'warning');
+        return;
+      }
+      creditOutSavedNotes.push(newNote);
+      chrome.storage.local.set({ creditOutSavedNotes }, () => {
+        if (creditOutNewNoteInput) creditOutNewNoteInput.value = '';
+        renderCreditOutSavedNotes();
+        showToast('تم', 'تم إضافة الملاحظة', 'success');
+      });
+    });
+  }
+
+  // Settings Modal
+  if (creditOutSettingsBtn) {
+    creditOutSettingsBtn.addEventListener('click', () => {
+      if (creditOutSettingsModal) creditOutSettingsModal.style.display = 'block';
+      loadCreditOutSettings();
+    });
+  }
+
+  if (creditOutSettingsClose) {
+    creditOutSettingsClose.addEventListener('click', () => {
+      if (creditOutSettingsModal) creditOutSettingsModal.style.display = 'none';
+    });
+  }
+
+  if (creditOutSettingsModal) {
+    creditOutSettingsModal.addEventListener('click', (e) => {
+      if (e.target === creditOutSettingsModal) {
+        creditOutSettingsModal.style.display = 'none';
+      }
+    });
+  }
+
+  function loadCreditOutSettings() {
+    chrome.storage.local.get(['creditOutEmployeeName', 'userSettings'], (data) => {
+      const savedName = getStoredEmployeeNameFromData(data);
+      if (savedName && creditOutEmployeeSelect) {
+        creditOutEmployeeSelect.value = savedName;
+      }
+      const isLocked = !!savedName;
+      if (creditOutEmployeeSelect) {
+        creditOutEmployeeSelect.disabled = isLocked;
+        creditOutEmployeeSelect.title = isLocked ? 'تم حفظ الاسم ولا يمكن تغييره' : '';
+      }
+      if (creditOutSaveSettingsBtn) {
+        creditOutSaveSettingsBtn.disabled = isLocked;
+        creditOutSaveSettingsBtn.title = isLocked ? 'تم حفظ الاسم ولا يمكن تغييره' : '';
+      }
+    });
+  }
+
+  if (creditOutSaveSettingsBtn) {
+    creditOutSaveSettingsBtn.addEventListener('click', () => {
+      const employeeName = creditOutEmployeeSelect?.value;
+      persistEmployeeNameOnce(employeeName, (saved, resolvedName, reason) => {
+        if (!saved) {
+          if (reason === 'locked' && resolvedName) {
+            if (creditOutEmployeeSelect) creditOutEmployeeSelect.value = resolvedName;
+            if (creditOutEmployeeSelect) {
+              creditOutEmployeeSelect.disabled = true;
+              creditOutEmployeeSelect.title = 'تم حفظ الاسم ولا يمكن تغييره';
+            }
+            if (creditOutSaveSettingsBtn) {
+              creditOutSaveSettingsBtn.disabled = true;
+              creditOutSaveSettingsBtn.title = 'تم حفظ الاسم ولا يمكن تغييره';
+            }
+            showToast('تنبيه', 'تم حفظ اسم الموظف مسبقًا ولا يمكن تغييره', 'warning');
+            if (creditOutSettingsModal) creditOutSettingsModal.style.display = 'none';
+            return;
+          }
+          showToast('تنبيه', 'الرجاء اختيار اسم الموظف', 'warning');
+          return;
+        }
+
+        if (creditOutEmployeeSelect) creditOutEmployeeSelect.value = resolvedName || employeeName;
+        if (creditOutEmployeeSelect) {
+          creditOutEmployeeSelect.disabled = true;
+          creditOutEmployeeSelect.title = 'تم حفظ الاسم ولا يمكن تغييره';
+        }
+        if (creditOutSaveSettingsBtn) {
+          creditOutSaveSettingsBtn.disabled = true;
+          creditOutSaveSettingsBtn.title = 'تم حفظ الاسم ولا يمكن تغييره';
+        }
+        showToast('تم الحفظ', 'تم حفظ الإعدادات بنجاح', 'success');
+        if (creditOutSettingsModal) creditOutSettingsModal.style.display = 'none';
+      });
+    });
+  }
+
+})();
+
+// --- Lazy Tab Initializers (run once when tab opens) ---
+function registerLazyTabInit(tabName, initializer) {
+  if (typeof initializer !== 'function') return;
+  if (typeof window.registerTabInitializer === 'function') {
+    window.registerTabInitializer(tabName, initializer);
+    return;
+  }
+
+  // Fallback for environments where tabs module isn't loaded yet.
+  try {
+    initializer();
+  } catch (err) {
+    console.warn(`Lazy init fallback failed for "${tabName}"`, err);
+  }
+}
+
+registerLazyTabInit('transfer-report', () => {
+  if (typeof autoDetectShift === 'function') {
+    autoDetectShift();
+  }
+  if (typeof convertToCustomSelect === 'function') {
+    convertToCustomSelect('report-old-group');
+    convertToCustomSelect('report-new-group');
+  }
+  if (typeof restoreNativeSelect === 'function') {
+    restoreNativeSelect('employee-name-select');
+  }
+});
+
+registerLazyTabInit('deposit-percentage', () => {
+  if (!depositReportShiftInput || !depositReportShiftInput.value) {
+    const now = new Date();
+    const hour = now.getHours();
+    let shift = 'الخفر';
+    if (hour >= 7 && hour < 15) shift = 'الصباحي';
+    else if (hour >= 15 && hour < 23) shift = 'المسائي';
+    setDepositShift(shift);
+  }
+});
+
+registerLazyTabInit('withdrawal-report', () => {
+  if (window.__withdrawalDraftLoaded) return;
+  window.__withdrawalDraftLoaded = true;
+  void loadWithdrawalDraft();
+});
+
+registerLazyTabInit('credit-out', () => {
+  if (typeof window.creditOutAutoDetectShift === 'function') {
+    window.creditOutAutoDetectShift();
+  }
+});
+
+// --- Initial Load ---
+switchTab('accounts');
+
 
