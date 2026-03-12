@@ -2382,6 +2382,11 @@ if (saveGoogleFormSettingsBtn) {
 // --- User Settings (Employee Name) ---
 const employeeNameSelect = document.getElementById('employee-name-select');
 const saveUserSettingsBtn = document.getElementById('save-user-settings-btn');
+const employeeDirectory = window.EmployeeDirectory;
+
+if (employeeDirectory) {
+  employeeDirectory.populateEmployeeSelect(employeeNameSelect);
+}
 
 // Debug (User Settings)
 const DEBUG_USER_SETTINGS = false;
@@ -2421,11 +2426,14 @@ function getStoredEmployeeNameFromData(data) {
     typeof data.creditOutEmployeeName === 'string'
   ) ? data.creditOutEmployeeName.trim() : '';
 
-  return fromUserSettings || fromCreditOut || '';
+  const storedName = fromUserSettings || fromCreditOut || '';
+  return employeeDirectory ? employeeDirectory.normalizeEmployeeName(storedName) : storedName;
 }
 
 function persistEmployeeNameOnce(name, onDone) {
-  const selectedName = typeof name === 'string' ? name.trim() : '';
+  const selectedName = employeeDirectory
+    ? employeeDirectory.normalizeEmployeeName(name)
+    : (typeof name === 'string' ? name.trim() : '');
   if (!selectedName) {
     if (typeof onDone === 'function') onDone(false, '', 'empty');
     return;
@@ -2475,6 +2483,7 @@ function loadUserSettings() {
     dbgUserSettings('loadUserSettings() -> storage result:', result);
     const savedName = getStoredEmployeeNameFromData(result);
     if (savedName) {
+      if (employeeDirectory) employeeDirectory.ensureEmployeeOption(employeeNameSelect, savedName);
       employeeNameSelect.value = savedName;
       if (employeeNameSelect) employeeNameSelect.dispatchEvent(new Event('change'));
       lockEmployeeNameUI(savedName);
@@ -4420,12 +4429,12 @@ function convertToCustomSelect(selectId) {
 document.addEventListener('DOMContentLoaded', async () => {
     const evaluationBtn = document.getElementById('evaluation-btn');
     if (evaluationBtn) {
-        const authorizedUsers = ['Ahmed Gamal', 'Ahmed – Manager'];
+        const authorizedUsers = employeeDirectory ? employeeDirectory.getAuthorizedEmployeeNames() : [];
         
         const checkUser = async () => {
              const { userSettings } = await chrome.storage.local.get(['userSettings']);
              const employeeName = userSettings?.employeeName;
-             if (authorizedUsers.includes(employeeName)) {
+             if (authorizedUsers.includes(employeeDirectory ? employeeDirectory.normalizeEmployeeName(employeeName) : employeeName)) {
                  evaluationBtn.style.display = ''; // Revert to CSS default (visible)
              } else {
                  evaluationBtn.style.display = 'none';
@@ -4486,6 +4495,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const creditOutSettingsClose = document.getElementById('credit-out-settings-close');
   const creditOutEmployeeSelect = document.getElementById('credit-out-employee-select');
   const creditOutSaveSettingsBtn = document.getElementById('credit-out-save-settings-btn');
+
+  if (employeeDirectory) {
+    employeeDirectory.populateEmployeeSelect(creditOutEmployeeSelect);
+  }
 
   // Constants - Use same token as main transfer report
   const CREDIT_OUT_TELEGRAM_TOKEN = '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA';
@@ -5300,6 +5313,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     chrome.storage.local.get(['creditOutEmployeeName', 'userSettings'], (data) => {
       const savedName = getStoredEmployeeNameFromData(data);
       if (savedName && creditOutEmployeeSelect) {
+        if (employeeDirectory) employeeDirectory.ensureEmployeeOption(creditOutEmployeeSelect, savedName);
         creditOutEmployeeSelect.value = savedName;
       }
       const isLocked = !!savedName;

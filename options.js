@@ -33,45 +33,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const onbDots = document.querySelectorAll('.onb-dot');
   const onbProgressFill = document.querySelector('.onb-progress-fill');
   const reopenOnboarding = document.getElementById('reopen-onboarding');
+  const employeeDirectory = window.EmployeeDirectory;
   let onboardingStep = 1;
   let shouldShowOnboardingAfterSetup = false;
   let shouldShowOnboardingStep = 1;
   let employeeSetupRequired = false;
   let employeeNameLocked = false;
-  const EMPLOYEE_NAMES = [
-    'ABBASS',
-    'AHMED MAGDY',
-    'zahraa Shaqir',
-    'Zainab',
-    'Basant Abdelhamed',
-    'Zain-Alabdeen Balloul',
-    'Hadil zaiter',
-    'Nour karsifi',
-    'Ahmed Gamal',
-    'Mohamed Abd',
-    'Ahmed - Manager',
-    'Shahenda Sherif'
-  ];
 
   function populateEmployeeSelect(selectEl) {
-    if (!selectEl) return;
-    if (selectEl.querySelector('option[value="ABBASS"]')) return;
-    EMPLOYEE_NAMES.forEach((name) => {
-      const option = document.createElement('option');
-      option.value = name;
-      option.textContent = name;
-      selectEl.appendChild(option);
-    });
+    if (!selectEl || !employeeDirectory) return;
+    employeeDirectory.populateEmployeeSelect(selectEl);
   }
 
   function ensureEmployeeOption(selectEl, name) {
-    if (!selectEl || !name) return;
-    const exists = Array.from(selectEl.options || []).some((opt) => opt.value === name);
-    if (exists) return;
-    const option = document.createElement('option');
-    option.value = name;
-    option.textContent = name;
-    selectEl.appendChild(option);
+    if (!selectEl || !name || !employeeDirectory) return;
+    employeeDirectory.ensureEmployeeOption(selectEl, name);
   }
 
   function applyEmployeeLockState() {
@@ -108,8 +84,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function persistEmployeeName(name, onDone, allowOverwrite = false) {
+    const normalizedName = employeeDirectory ? employeeDirectory.normalizeEmployeeName(name) : (name || '').trim();
+    if (!normalizedName) {
+      if (typeof onDone === 'function') onDone(false, '');
+      return;
+    }
+
     chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (localData) => {
-      const existingName = (
+      const existingName = employeeDirectory ? employeeDirectory.normalizeEmployeeName(
+        (localData?.userSettings?.employeeName || '').trim() ||
+        (localData?.creditOutEmployeeName || '').trim()
+      ) : (
         (localData?.userSettings?.employeeName || '').trim() ||
         (localData?.creditOutEmployeeName || '').trim()
       );
@@ -120,18 +105,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const nextUserSettings = {
         ...(localData.userSettings || {}),
-        employeeName: name
+        employeeName: normalizedName
       };
 
       chrome.storage.local.set({
         userSettings: nextUserSettings,
-        creditOutEmployeeName: name
+        creditOutEmployeeName: normalizedName
       }, () => {
-        ensureEmployeeOption(globalEmployeeSelect, name);
-        ensureEmployeeOption(initialEmployeeSelect, name);
-        if (globalEmployeeSelect) globalEmployeeSelect.value = name;
-        if (initialEmployeeSelect) initialEmployeeSelect.value = name;
-        if (typeof onDone === 'function') onDone(true, name);
+        ensureEmployeeOption(globalEmployeeSelect, normalizedName);
+        ensureEmployeeOption(initialEmployeeSelect, normalizedName);
+        if (globalEmployeeSelect) globalEmployeeSelect.value = normalizedName;
+        if (initialEmployeeSelect) initialEmployeeSelect.value = normalizedName;
+        if (typeof onDone === 'function') onDone(true, normalizedName);
       });
     });
   }
@@ -214,7 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
     shouldShowOnboardingStep = data.onboardingStep || 1;
 
     chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (localData) => {
-      const savedName = localData?.userSettings?.employeeName || localData?.creditOutEmployeeName || '';
+      const savedName = employeeDirectory ? employeeDirectory.normalizeEmployeeName(
+        localData?.userSettings?.employeeName || localData?.creditOutEmployeeName || ''
+      ) : (localData?.userSettings?.employeeName || localData?.creditOutEmployeeName || '');
       if (savedName) {
         employeeSetupRequired = false;
         employeeNameLocked = true;
@@ -278,7 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setGlobalEmployeeStatus('تم قفل اسم الموظف بعد أول حفظ ولا يمكن تغييره.', '#b91c1c');
         return;
       }
-      const name = (globalEmployeeSelect && globalEmployeeSelect.value || '').trim();
+      const name = employeeDirectory ? employeeDirectory.normalizeEmployeeName(
+        globalEmployeeSelect && globalEmployeeSelect.value || ''
+      ) : ((globalEmployeeSelect && globalEmployeeSelect.value || '').trim());
       if (!name) {
         setGlobalEmployeeStatus('اختر اسم الموظف أولاً.', '#b91c1c');
         if (globalEmployeeSelect) globalEmployeeSelect.focus();
@@ -305,7 +294,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (initialEmployeeSave) {
     initialEmployeeSave.addEventListener('click', () => {
-      const name = (initialEmployeeSelect && initialEmployeeSelect.value || '').trim();
+      const name = employeeDirectory ? employeeDirectory.normalizeEmployeeName(
+        initialEmployeeSelect && initialEmployeeSelect.value || ''
+      ) : ((initialEmployeeSelect && initialEmployeeSelect.value || '').trim());
       if (!name) {
         setInitialEmployeeError('من فضلك اختر اسم الموظف للمتابعة.');
         if (initialEmployeeSelect) initialEmployeeSelect.focus();

@@ -24,6 +24,11 @@ const telegramSettingsModal = document.getElementById('telegram-settings-modal')
 const telegramSettingsClose = document.getElementById('telegram-settings-close');
 const employeeNameSelect = document.getElementById('employee-name-select');
 const saveUserSettingsBtn = document.getElementById('save-user-settings-btn');
+const employeeDirectory = window.EmployeeDirectory;
+
+if (employeeDirectory) {
+  employeeDirectory.populateEmployeeSelect(employeeNameSelect);
+}
 
 // Notes Modal Elements
 const savedNotesModal = document.getElementById('saved-notes-modal');
@@ -90,11 +95,14 @@ function getStoredEmployeeNameFromData(data) {
     typeof data.creditOutEmployeeName === 'string'
   ) ? data.creditOutEmployeeName.trim() : '';
 
-  return fromUserSettings || fromCreditOut || '';
+  const storedName = fromUserSettings || fromCreditOut || '';
+  return employeeDirectory ? employeeDirectory.normalizeEmployeeName(storedName) : storedName;
 }
 
 function persistEmployeeNameOnce(name, onDone) {
-  const selectedName = typeof name === 'string' ? name.trim() : '';
+  const selectedName = employeeDirectory
+    ? employeeDirectory.normalizeEmployeeName(name)
+    : (typeof name === 'string' ? name.trim() : '');
   if (!selectedName) {
     if (typeof onDone === 'function') onDone(false, '', 'empty');
     return;
@@ -822,6 +830,7 @@ function loadUserSettings() {
   chrome.storage.local.get(['creditOutEmployeeName', 'userSettings'], (data) => {
     const savedName = getStoredEmployeeNameFromData(data);
     if (savedName) {
+      if (employeeDirectory) employeeDirectory.ensureEmployeeOption(employeeNameSelect, savedName);
       employeeNameSelect.value = savedName;
       lockEmployeeNameUI(savedName);
       const userSettingsName = (
@@ -852,7 +861,9 @@ saveUserSettingsBtn.addEventListener('click', () => {
     telegramSettingsModal.style.display = 'none';
     return;
   }
-  const employeeName = employeeNameSelect.value;
+  const employeeName = employeeDirectory
+    ? employeeDirectory.normalizeEmployeeName(employeeNameSelect.value)
+    : employeeNameSelect.value;
   if (!employeeName) {
     showToast('تنبيه', 'اختر اسم الموظف أولًا.', 'warning');
     return;

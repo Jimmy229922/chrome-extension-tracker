@@ -1,14 +1,15 @@
 document.addEventListener('DOMContentLoaded', async () => {
     // -------------------------------------------------------------------------
     // SECURITY CHECK
-    // Only Ahmed Gamal or Ahmed – Manager can access this page
+    // Only authorized managers can access this page
     // -------------------------------------------------------------------------
+    const employeeDirectory = window.EmployeeDirectory;
     const { userSettings } = await chrome.storage.local.get(['userSettings']);
     const employeeName = userSettings?.employeeName;
-    const authorizedUsers = ['Ahmed Gamal', 'Ahmed – Manager'];
+    const authorizedUsers = employeeDirectory ? employeeDirectory.getAuthorizedEmployeeNames() : [];
 
     // If not authorized, block access
-    if (!authorizedUsers.includes(employeeName)) {
+    if (!authorizedUsers.includes(employeeDirectory ? employeeDirectory.normalizeEmployeeName(employeeName) : employeeName)) {
         document.body.innerHTML = `
             <div style="display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column;color:#e94560;">
                 <h1 style="font-size:3rem;">🚫</h1>
@@ -55,11 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const EMPLOYEES_LIST_KEY = 'employeeList_v1';
     const ARCHIVE_STORAGE_KEY = 'evaluationArchive_v1';
 
-    const DEFAULT_EMPLOYEES = [
-        "ABBASS", "AHMED MAGDY", "zahraa Shaqir", "Zainab",
-        "Hadil zaiter", "Nour karsifi", "Ahmed Gamal", "Mohamed Abd",
-        "Shahenda Sherif"
-    ];
+    const DEFAULT_EMPLOYEES = employeeDirectory ? employeeDirectory.getEmployeeNames() : [];
 
     // Keys for iteration
     const CAT_KEYS = Object.keys(REPORT_WEIGHTS);
@@ -435,7 +432,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     async function loadData() {
         const result = await chrome.storage.local.get([STORAGE_KEY, EMPLOYEES_LIST_KEY, ARCHIVE_STORAGE_KEY]);
         weeklyData = result[STORAGE_KEY] || {};
-        employeeList = result[EMPLOYEES_LIST_KEY] || [...DEFAULT_EMPLOYEES];
+        employeeList = employeeDirectory
+            ? employeeDirectory.mergeConfiguredEmployeeList(result[EMPLOYEES_LIST_KEY])
+            : (result[EMPLOYEES_LIST_KEY] || [...DEFAULT_EMPLOYEES]);
         archiveData = result[ARCHIVE_STORAGE_KEY] || {};
         populateEmployeeSelect();
         renderLeaderboard();

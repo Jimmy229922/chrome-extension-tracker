@@ -28,6 +28,11 @@ const telegramSettingsModal = document.getElementById('telegram-settings-modal')
 const telegramSettingsClose = document.getElementById('telegram-settings-close');
 const employeeNameSelect = document.getElementById('employee-name-select');
 const saveUserSettingsBtn = document.getElementById('save-user-settings-btn');
+const employeeDirectory = window.EmployeeDirectory;
+
+if (employeeDirectory) {
+  employeeDirectory.populateEmployeeSelect(employeeNameSelect);
+}
 
 // Debug (User Settings)
 const DEBUG_USER_SETTINGS = false;
@@ -1063,8 +1068,11 @@ window.addEventListener('click', (event) => {
 function loadUserSettings() {
   chrome.storage.local.get(['userSettings'], (result) => {
     dbgUserSettings('loadUserSettings() -> storage result:', result);
-    const savedName = result.userSettings?.employeeName;
+    const savedName = employeeDirectory
+      ? employeeDirectory.normalizeEmployeeName(result.userSettings?.employeeName)
+      : result.userSettings?.employeeName;
     if (savedName) {
+      if (employeeDirectory) employeeDirectory.ensureEmployeeOption(employeeNameSelect, savedName);
       employeeNameSelect.value = savedName;
       employeeNameSelect.dispatchEvent(new Event('change'));
       lockEmployeeNameUI(savedName);
@@ -1083,7 +1091,9 @@ saveUserSettingsBtn.addEventListener('click', () => {
     return;
   }
 
-  const name = employeeNameSelect.value;
+  const name = employeeDirectory
+    ? employeeDirectory.normalizeEmployeeName(employeeNameSelect.value)
+    : employeeNameSelect.value;
 
   dbgUserSettings('Save clicked. Current select value:', name);
 
@@ -1094,9 +1104,9 @@ saveUserSettingsBtn.addEventListener('click', () => {
   }
   
   chrome.storage.local.set({ 
-    userSettings: { 
-      employeeName: name
-    } 
+      userSettings: { 
+        employeeName: name
+      } 
   }, () => {
     dbgUserSettings('Saved. Now verifying storage...');
     chrome.storage.local.get(['userSettings'], (verify) => {
