@@ -88,41 +88,41 @@ const TELEGRAM_BOT_TOKEN = '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA'; // 
 const ALERT_CHAT_ID = '-1003537370414'; // Telegram group: IP BLOCKED (Supergroup)
 
 const BACKGROUND_I18N_FALLBACK = {
-  unknown: 'ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ',
-  unknownFeminine: 'ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙØ©',
-  geoReasonUnknown: 'Ø³Ø¨Ø¨ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ',
-  geoReasonAllProviders: 'ÙØ´Ù„ Ù…Ø²ÙˆØ¯ ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø²/Ø§Ù„Ø´Ø¨ÙƒØ©',
-  geoReasonAuth: 'Ø®Ø·Ø£ ØµÙ„Ø§Ø­ÙŠØ§Øª Ø£Ùˆ Ø­Ø¸Ø± Ù…Ù† Ø§Ù„Ù…Ø²ÙˆØ¯ (401/403)',
-  geoReasonQuota: 'ØªÙ… ØªØ¬Ø§ÙˆØ² Ø§Ù„Ø­Ø¯ Ø§Ù„Ù…ØªØ§Ø­ Ø£Ùˆ Ø§Ù„Ù€ Quota Ù„Ù„Ù…Ø²ÙˆØ¯ (402/429)',
-  geoReasonTimeout: 'Ø§Ù†ØªÙ‡Øª Ù…Ø¯Ø© Ø§Ù„Ø·Ù„Ø¨ Ù…Ø¹ Ù…Ø²ÙˆØ¯ ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ù…ÙˆÙ‚Ø¹',
-  geoReasonNetwork: 'Ø§Ù„Ø´Ø¨ÙƒØ© ØªÙ…Ù†Ø¹ Ø§Ù„ÙˆØµÙˆÙ„ Ù„Ù…Ø²ÙˆØ¯Ø§Øª ØªØ­Ø¯ÙŠØ¯ Ø§Ù„Ù…ÙˆÙ‚Ø¹',
-  ipUiNewIpTitle: 'ØªÙ… Ù†Ø³Ø® Ø¹Ù†ÙˆØ§Ù† IP Ø¬Ø¯ÙŠØ¯',
-  ipUiDuplicateIpTitle: 'ØªÙ… Ù†Ø³Ø® IP Ù…ÙƒØ±Ø±',
-  ipUiGenericIpTitle: 'ØªÙ… Ù†Ø³Ø® Ø¹Ù†ÙˆØ§Ù† IP',
-  ipUiCountryCityButton: 'Ù†Ø³Ø® Ø§Ù„Ø¯ÙˆÙ„Ø© ÙˆØ§Ù„Ù…Ø¯ÙŠÙ†Ø©',
-  ipUiCountryRegionButton: 'Ù†Ø³Ø® Ø§Ù„Ø¯ÙˆÙ„Ø© ÙˆØ§Ù„Ù…Ø­Ø§ÙØ¸Ø©',
-  ipUiCountryButton: 'Ù†Ø³Ø® Ø§Ù„Ø¯ÙˆÙ„Ø©',
-  ipUiRegionButton: 'Ù†Ø³Ø® Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©',
-  ipUiCountryLabel: 'Ø§Ù„Ø¯ÙˆÙ„Ø©',
-  ipUiRegionLabel: 'Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©',
-  ipUiCityLabel: 'Ø§Ù„Ù…Ø¯ÙŠÙ†Ø©',
-  ipUiAddressLabel: 'Ø§Ù„Ø¹Ù†ÙˆØ§Ù†',
-  ipUiReasonLabel: 'Ø§Ù„Ø³Ø¨Ø¨',
-  ipUiUnavailableCountry: 'ØºÙŠØ± Ù…ØªÙˆÙØ±Ø©',
-  ipUiKirkukTitle: 'â­ Ù…Ø­Ø§ÙØ¸Ø© ÙƒØ±ÙƒÙˆÙƒ',
-  ipUiSulaymaniyahTitle: 'â­ Ù…Ø­Ø§ÙØ¸Ø© Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©',
-  ipUiErbilTitle: 'â­ Ù…Ø­Ø§ÙØ¸Ø© Ø£Ø±Ø¨ÙŠÙ„',
-  duplicateAlertTitle: 'âš ï¸ ØªÙ†Ø¨ÙŠÙ‡ Ù…ÙƒØ±Ø±',
-  duplicateAlertPrefix: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ ØªÙ†Ø¨ÙŠÙ‡ Ù„Ù‡Ø°Ø§ Ø§Ù„Ù€ IP',
-  duplicateAlertSuffix: 'Ù…Ø³Ø¨Ù‚Ù‹Ø§ ÙˆÙ„Ø§ ÙŠÙ…ÙƒÙ† Ø¥Ø±Ø³Ø§Ù„Ù‡ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰.',
-  duplicateAlertLastSentPrefix: 'Ø¢Ø®Ø± Ø¥Ø±Ø³Ø§Ù„ ÙƒØ§Ù† Ø¨ØªØ§Ø±ÙŠØ®:',
-  duplicateSentFooterPrefix: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ù‡Ø°Ø§ Ø§Ù„Ù€ IP Ù…Ø³Ø¨Ù‚Ù‹Ø§. Ø¢Ø®Ø± Ø¥Ø±Ø³Ø§Ù„ ÙƒØ§Ù† Ø¨ØªØ§Ø±ÙŠØ®:',
-  alertPrefix: 'ðŸš¨',
-  specialRegionTitle: 'â­â­â­ Ù…Ø­Ø§ÙØ¸Ø© Ù…Ù…ÙŠØ²Ø© Ø¬Ø¯Ù‹Ø§',
-  urgentManagerNote: 'âš ï¸ Ù‡Ø§Ù… Ø¬Ø¯Ù‹Ø§: Ù„Ø§Ø²Ù… Ù†Ø¨Ø¹Øª Ø§Ù„Ù€ IP Ø¯Ù‡ Ù„Ù…Ø¯ÙŠØ± Ø§Ù„Ø´ÙŠÙØª',
-  ukTitle: 'ðŸ‡¬ðŸ‡§ Ø¹Ù†ÙˆØ§Ù† IP Ù…Ù† Ø§Ù„Ù…Ù…Ù„ÙƒØ© Ø§Ù„Ù…ØªØ­Ø¯Ø©',
-  nlTitle: 'ðŸ‡³ðŸ‡± Ø¹Ù†ÙˆØ§Ù† IP Ù…Ù† Ù‡ÙˆÙ„Ù†Ø¯Ø§',
-  ltTitle: 'ðŸ‡±ðŸ‡¹ Ø¹Ù†ÙˆØ§Ù† IP Ù…Ù† Ù„ÙŠØªÙˆØ§Ù†ÙŠØ§'
+  unknown: 'غير معروف',
+  unknownFeminine: 'غير معروفة',
+  geoReasonUnknown: 'سبب غير معروف',
+  geoReasonAllProviders: 'فشل مزود تحديد الموقع على هذا الجهاز/الشبكة',
+  geoReasonAuth: 'خطأ صلاحيات أو حظر من المزود (401/403)',
+  geoReasonQuota: 'تم تجاوز الحد المتاح أو الـ Quota للمزود (402/429)',
+  geoReasonTimeout: 'انتهت مدة الطلب مع مزود تحديد الموقع',
+  geoReasonNetwork: 'الشبكة تمنع الوصول لمزودات تحديد الموقع',
+  ipUiNewIpTitle: 'تم نسخ عنوان IP جديد',
+  ipUiDuplicateIpTitle: 'تم نسخ IP مكرر',
+  ipUiGenericIpTitle: 'تم نسخ عنوان IP',
+  ipUiCountryCityButton: 'نسخ الدولة والمدينة',
+  ipUiCountryRegionButton: 'نسخ الدولة والمحافظة',
+  ipUiCountryButton: 'نسخ الدولة',
+  ipUiRegionButton: 'نسخ المحافظة',
+  ipUiCountryLabel: 'الدولة',
+  ipUiRegionLabel: 'المحافظة',
+  ipUiCityLabel: 'المدينة',
+  ipUiAddressLabel: 'العنوان',
+  ipUiReasonLabel: 'السبب',
+  ipUiUnavailableCountry: 'غير متوفرة',
+  ipUiKirkukTitle: '⭐ محافظة كركوك',
+  ipUiSulaymaniyahTitle: '⭐ محافظة السليمانية',
+  ipUiErbilTitle: '⭐ محافظة أربيل',
+  duplicateAlertTitle: '⚠️ تنبيه مكرر',
+  duplicateAlertPrefix: 'تم إرسال تنبيه لهذا الـ IP',
+  duplicateAlertSuffix: 'مسبقًا ولا يمكن إرساله مرة أخرى.',
+  duplicateAlertLastSentPrefix: 'آخر إرسال كان بتاريخ:',
+  duplicateSentFooterPrefix: 'تم إرسال هذا الـ IP مسبقًا. آخر إرسال كان بتاريخ:',
+  alertPrefix: '🚨',
+  specialRegionTitle: '⭐⭐⭐ محافظة مميزة جدًا',
+  urgentManagerNote: '⚠️ هام جدًا: لازم نبعت الـ IP ده لمدير الشيفت',
+  ukTitle: '🇬🇧 عنوان IP من المملكة المتحدة',
+  nlTitle: '🇳🇱 عنوان IP من هولندا',
+  ltTitle: '🇱🇹 عنوان IP من ليتوانيا'
 };
 
 let backgroundI18n = { ...BACKGROUND_I18N_FALLBACK };
@@ -1009,7 +1009,7 @@ function openSecurityAlertPopup(ipMessage, country, type) {
 
 function formatSecurityAlertErrorArabic(rawError) {
   const text = String(rawError || '').trim();
-  if (!text) return 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„ Ø¥Ù„Ù‰ Telegram Ø¨Ø³Ø¨Ø¨ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ.';
+  if (!text) return 'فشل الإرسال إلى Telegram بسبب غير معروف.';
 
   // If already Arabic, keep it as-is
   if (/[\u0600-\u06FF]/.test(text)) return text;
@@ -1017,33 +1017,33 @@ function formatSecurityAlertErrorArabic(rawError) {
   const lower = text.toLowerCase();
 
   if (lower.includes('group chat was upgraded to a supergroup chat')) {
-    return 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„: ØªÙ… ØªØ±Ù‚ÙŠØ© Ø§Ù„Ø¬Ø±ÙˆØ¨ Ø¥Ù„Ù‰ Supergroup. Ø§Ø³ØªØ®Ø¯Ù… Chat ID Ø§Ù„Ø¬Ø¯ÙŠØ¯.';
+    return 'فشل الإرسال: تم ترقية الجروب إلى Supergroup. استخدم Chat ID الجديد.';
   }
   if (lower.includes('chat not found')) {
-    return 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„: Chat ID ØºÙŠØ± ØµØ­ÙŠØ­ Ø£Ùˆ Ø§Ù„Ø¨ÙˆØª ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯ Ø¯Ø§Ø®Ù„ Ø§Ù„Ø¬Ø±ÙˆØ¨.';
+    return 'فشل الإرسال: Chat ID غير صحيح أو البوت غير موجود داخل الجروب.';
   }
   if (lower.includes('bot was kicked from the supergroup chat') || lower.includes('bot was blocked by the user')) {
-    return 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„: Ø§Ù„Ø¨ÙˆØª Ù…Ø­Ø¸ÙˆØ± Ø£Ùˆ ØªÙ… Ø·Ø±Ø¯Ù‡ Ù…Ù† Ø§Ù„Ø¬Ø±ÙˆØ¨.';
+    return 'فشل الإرسال: البوت محظور أو تم طرده من الجروب.';
   }
   if (
     lower.includes('not enough rights') ||
     lower.includes('have no rights to send a message') ||
     lower.includes('need administrator rights')
   ) {
-    return 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„: Ø§Ù„Ø¨ÙˆØª Ù„Ø§ ÙŠÙ…Ù„Ùƒ ØµÙ„Ø§Ø­ÙŠØ© Ø¥Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ø¦Ù„ ÙÙŠ Ø§Ù„Ø¬Ø±ÙˆØ¨.';
+    return 'فشل الإرسال: البوت لا يملك صلاحية إرسال رسائل في الجروب.';
   }
   if (lower.includes('unauthorized')) {
-    return 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„: Bot Token ØºÙŠØ± ØµØ­ÙŠØ­.';
+    return 'فشل الإرسال: Bot Token غير صحيح.';
   }
   if (lower.includes('forbidden')) {
-    return 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„: Telegram Ø±ÙØ¶ Ø§Ù„Ø·Ù„Ø¨. ØªØ­Ù‚Ù‚ Ù…Ù† ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„Ø¨ÙˆØª Ø¯Ø§Ø®Ù„ Ø§Ù„Ø¬Ø±ÙˆØ¨.';
+    return 'فشل الإرسال: Telegram رفض الطلب. تحقق من صلاحيات البوت داخل الجروب.';
   }
 
   const cleaned = text
     .replace(/^telegram api error:\s*/i, '')
     .replace(/^error:\s*/i, '')
     .trim();
-  return `ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„ Ø¥Ù„Ù‰ Telegram: ${cleaned || text}`;
+  return `فشل الإرسال إلى Telegram: ${cleaned || text}`;
 }
 
 async function sendTelegramAlert(ipMessage, country, type, accountNumber = null, groupType = null, customerEmail = null) {
@@ -1052,7 +1052,7 @@ async function sendTelegramAlert(ipMessage, country, type, accountNumber = null,
 
   try {
     if (!TELEGRAM_BOT_TOKEN || !ALERT_CHAT_ID) {
-      throw new Error('ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„: Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Telegram ØºÙŠØ± Ù…ÙƒØªÙ…Ù„Ø© (Bot Token Ø£Ùˆ Chat ID).');
+      throw new Error('فشل الإرسال: إعدادات Telegram غير مكتملة (Bot Token أو Chat ID).');
     }
 
     const { userSettings } = await chrome.storage.local.get(['userSettings']);
@@ -1067,7 +1067,7 @@ async function sendTelegramAlert(ipMessage, country, type, accountNumber = null,
       const ipMatch = ipMessage.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
       ip = ipMatch ? ipMatch[0] : ipMessage.substring(0, 20);
 
-      const labelsToTry = [IP_UI_TEXT.regionLabel, 'Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©', 'Region'].filter(Boolean);
+      const labelsToTry = [IP_UI_TEXT.regionLabel, 'المحافظة', 'Region'].filter(Boolean);
       for (const label of labelsToTry) {
         const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regionMatch = ipMessage.match(new RegExp(`${escaped}:\\s*(.+)`));
@@ -1084,13 +1084,13 @@ async function sendTelegramAlert(ipMessage, country, type, accountNumber = null,
 
     let text = '';
     if (accountNumber) {
-      text += `Ø±Ù‚Ù… Ø§Ù„Ø­Ø³Ø§Ø¨: ${escHtml(accountNumber)}\n`;
+      text += `رقم الحساب: ${escHtml(accountNumber)}\n`;
     }
     if (customerEmail) {
-      text += `Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù„Ù„Ø¹Ù…ÙŠÙ„: ${escHtml(customerEmail)}\n`;
+      text += `البريد الإلكتروني للعميل: ${escHtml(customerEmail)}\n`;
     }
     if (groupType) {
-      text += `Ù†ÙˆØ¹ Ø§Ù„Ø¬Ø±ÙˆØ¨: ${escHtml(groupType)}\n`;
+      text += `نوع الجروب: ${escHtml(groupType)}\n`;
     }
 
     text += `IP: <code>${escHtml(ip)}</code> // <code>${escHtml(country)}</code>`;
@@ -2073,7 +2073,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (criticalHits.ips.includes('77.76.9.250')) {
         chrome.runtime.sendMessage({
           type: 'playTTS',
-          text: 'ØªÙ†Ø¨ÙŠÙ‡. Ù‡Ø°Ø§ Ø§Ù„Ø¢ÙŠ Ø¨ÙŠ Ø®Ø§Øµ Ø¨Ø³ÙŠØ±ÙØ± Ø§Ù„Ø´Ø±ÙƒØ©'
+          text: 'تنبيه. هذا الآي بي خاص بسيرفر الشركة'
         }).catch(err => console.warn('Failed to trigger TTS:', err));
       }
 
@@ -2163,14 +2163,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           
           // Build detailed message - show all counts even if 0
           let messageLines = [];
-          messageLines.push(`â€¢ Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø­Ø¬Ù… Ø§Ù„Ù„ÙˆØª: ${formattedTotalLots}`);
-          messageLines.push(`â€¢ ${pairedTrades} Ø£Ø²ÙˆØ§Ø¬ Ù…ØªÙ‚Ø§Ø±Ø¨Ø©`);
-          messageLines.push(`â€¢ ${equalPriceTrades} ØµÙÙ‚Ø© Price = S/L`);
-          messageLines.push(`â€¢ ${zeroProfitTrades} ØµÙÙ‚Ø© Ø±Ø¨Ø­ ØµÙØ±ÙŠ`);
+          messageLines.push(`• إجمالي حجم اللوت: ${formattedTotalLots}`);
+          messageLines.push(`• ${pairedTrades} أزواج متقاربة`);
+          messageLines.push(`• ${equalPriceTrades} صفقة Price = S/L`);
+          messageLines.push(`• ${zeroProfitTrades} صفقة ربح صفري`);
           
           // Show a colored toast (sidepanel / in-app) so the highlight is visible
           try {
-            showToastMessage('ØªØ­Ø°ÙŠØ± ØµÙÙ‚Ø§Øª Ù…Ø±ÙŠØ¨Ø©', messageLines.join('\n'), 'warning', null, null, { skipSystemNotification: true });
+            showToastMessage('تحذير صفقات مريبة', messageLines.join('\n'), 'warning', null, null, { skipSystemNotification: true });
           } catch (e) {
             console.warn('Toast warning failed', e);
           }
@@ -2179,14 +2179,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const options = {
             type: 'basic',
             iconUrl: chrome.runtime.getURL('assets/images/icon128.png'),
-            title: 'âš ï¸ ØªØ­Ø°ÙŠØ±: ØªÙ… Ø§ÙƒØªØ´Ø§Ù ØµÙÙ‚Ø§Øª Ù…Ø±ÙŠØ¨Ø©',
+            title: '⚠️ تحذير: تم اكتشاف صفقات مريبة',
             message: messageLines.join('\n'),
-            contextMessage: `Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø­Ø§Ù„Ø§Øª: ${pairedTrades + equalPriceTrades + zeroProfitTrades}`,
+            contextMessage: `إجمالي الحالات: ${pairedTrades + equalPriceTrades + zeroProfitTrades}`,
             // cleaned comment
             requireInteraction: equalPriceTrades > 0,
             isClickable: true,
             buttons: [
-              { title: 'Ø¹Ø±Ø¶ Ø§Ù„ØªÙ‚Ø±ÙŠØ±' }
+              { title: 'عرض التقرير' }
             ],
             priority: 2
           };
@@ -2230,7 +2230,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           sendResponse({ data: geoResult.data });
         } else {
           console.error('IP lookup error:', geoResult.error);
-          sendResponse({ error: geoResult.error || 'ØªØ¹Ø°Ø± Ø§Ø³ØªØ±Ø¯Ø§Ø¯ Ù…Ø¹Ù„ÙˆÙ…Ø§Øª IP.' });
+          sendResponse({ error: geoResult.error || 'تعذر استرداد معلومات IP.' });
         }
       } catch (error) {
         console.error('Error fetching IP geolocation in background:', error);
@@ -2467,9 +2467,9 @@ async function handleNewIP(ip) {
       const bannedCountry = BANNED_COUNTRIES[(geoData.country_code || '').toUpperCase()];
       const isBannedCountry = !!bannedCountry;
 
-      const kirkukPatterns = ['kirkuk', 'ÙƒØ±ÙƒÙˆÙƒ'];
-      const sulaymaniyahPatterns = ['sulaymaniyah', 'sulaimani', 'slemani', 'Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©', 'Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠÙ‡', 'sulaimaniyah', 'sulaimaniah', 'iraqi kurdistan'];
-      const erbilPatterns = ['erbil', 'arbil', 'Ø£Ø±Ø¨ÙŠÙ„', 'hewler', 'hawler'];
+      const kirkukPatterns = ['kirkuk', 'كركوك'];
+      const sulaymaniyahPatterns = ['sulaymaniyah', 'sulaimani', 'slemani', 'السليمانية', 'السليمانيه', 'sulaimaniyah', 'sulaimaniah', 'iraqi kurdistan'];
+      const erbilPatterns = ['erbil', 'arbil', 'أربيل', 'hewler', 'hawler'];
 
       const isKirkuk = [lowerRegion, lowerCity].some((val) => kirkukPatterns.some((p) => val.includes(p)));
       const isSulaymaniyah = [lowerRegion, lowerCity].some((val) => sulaymaniyahPatterns.some((p) => val.includes(p)));
@@ -2954,8 +2954,8 @@ async function updateStorageWithNewAccount(text) {
     });
 
     showToastMessage(
-      'ØªÙ… Ù†Ø³Ø® Ø­Ø³Ø§Ø¨ Ù…ÙƒØ±Ø±',
-      `${text}\nØ¢Ø®Ø± Ù†Ø³Ø®: ${dateString} - ${timeString}${accountNotes ? `\nðŸ“ ${accountNotes}` : ''}`,
+      'تم نسخ حساب مكرر',
+      `${text}\nآخر نسخ: ${dateString} - ${timeString}${accountNotes ? `\n📝 ${accountNotes}` : ''}`,
       'duplicate'
     );
   }
@@ -3131,8 +3131,8 @@ async function handleReportSubmission(data) {
     console.error('Background: Google Form submission failed. Aborting Telegram submission.');
     chrome.runtime.sendMessage({ 
       type: 'showToast', 
-      title: 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„', 
-      message: 'ÙØ´Ù„ Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ù†Ù…ÙˆØ°Ø¬. Ù„Ù… ÙŠØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„ØªÙ‚Ø±ÙŠØ± Ø¥Ù„Ù‰ ØªÙŠÙ„ÙŠØ¬Ø±Ø§Ù….', 
+      title: 'فشل الإرسال', 
+      message: 'فشل إرسال النموذج. لم يتم إرسال التقرير إلى تيليجرام.', 
       toastType: 'error' 
     }).catch(() => {});
     return; // STOP HERE
@@ -3216,10 +3216,10 @@ async function handleReportSubmission(data) {
     if (data.ok) {
       console.log('Background: Telegram sent successfully');
       // Notify sidepanel if open, or show system notification
-      chrome.runtime.sendMessage({ type: 'showToast', title: 'ØªÙ… Ø§Ù„Ø¥Ø±Ø³Ø§Ù„', message: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„ØªÙ‚Ø±ÙŠØ± Ø¨Ù†Ø¬Ø§Ø­', toastType: 'default' }).catch(() => {});
+      chrome.runtime.sendMessage({ type: 'showToast', title: 'تم الإرسال', message: 'تم إرسال التقرير بنجاح', toastType: 'default' }).catch(() => {});
     } else {
       console.error('Background: Telegram Error:', data);
-      chrome.runtime.sendMessage({ type: 'showToast', title: 'ÙØ´Ù„ Ø§Ù„Ø¥Ø±Ø³Ø§Ù„', message: `Telegram Error: ${data.description}`, toastType: 'warning' }).catch(() => {});
+      chrome.runtime.sendMessage({ type: 'showToast', title: 'فشل الإرسال', message: `Telegram Error: ${data.description}`, toastType: 'warning' }).catch(() => {});
     }
 
   } catch (error) {
