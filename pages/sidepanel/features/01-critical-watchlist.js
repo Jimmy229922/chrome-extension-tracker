@@ -8,6 +8,60 @@ const __sidepanelConfig = typeof getSidepanelConfig === 'function' ? getSidepane
 const DEFAULT_CRITICAL_IPS = (__sidepanelConfig && __sidepanelConfig.watchlist && Array.isArray(__sidepanelConfig.watchlist.defaultIps))
   ? [...__sidepanelConfig.watchlist.defaultIps]
   : ['166.88.54.203', '166.88.167.40', '77.76.9.250'];
+const DEFAULT_CRITICAL_IP_NOTE_MAP = Object.freeze({
+  '77.76.9.250': 'ايبي خاص بسيرفر الشركة',
+  '188.240.63.210': 'ايبي مزود النسخ'
+});
+if (!DEFAULT_CRITICAL_IPS.includes('188.240.63.210')) {
+  DEFAULT_CRITICAL_IPS.push('188.240.63.210');
+}
+const DEFAULT_CRITICAL_ACCOUNT_ITEMS = Object.freeze([
+  { account: '2041233', note: 'وكيل لا يتم الحظر' },
+  { account: '3348067', note: 'وكيل لا يتم الحظر' },
+  { account: '2058979', note: 'وكيل لا يتم الحظر' },
+  { account: '2153392', note: 'وكيل لا يتم الحظر' },
+  { account: '3342008', note: 'وكيل لا يتم الحظر' },
+  { account: '3332257', note: 'وكيل لا يتم الحظر' },
+  { account: '2945609', note: 'وكيل لا يتم الحظر' },
+  { account: '3187748', note: 'وكيل لا يتم الحظر' },
+  { account: '3008530', note: 'وكيل لا يتم الحظر' },
+  { account: '2074142', note: 'بعض صفقاته expert' },
+  { account: '2934735', note: 'لا يتم حظر الايبي التركي' },
+  { account: '2975135', note: 'مقيم بالمانيا' },
+  { account: '3005420', note: 'مقيم بالمانيا' },
+  { account: '2979448', note: 'مقيم بالمانيا' },
+  { account: '3049338', note: 'مقيم بالمانيا' },
+  { account: '3031306', note: 'مقيم بالمانيا' },
+  { account: '3041333', note: 'مقيم بالمانيا' },
+  { account: '3034898', note: 'العميل مقيم بالدنمارك' },
+  { account: '3036560', note: 'اكسبرت' },
+  { account: '3044094', note: 'اكسبرت' },
+  { account: '3079967', note: 'عميل مقيم بالهند' },
+  { account: '3100474', note: 'العميل مقيم ب فينزويلا' },
+  { account: '3125660', note: 'مقيم في تركيا' },
+  { account: '3146070', note: 'مقيم في تركيا' },
+  { account: '3228868', note: 'مقيم في تركيا' },
+  { account: '3236766', note: 'بعض صفقاته expert' },
+  { account: '3237681', note: 'مقيم في تركيا' },
+  { account: '3261443', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3311500', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3317530', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3338587', note: 'بعض صفقاته expert' },
+  { account: '3335180', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3331154', note: 'اذا ايبي الماني / استريا النمسا ما ينحظر' },
+  { account: '3349785', note: 'لا يتم حظر الايبي التركي' },
+  { account: '3357990', note: 'بعض صفقاته expert' },
+  { account: '3355764', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3355511', note: 'مقيم في المانيا' },
+  { account: '3361081', note: 'مقيم في تركيا' },
+  { account: '3360871', note: 'ip تركى لا يتم حظره' },
+  { account: '3358131', note: 'بعض صفقاته expert' },
+  { account: '3362504', note: 'مقيم في تركيا' },
+  { account: '3362325', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3142464', note: 'بعض صفقاته expert' },
+  { account: '3316639', note: 'مقيم في تايلاندا' }
+]);
+const DEFAULT_CRITICAL_ACCOUNTS = DEFAULT_CRITICAL_ACCOUNT_ITEMS.map(item => item.account);
 const CRITICAL_WATCHLIST_STORAGE_KEY = (__sidepanelConfig && __sidepanelConfig.storageKeys && __sidepanelConfig.storageKeys.criticalWatchlist)
   ? __sidepanelConfig.storageKeys.criticalWatchlist
   : 'criticalWatchlist';
@@ -111,10 +165,9 @@ function renderCriticalWatchlist() {
     const override = (Array.isArray(criticalWatchlistState.ips) ? criticalWatchlistState.ips : [])
       .find(v => v && typeof v === 'object' && v.ip === ip);
     let existingNote = override && typeof override.note === 'string' ? override.note.trim() : '';
-
-    // Hardcoded default note for specific IP
-    if (!existingNote && ip === '77.76.9.250') {
-        existingNote = 'ال IP دة خاص ب سيرفر الشركة';
+    const defaultNote = DEFAULT_CRITICAL_IP_NOTE_MAP[ip] || '';
+    if (!existingNote && defaultNote) {
+      existingNote = defaultNote;
     }
 
     const li = document.createElement('li');
@@ -219,21 +272,70 @@ function renderCriticalWatchlist() {
       criticalCustomIpList.appendChild(li);
     });
   }
-
   // Accounts
   criticalAccountListEl.innerHTML = '';
-  const accounts = (Array.isArray(criticalWatchlistState.accounts) ? criticalWatchlistState.accounts : [])
+  const stateAccounts = (Array.isArray(criticalWatchlistState.accounts) ? criticalWatchlistState.accounts : [])
     .filter(a => a && typeof a === 'object')
     .map(a => ({ account: normalizeSevenDigitAccountValue(a.account), note: typeof a.note === 'string' ? a.note.trim() : '' }))
-    .filter(a => a.account)
+    .filter(a => a.account);
+  const accountNoteMap = new Map();
+  stateAccounts.forEach(({ account, note }) => {
+    if (!accountNoteMap.has(account)) accountNoteMap.set(account, note);
+  });
+  const defaultAccountSet = new Set(DEFAULT_CRITICAL_ACCOUNTS);
+
+  DEFAULT_CRITICAL_ACCOUNT_ITEMS.forEach(({ account: acc, note: defaultNote }) => {
+    const li = document.createElement('li');
+    li.className = 'critical-watchlist-item';
+
+    const value = document.createElement('span');
+    value.className = 'critical-watchlist-value';
+    value.textContent = acc;
+
+    const existingNote = accountNoteMap.get(acc) || defaultNote;
+    const noteEl = existingNote ? document.createElement('span') : null;
+    if (noteEl) {
+      noteEl.className = 'critical-watchlist-note';
+      noteEl.textContent = existingNote;
+    }
+
+    const locked = document.createElement('span');
+    locked.className = 'critical-watchlist-badge';
+    locked.textContent = 'مقفول';
+
+    const edit = document.createElement('button');
+    edit.type = 'button';
+    edit.className = 'critical-edit-btn';
+    edit.textContent = 'تعديل الملاحظة';
+    edit.addEventListener('click', async () => {
+      const nextNote = await openNoteEditModal({ kind: 'AC', value: acc, note: existingNote });
+      if (nextNote === null) return;
+      const trimmed = String(nextNote).trim();
+
+      const existing = Array.isArray(criticalWatchlistState.accounts) ? criticalWatchlistState.accounts : [];
+      const filtered = existing.filter(v => !(v && typeof v === 'object' && v.account === acc));
+      const nextAccounts = trimmed ? filtered.concat({ account: acc, note: trimmed }) : filtered;
+      void saveCriticalWatchlist({ ...criticalWatchlistState, accounts: nextAccounts });
+    });
+
+    li.appendChild(value);
+    if (noteEl) li.appendChild(noteEl);
+    li.appendChild(locked);
+    li.appendChild(edit);
+    criticalAccountListEl.appendChild(li);
+  });
+
+  const customAccounts = Array.from(accountNoteMap.entries())
+    .map(([account, note]) => ({ account, note }))
+    .filter(a => !defaultAccountSet.has(a.account))
     .sort((a, b) => a.account.localeCompare(b.account));
-  if (!accounts.length) {
+  if (!DEFAULT_CRITICAL_ACCOUNT_ITEMS.length && !customAccounts.length) {
     const empty = document.createElement('li');
     empty.className = 'critical-watchlist-empty';
     empty.textContent = 'لا يوجد أرقام حسابات مضافة حتى الآن.';
     criticalAccountListEl.appendChild(empty);
   } else {
-    accounts.forEach(({ account: acc, note }) => {
+    customAccounts.forEach(({ account: acc, note }) => {
       const li = document.createElement('li');
       li.className = 'critical-watchlist-item';
 
@@ -283,7 +385,6 @@ function renderCriticalWatchlist() {
     });
   }
 }
-
 function addCriticalIpFromInput() {
   if (!criticalIpInput) return;
   const ip = normalizeIPv4Value(criticalIpInput.value);
@@ -316,6 +417,11 @@ function addCriticalAccountFromInput() {
   const acc = normalizeSevenDigitAccountValue(criticalAccountInput.value);
   if (!acc) {
     showToast('VIP', 'رقم الحساب لازم يكون 6 أو 7 أرقام.', 'warning');
+    return;
+  }
+  if (DEFAULT_CRITICAL_ACCOUNTS.includes(acc)) {
+    showToast('VIP', 'هذا الحساب موجود ضمن القائمة الأساسية المقفولة.', 'duplicate');
+    criticalAccountInput.value = '';
     return;
   }
   const existing = Array.isArray(criticalWatchlistState.accounts) ? criticalWatchlistState.accounts : [];
@@ -362,11 +468,18 @@ if (criticalAccountNoteInput) {
 
 if (criticalClearCustomBtn) {
   criticalClearCustomBtn.addEventListener('click', () => {
-    // Keep notes for default IPs, remove custom ones
+    // Keep notes for default IPs/accounts, remove custom entries
     const defaultNotes = (criticalWatchlistState.ips || []).filter(v => v && typeof v === 'object' && DEFAULT_CRITICAL_IPS.includes(v.ip));
-    void saveCriticalWatchlist({ ips: defaultNotes, accounts: [] });
+    const defaultAccountNotes = (criticalWatchlistState.accounts || []).filter(v => {
+      if (!v || typeof v !== 'object') return false;
+      const normalized = normalizeSevenDigitAccountValue(v.account);
+      return !!normalized && DEFAULT_CRITICAL_ACCOUNTS.includes(normalized);
+    });
+    void saveCriticalWatchlist({ ips: defaultNotes, accounts: defaultAccountNotes });
     showToast('VIP', 'تم مسح القائمة المضافة.', 'default');
   });
 }
+
+
 
 

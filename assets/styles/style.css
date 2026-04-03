@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    PROFESSIONAL EXTENSION STYLES
    Modern, Clean & Responsive Design
    ============================================ */
@@ -177,7 +177,7 @@ body::before {
   
   /* New Year Theme: Professional Festive (Light) */
   background-color: #fdfbf7;
-  font-size: 26px;
+  background-image:
       /* Gold Stars */
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='rgba(218, 165, 32, 0.2)' stroke-width='2'%3E%3Cpolygon points='12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'/%3E%3C/svg%3E"),
       /* Silver Snowflakes */
@@ -662,12 +662,21 @@ body.dark-mode .critical-watchlist-form input {
   filter: brightness(0.98);
 }
 
+
+
 .critical-watchlist-list {
   list-style: none;
   padding: 0;
   margin: 12px 0 0;
   display: grid;
   gap: 10px;
+}
+#critical-default-ip-list,
+#critical-custom-ip-list,
+#critical-account-list {
+  max-height: 340px;
+  overflow-y: auto;
+  padding-inline-end: 4px;
 }
 
 .critical-watchlist-item {
@@ -716,7 +725,7 @@ body.dark-mode .critical-watchlist-value {
 }
 
 .critical-watchlist-note::before {
-  content: '✎ ';
+  content: 'âœŽ ';
   font-weight: 900;
   opacity: 0.9;
   display: inline-block;
@@ -1116,7 +1125,7 @@ body.dark-mode .card-status-pill.status-incomplete {
 
 #account-list li.pinned::before,
 #ip-list li.pinned::before {
-  content: '📌';
+  content: 'ðŸ“Œ';
   position: absolute;
   top: -8px;
   left: -8px;
@@ -1476,7 +1485,6 @@ body.dark-mode .modal-content ul::-webkit-scrollbar-thumb {
   cursor: pointer;
   transition: all 0.2s ease;
 }
-    font-size: 14px;
 .close-button:hover,
 .close-button:focus {
   color: #e74c3c;
@@ -1835,7 +1843,7 @@ body.dark-mode .setting-description {
 
 /* Add icons to the toggle */
 .setting-item .switch.dark-mode-switch .slider:after {
-  content: '☀️';
+  content: 'â˜€ï¸';
   position: absolute;
   left: 6px;
   top: 50%;
@@ -1846,7 +1854,7 @@ body.dark-mode .setting-description {
 }
 
 .setting-item .switch.dark-mode-switch input:checked + .slider:after {
-  content: '🌙';
+  content: 'ðŸŒ™';
   left: auto;
   right: 6px;
   opacity: 1;
@@ -2268,7 +2276,7 @@ body.dark-mode #ip-lookup-results {
 }
 
 #show-ip-details-icon.icon-btn::before {
-  content: '🔍';
+  content: 'ðŸ”';
   position: absolute;
   top: -10px;
   right: -10px;
@@ -2287,7 +2295,7 @@ body.dark-mode #ip-lookup-results {
 }
 
 #show-ip-details-icon.icon-btn::after {
-  content: '👆 اضغط هنا لعرض التفاصيل الكاملة';
+  content: 'ðŸ‘† Ø§Ø¶ØºØ· Ù‡Ù†Ø§ Ù„Ø¹Ø±Ø¶ Ø§Ù„ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙƒØ§Ù…Ù„Ø©';
   position: absolute;
   bottom: -40px;
   left: 50%;
@@ -2426,7 +2434,7 @@ body.dark-mode .ip-detail-item strong {
 }
 
 .ip-detail-item strong::before {
-  content: '●';
+  content: 'â—';
   color: #667eea;
   font-size: 0.8em;
   margin-left: 8px;
@@ -3654,64 +3662,64 @@ body.dark-mode .saved-note-btn:hover {
 }
 
 /* Shift Button Colors - Only on Active State */
-.shift-btn[data-value="الصباحي"].active {
+.shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active {
   background: #FFD700;
   border-color: #FFA500;
   color: #333333;
 }
-.shift-btn[data-value="الصباحي"].active:hover {
+.shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active:hover {
   background: #FFD700;
   border-color: #FFA500;
   color: #333333;
 }
-.shift-btn[data-value="المسائي"].active {
+.shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active {
   background: #3498db;
   border-color: #2980b9;
   color: white;
 }
-.shift-btn[data-value="المسائي"].active:hover {
+.shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active:hover {
   background: #3498db;
   border-color: #2980b9;
   color: white;
 }
-.shift-btn[data-value="الخفر"].active {
+.shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active {
   background: #2c3e50;
   border-color: #1a252f;
   color: white;
 }
-.shift-btn[data-value="الخفر"].active:hover {
+.shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active:hover {
   background: #2c3e50;
   border-color: #1a252f;
   color: white;
 }
 
 /* Shift Button Colors - Dark Mode - Only on Active State */
-body.dark-mode .shift-btn[data-value="الصباحي"].active {
+body.dark-mode .shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active {
   background-color: #FFD700;
   border-color: #FFA500;
   color: #333333;
 }
-body.dark-mode .shift-btn[data-value="الصباحي"].active:hover {
+body.dark-mode .shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active:hover {
   background-color: #FFD700;
   border-color: #FFA500;
   color: #333333;
 }
-body.dark-mode .shift-btn[data-value="المسائي"].active {
+body.dark-mode .shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active {
   background-color: #5DADE2;
   border-color: #3498db;
   color: white;
 }
-body.dark-mode .shift-btn[data-value="المسائي"].active:hover {
+body.dark-mode .shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active:hover {
   background-color: #5DADE2;
   border-color: #3498db;
   color: white;
 }
-body.dark-mode .shift-btn[data-value="الخفر"].active {
+body.dark-mode .shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active {
   background-color: #1a1a1a;
   border-color: #0d0d0d;
   color: #cccccc;
 }
-body.dark-mode .shift-btn[data-value="الخفر"].active:hover {
+body.dark-mode .shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active:hover {
   background-color: #1a1a1a;
   border-color: #0d0d0d;
   color: #cccccc;
@@ -3992,21 +4000,21 @@ body.dark-mode .shift-btn {
   box-shadow: 0 6px 12px rgba(0,0,0,0.1);
 }
 
-.shift-btn[data-value='الصباحي'].active {
+.shift-btn[data-value='Ø§Ù„ØµØ¨Ø§Ø­ÙŠ'].active {
   background: linear-gradient(135deg, #fce38a 0%, #f38181 100%);
   border-color: transparent;
   color: white;
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-.shift-btn[data-value='المسائي'].active {
+.shift-btn[data-value='Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ'].active {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
   border-color: transparent;
   color: white;
   text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-.shift-btn[data-value='الخفر'].active {
+.shift-btn[data-value='Ø§Ù„Ø®ÙØ±'].active {
   background: linear-gradient(135deg, #434343 0%, #000000 100%);
   border-color: transparent;
   color: #ffd700;
@@ -4910,7 +4918,7 @@ body.ramadan-report-page .shift-btn.active::after,
 #transfer-report-section .shift-btn.active::after,
 #deposit-percentage-section .shift-btn.active::after,
 #credit-out-section .shift-btn.active::after {
-  content: "✓";
+  content: "âœ“";
   position: absolute;
   top: 6px;
   left: 8px;
@@ -4927,26 +4935,26 @@ body.ramadan-report-page .shift-btn.active::after,
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
-body.ramadan-report-page .shift-btn[data-value="الصباحي"].active,
-#transfer-report-section .shift-btn[data-value="الصباحي"].active,
-#deposit-percentage-section .shift-btn[data-value="الصباحي"].active,
-#credit-out-section .shift-btn[data-value="الصباحي"].active {
+body.ramadan-report-page .shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active,
+#transfer-report-section .shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active,
+#deposit-percentage-section .shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active,
+#credit-out-section .shift-btn[data-value="Ø§Ù„ØµØ¨Ø§Ø­ÙŠ"].active {
   background: linear-gradient(135deg, #ffd873 0%, #e0a92f 100%) !important;
   color: #2f250e !important;
 }
 
-body.ramadan-report-page .shift-btn[data-value="المسائي"].active,
-#transfer-report-section .shift-btn[data-value="المسائي"].active,
-#deposit-percentage-section .shift-btn[data-value="المسائي"].active,
-#credit-out-section .shift-btn[data-value="المسائي"].active {
+body.ramadan-report-page .shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active,
+#transfer-report-section .shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active,
+#deposit-percentage-section .shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active,
+#credit-out-section .shift-btn[data-value="Ø§Ù„Ù…Ø³Ø§Ø¦ÙŠ"].active {
   background: linear-gradient(135deg, #4fbeec 0%, #2187cf 100%) !important;
   color: #ffffff !important;
 }
 
-body.ramadan-report-page .shift-btn[data-value="الخفر"].active,
-#transfer-report-section .shift-btn[data-value="الخفر"].active,
-#deposit-percentage-section .shift-btn[data-value="الخفر"].active,
-#credit-out-section .shift-btn[data-value="الخفر"].active {
+body.ramadan-report-page .shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active,
+#transfer-report-section .shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active,
+#deposit-percentage-section .shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active,
+#credit-out-section .shift-btn[data-value="Ø§Ù„Ø®ÙØ±"].active {
   background: linear-gradient(135deg, #4b5f7a 0%, #273447 100%) !important;
   color: #f8f4ea !important;
 }
@@ -5559,7 +5567,7 @@ body::after {
 }
 
 .mention-btn.active::after {
-  content: "✓";
+  content: "âœ“";
   font-weight: 800;
   font-size: 12px;
   line-height: 1;
@@ -5567,3 +5575,7 @@ body::after {
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
 }
+
+
+
+

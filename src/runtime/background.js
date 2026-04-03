@@ -9,7 +9,59 @@ let lastCopiedText = ''; // Track the last text copied from extension
 const accountNumberRegex = /^\d{6,7}$/;
 const emailRegex = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 
-const DEFAULT_CRITICAL_IPS = ['166.88.54.203', '166.88.167.40', '77.76.9.250'];
+const DEFAULT_CRITICAL_IPS = ['166.88.54.203', '166.88.167.40', '77.76.9.250', '188.240.63.210'];
+const DEFAULT_CRITICAL_IP_NOTE_MAP = new Map([
+  ['77.76.9.250', 'ايبي خاص بسيرفر الشركة'],
+  ['188.240.63.210', 'ايبي مزود النسخ']
+]);
+const DEFAULT_CRITICAL_ACCOUNT_ITEMS = Object.freeze([
+  { account: '2041233', note: 'وكيل لا يتم الحظر' },
+  { account: '3348067', note: 'وكيل لا يتم الحظر' },
+  { account: '2058979', note: 'وكيل لا يتم الحظر' },
+  { account: '2153392', note: 'وكيل لا يتم الحظر' },
+  { account: '3342008', note: 'وكيل لا يتم الحظر' },
+  { account: '3332257', note: 'وكيل لا يتم الحظر' },
+  { account: '2945609', note: 'وكيل لا يتم الحظر' },
+  { account: '3187748', note: 'وكيل لا يتم الحظر' },
+  { account: '3008530', note: 'وكيل لا يتم الحظر' },
+  { account: '2074142', note: 'بعض صفقاته expert' },
+  { account: '2934735', note: 'لا يتم حظر الايبي التركي' },
+  { account: '2975135', note: 'مقيم بالمانيا' },
+  { account: '3005420', note: 'مقيم بالمانيا' },
+  { account: '2979448', note: 'مقيم بالمانيا' },
+  { account: '3049338', note: 'مقيم بالمانيا' },
+  { account: '3031306', note: 'مقيم بالمانيا' },
+  { account: '3041333', note: 'مقيم بالمانيا' },
+  { account: '3034898', note: 'العميل مقيم بالدنمارك' },
+  { account: '3036560', note: 'اكسبرت' },
+  { account: '3044094', note: 'اكسبرت' },
+  { account: '3079967', note: 'عميل مقيم بالهند' },
+  { account: '3100474', note: 'العميل مقيم ب فينزويلا' },
+  { account: '3125660', note: 'مقيم في تركيا' },
+  { account: '3146070', note: 'مقيم في تركيا' },
+  { account: '3228868', note: 'مقيم في تركيا' },
+  { account: '3236766', note: 'بعض صفقاته expert' },
+  { account: '3237681', note: 'مقيم في تركيا' },
+  { account: '3261443', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3311500', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3317530', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3338587', note: 'بعض صفقاته expert' },
+  { account: '3335180', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3331154', note: 'اذا ايبي الماني / استريا النمسا ما ينحظر' },
+  { account: '3349785', note: 'لا يتم حظر الايبي التركي' },
+  { account: '3357990', note: 'بعض صفقاته expert' },
+  { account: '3355764', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3355511', note: 'مقيم في المانيا' },
+  { account: '3361081', note: 'مقيم في تركيا' },
+  { account: '3360871', note: 'ip تركى لا يتم حظره' },
+  { account: '3358131', note: 'بعض صفقاته expert' },
+  { account: '3362504', note: 'مقيم في تركيا' },
+  { account: '3362325', note: 'ساكن عالحدود مع تركيا' },
+  { account: '3142464', note: 'بعض صفقاته expert' },
+  { account: '3316639', note: 'مقيم في تايلاندا' }
+]);
+const DEFAULT_CRITICAL_ACCOUNTS = DEFAULT_CRITICAL_ACCOUNT_ITEMS.map(item => item.account);
+const DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP = new Map(DEFAULT_CRITICAL_ACCOUNT_ITEMS.map(item => [item.account, item.note]));
 const CRITICAL_WATCHLIST_STORAGE_KEY = 'criticalWatchlist';
 const CRITICAL_BADGE_COLOR = '#dc2626';
 const CRITICAL_IP_ALERT_STORAGE_KEY = 'criticalIpAlert';
@@ -23,9 +75,9 @@ const DEFAULT_ACTION_TITLE = (() => {
 })();
 
 let criticalIpSet = new Set(DEFAULT_CRITICAL_IPS);
-let criticalAccountSet = new Set();
-let criticalIpNoteMap = new Map(); // ip -> note
-let criticalAccountNoteMap = new Map(); // account -> note
+let criticalAccountSet = new Set(DEFAULT_CRITICAL_ACCOUNTS);
+let criticalIpNoteMap = new Map(DEFAULT_CRITICAL_IP_NOTE_MAP); // ip -> note
+let criticalAccountNoteMap = new Map(DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP); // account -> note
 
 const CRITICAL_POPUP_WIDTH = 560;
 const CRITICAL_POPUP_HEIGHT = 340;
@@ -1183,22 +1235,23 @@ async function loadCriticalWatchlistFromSync() {
       }
     }
 
-    // Ensure default note for specific IP
-    if (!ipNotes.has('77.76.9.250')) {
-      ipNotes.set('77.76.9.250', 'Ø§Ù„ IP Ø¯Ù‡ Ø®Ø§Øµ Ø¨Ø³ÙŠØ±ÙØ± Ø§Ù„Ø´Ø±ÙƒØ©');
-    }
+    DEFAULT_CRITICAL_IP_NOTE_MAP.forEach((note, ip) => {
+      if (!ipNotes.has(ip)) ipNotes.set(ip, note);
+    });
+    DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP.forEach((note, account) => {
+      if (!accountNotes.has(account)) accountNotes.set(account, note);
+    });
 
     criticalIpNoteMap = ipNotes;
     criticalAccountNoteMap = accountNotes;
     criticalIpSet = new Set(DEFAULT_CRITICAL_IPS.concat(userIps));
-    criticalAccountSet = new Set(userAccounts);
+    criticalAccountSet = new Set(DEFAULT_CRITICAL_ACCOUNTS.concat(userAccounts));
   } catch (e) {
     // Fall back to defaults
     criticalIpSet = new Set(DEFAULT_CRITICAL_IPS);
-    criticalAccountSet = new Set();
-    criticalIpNoteMap = new Map();
-    criticalIpNoteMap.set('77.76.9.250', 'Ø§Ù„ IP Ø¯Ù‡ Ø®Ø§Øµ Ø¨Ø³ÙŠØ±ÙØ± Ø§Ù„Ø´Ø±ÙƒØ©');
-    criticalAccountNoteMap = new Map();
+    criticalAccountSet = new Set(DEFAULT_CRITICAL_ACCOUNTS);
+    criticalIpNoteMap = new Map(DEFAULT_CRITICAL_IP_NOTE_MAP);
+    criticalAccountNoteMap = new Map(DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP);
   }
 }
 
@@ -3173,3 +3226,6 @@ async function handleReportSubmission(data) {
     console.error('Background: Telegram Submission Error:', error);
   }
 }
+
+
+
