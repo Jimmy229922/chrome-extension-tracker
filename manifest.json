@@ -24,29 +24,29 @@
     "https://cloudflare-dns.com/*"
   ],
   "side_panel": {
-    "default_path": "sidepanel.html"
+    "default_path": "pages/sidepanel/index.html"
   },
   "action": {},
-  "options_page": "options.html",
+  "options_page": "pages/options/index.html",
   "icons": {
-    "16": "images/icon16.png",
-    "48": "images/icon48.png",
-    "128": "images/icon128.png"
+    "16": "assets/images/icon16.png",
+    "48": "assets/images/icon48.png",
+    "128": "assets/images/icon128.png"
   },
   "web_accessible_resources": [
     {
-      "resources": [ "images/magnifying_glass.png" ],
+      "resources": [ "assets/images/magnifying_glass.png" ],
       "matches": [ "<all_urls>" ]
     }
   ],
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["csp-guard.js"],
+      "js": ["src/content/csp-guard.js"],
       "run_at": "document_start"
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/runtime/background.js"
   }
 }

@@ -1,0 +1,879 @@
+﻿<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Tracker</title>
+  <link rel="stylesheet" type="text/css" href="../../assets/styles/style.css">
+  <script src="../../src/content/csp-guard.js"></script>
+</head>
+<body class="dark-mode">
+  <!-- Custom Toast Notification -->
+  <div id="toast-notification" class="toast-notification">
+    <div class="toast-icon"></div>
+    <div class="toast-content">
+      <div class="toast-title"></div>
+      <div class="toast-message"></div>
+    </div>
+    <button class="toast-close">×</button>
+  </div>
+
+  <div class="header">
+  <h1>Tracker <span id="paused-indicator" style="display:none;font-size:0.55em;padding:4px 8px;border-radius:8px;background:#ff6b6b;color:#fff;vertical-align:middle;box-shadow:0 2px 6px rgba(0,0,0,0.2);letter-spacing:.5px">موقوف</span></h1>
+    <div class="tab-container">
+      <button id="accounts-tab" class="tab-button active">Accounts</button>
+      <button id="ips-tab" class="tab-button">IP</button>
+      <button id="critical-tab" class="tab-button">VIP</button>
+      <button id="profit-tab" class="tab-button">Profit Calculator</button>
+      <button id="transfer-report-tab" class="tab-button">Transfer Report</button>
+      <button id="withdrawal-report-btn" class="tab-button">Withdrawal Report</button>
+      <button id="credit-out-btn" class="tab-button">Credit Out</button>
+      <button id="deposit-percentage-btn" class="tab-button">Deposit Percentage</button>
+    </div>
+    <div class="tracking-toggle-wrapper">
+      <label class="switch">
+        <input type="checkbox" id="pause-tracking-toggle">
+        <span class="slider"></span>
+      </label>
+      <span class="toggle-label" id="toggle-label-text">تشغيل المراقبة</span>
+    </div>
+    <div class="tag-filter-bar" id="tag-filter-bar" style="display:none;">
+      <button class="tag-filter-btn active" data-filter="all">الكل</button>
+      <button class="tag-filter-btn" data-filter="suspicious">🔴 مشبوه</button>
+      <button class="tag-filter-btn" data-filter="safe">🟢 آمن</button>
+      <button class="tag-filter-btn" data-filter="under-review">🟡 قيد المراجعة</button>
+      <button class="tag-filter-btn" data-filter="flagged">🚩 محظور</button>
+      <button class="tag-filter-btn" data-filter="none">❌ إزالة التصنيف</button>
+    </div>
+    <input type="text" id="search-bar" placeholder="Search accounts...">
+    <div class="header-buttons">
+      <button id="clear-history">Clear History</button>
+      <button id="open-settings">Settings</button>
+    </div>
+  </div>
+
+  <ul id="account-list" class="data-list active"></ul>
+  <ul id="ip-list" class="data-list"></ul>
+  
+  <!-- VIP / Critical Watchlist Section -->
+  <div id="critical-section" class="data-list" style="display: none;" dir="rtl">
+    <div class="critical-watchlist-container">
+      <div class="critical-watchlist-card">
+        <h2 style="margin:0 0 8px;">قائمة VIP</h2>
+        <p style="margin:0;line-height:1.8;">
+          أي IP أو رقم حساب (6 أو 7 أرقام) تضيفه هنا، لو اتنسخ هيظهر نفس تنبيه الـ Popup فورًا.
+        </p>
+      </div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">إضافة IP</h3>
+        <div class="critical-watchlist-form">
+          <input id="critical-ip-input" type="text" placeholder="مثال: 8.8.8.8" autocomplete="off" />
+          <input id="critical-ip-note" type="text" placeholder="اكتب ملاحظة تظهر في التنبيه" autocomplete="off" />
+          <button id="critical-add-ip" type="button" class="critical-add-btn">إضافة</button>
+        </div>
+      </div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">إضافة رقم حساب (6 أو 7 أرقام)</h3>
+        <div class="critical-watchlist-form">
+          <input id="critical-account-input" type="text" placeholder="مثال: 123456 أو 1234567" autocomplete="off" />
+          <input id="critical-account-note" type="text" placeholder="اكتب ملاحظة تظهر في التنبيه" autocomplete="off" />
+          <button id="critical-add-account" type="button" class="critical-add-btn">إضافة</button>
+        </div>
+      </div>
+
+      <div class="critical-divider" aria-hidden="true"></div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">عناوين IP المحفوظة</h3>
+        <h4 style="margin:0 0 10px;opacity:0.85;">الـ IPs الأساسية (مقفولة)</h4>
+        <ul id="critical-default-ip-list" class="critical-watchlist-list"></ul>
+        <h4 style="margin:14px 0 10px;opacity:0.85;">IPs المضافة</h4>
+        <ul id="critical-custom-ip-list" class="critical-watchlist-list"></ul>
+      </div>
+
+      <div class="critical-divider" aria-hidden="true"></div>
+
+      <div class="critical-watchlist-card">
+        <h3 style="margin:0 0 10px;">أرقام الحسابات المحفوظة</h3>
+        <ul id="critical-account-list" class="critical-watchlist-list"></ul>
+      </div>
+
+      <div class="critical-watchlist-actions">
+        <button id="critical-clear-custom" type="button" class="critical-clear-btn">مسح القائمة المضافة</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profit Calculator Section -->
+  <div id="profit-section" class="data-list" style="display: none;">
+    <div class="profit-calculator-container">
+      <div class="profit-input-area">
+        <label for="trades-input">الصق الصفقات هنا:</label>
+        <div class="input-buttons">
+          <button id="paste-from-clipboard-btn" class="paste-btn">📋 لصق من Clipboard</button>
+          <button id="clear-input-btn" class="clear-input-btn">🗑️ مسح</button>
+        </div>
+        <textarea id="trades-input" placeholder="الصق الصفقات هنا بالشكل التالي:
+2025.11.26 15:00:54	115578299	Buy	0.11	XAUUSD	4155.58	0	0	2025.11.26 15:04:20	4158.85	MOBILE	0	0	0	35.97"></textarea>
+        <button id="calculate-profit-btn" class="calculate-btn">احسب الـ Profit</button>
+      </div>
+      
+      <div class="profit-results" id="profit-results" style="display: none;">
+        <div class="profit-summary">
+          <h3>ملخص الصفقات</h3>
+          <div class="profit-stat">
+            <span class="stat-label">عدد الصفقات:</span>
+            <span class="stat-value" id="trades-count">0</span>
+          </div>
+          <div class="profit-stat">
+            <span class="stat-label">إجمالي حجم اللوت:</span>
+            <span class="stat-value" id="total-lots">0.00</span>
+          </div>
+          <div class="profit-stat">
+            <span class="stat-label">صفقات رابحة:</span>
+            <span class="stat-value" id="winning-trades" style="color: #10b981;">0</span>
+          </div>
+          <div class="profit-stat">
+            <span class="stat-label">صفقات خاسرة:</span>
+            <span class="stat-value" id="losing-trades" style="color: #ef4444;">0</span>
+          </div>
+          <div class="profit-stat total-profit">
+            <span class="stat-label">إجمالي الـ Profit:</span>
+            <span class="stat-value" id="total-profit">0.00</span>
+          </div>
+        </div>
+
+        <div class="profit-filter-container" style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 8px; border: 1px solid #eee;">
+          <div style="font-weight: bold; color: #34495e; margin-bottom: 8px;">تصفية حسب الزوج:</div>
+          <div id="symbol-filter-buttons" style="display: flex; gap: 6px; flex-wrap: wrap;"></div>
+        </div>
+        
+        <div class="trades-details">
+          <h4>تفاصيل الصفقات</h4>
+          <div id="trades-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transfer Report Section -->
+  <div id="transfer-report-section" class="data-list" style="display: none;">
+    <div class="report-container" dir="rtl">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير تحويل الحسابات</h2>
+        <div style="display: flex; gap: 5px;">
+          <button id="telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+        </div>
+      </div>
+      
+      <div class="report-field-group">
+        <label class="report-label">فترة الشفت:</label>
+        <div class="shift-selector-container" style="display: flex; gap: 10px; margin-bottom: 5px;">
+          <button type="button" class="shift-btn" data-value="الصباحي">الصباحي ☀️</button>
+          <button type="button" class="shift-btn" data-value="المسائي">المسائي 🌅</button>
+          <button type="button" class="shift-btn" data-value="الخفر">الخفر 🌙</button>
+        </div>
+        <input type="hidden" id="report-shift" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-ip" class="report-label">IP:</label>
+        <input type="text" id="report-ip" class="report-input" placeholder="أدخل IP">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-country" class="report-label">IP Country:</label>
+        <input type="text" id="report-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-account" class="report-label">رقم الحساب:</label>
+        <input type="text" id="report-account" class="report-input" placeholder="أدخل رقم الحساب">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-email" class="report-label">الإيميل:</label>
+        <input type="email" id="report-email" class="report-input" placeholder="أدخل الإيميل">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-source" class="report-label">مصدر التحويل:</label>
+        <select id="report-source" class="report-input report-select">
+          <option value="2 ACTIONS">2 ACTIONS</option>
+          <option value="PROFIT SUMMARY">PROFIT SUMMARY</option>
+          <option value="suspicious traders" selected>suspicious traders</option>
+          <option value="NEW POSITIONS">NEW POSITIONS</option>
+          <option value="Deals with No profit">Deals with No profit</option>
+          <option value="Same Price">Same Price</option>
+          <option value="three-days-balance">three-days-balance</option>
+          <option value="deals-profit">deals-profit</option>
+          <option value="profit-watching">profit-watching</option>
+          <option value="Floating Profit">Floating Profit</option>
+          <option value="Transfer Report">Transfer Report</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="report-source-custom" class="report-input" placeholder="أدخل المصدر" style="display: none; margin-top: 5px;">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-profits" class="report-label">الارباح:</label>
+        <select id="report-profits" class="report-input report-select">
+          <option value="ارباح بالسالب">ارباح بالسالب</option>
+          <option value="ارباح لم تتخطى 50%">ارباح لم تتخطى 50%</option>
+          <option value="ارباح فوق 100%">ارباح فوق 100%</option>
+          <option value="ارباح بالموجب">ارباح بالموجب</option>
+          <option value="Other">Other</option>
+        </select>
+        <input type="text" id="report-profits-custom" class="report-input" placeholder="أدخل الارباح" style="display: none; margin-top: 5px;">
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-old-group" class="report-label">الغروب القديم (Old Group):</label>
+        <select id="report-old-group" class="report-input report-select">
+          <option value="" disabled selected>اختر الغروب القديم...</option>
+          <optgroup label="B5 Family">
+            <option value="B5">B5</option>
+            <option value="B5 2">B5 2</option>
+            <option value="B5 3">B5 3</option>
+            <option value="B5 W">B5 W</option>
+            <option value="B5 2W">B5 2W</option>
+            <option value="B5 yemen">B5 yemen</option>
+            <option value="B5 FS">B5 FS</option>
+            <option value="B5 FS 2">B5 FS 2</option>
+          </optgroup>
+          <optgroup label="Zero Family">
+            <option value="ZERO S">ZERO S</option>
+            <option value="ZERO 2">ZERO 2</option>
+            <option value="ZERO 3">ZERO 3</option>
+            <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
+            <option value="Zero Standard A 2">Zero Standard A 2</option>
+          </optgroup>
+          <optgroup label="B1 Family">
+            <option value="B1">B1</option>
+            <option value="B1 CLIENT">B1 CLIENT</option>
+            <option value="B1 CLIENT 2">B1 CLIENT 2</option>
+          </optgroup>
+          <optgroup label="Standard Family">
+            <option value="Standard Acccount 2">Standard Acccount 2</option>
+            <option value="Standard Bonus">Standard Bonus</option>
+          </optgroup>
+          <optgroup label="Others">
+            <option value="B2 AD">B2 AD</option>
+            <option value="copy trade 2">copy trade 2</option>
+            <option value="COPY TRADE">COPY TRADE</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-new-group" class="report-label">الغروب الجديد (New Group):</label>
+        <select id="report-new-group" class="report-input">
+          <option value="" disabled selected>اختر الغروب الجديد</option>
+          <optgroup label="B5 Family">
+            <option value="B5">B5</option>
+            <option value="B5 2">B5 2</option>
+            <option value="B5 3">B5 3</option>
+            <option value="B5 W">B5 W</option>
+            <option value="B5 2W">B5 2W</option>
+            <option value="B5 yemen">B5 yemen</option>
+            <option value="B5 FS">B5 FS</option>
+            <option value="B5 FS 2">B5 FS 2</option>
+          </optgroup>
+          <optgroup label="Zero Family">
+            <option value="ZERO S">ZERO S</option>
+            <option value="ZERO 2">ZERO 2</option>
+            <option value="ZERO 3">ZERO 3</option>
+            <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
+            <option value="Zero Standard A 2">Zero Standard A 2</option>
+          </optgroup>
+          <optgroup label="B1 Family">
+            <option value="B1">B1</option>
+            <option value="B1 CLIENT">B1 CLIENT</option>
+            <option value="B1 CLIENT 2">B1 CLIENT 2</option>
+          </optgroup>
+          <optgroup label="Standard Family">
+            <option value="Standard Acccount 2">Standard Acccount 2</option>
+            <option value="Standard Bonus">Standard Bonus</option>
+          </optgroup>
+          <optgroup label="Others">
+            <option value="B2 AD">B2 AD</option>
+            <option value="copy trade 2">copy trade 2</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="report-field-group">
+        <label for="report-notes" class="report-label">الملاحظات:</label>
+        <div style="position: relative;">
+          <textarea id="report-notes" class="report-input report-textarea" rows="4" placeholder="أدخل الملاحظات"></textarea>
+          <button id="open-notes-modal-btn" type="button" class="notes-trigger-btn" title="اختر ملاحظة">📋</button>
+        </div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور):</label>
+        <div class="file-upload-container">
+          <label for="report-images" class="file-upload-label">
+            <span class="upload-icon">📷</span>
+            <span>اختر صوراً أو اسحبها هنا</span>
+          </label>
+          <input type="file" id="report-images" multiple accept="image/*" style="display: none;">
+        </div>
+        <div id="image-preview-container" class="image-preview-container"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المنشن:</label>
+        <div class="mention-buttons-container">
+          <button type="button" id="mention-ahmed-btn" class="mention-btn">Ahmed (@ahmedelgma)</button>
+          <button type="button" id="mention-batoul-btn" class="mention-btn">Batoul (@batoulhassan)</button>
+        </div>
+      </div>
+
+      <div class="report-actions">
+        <button id="generate-report-btn" class="report-btn generate-btn">نسخ التقرير</button>
+        <button id="send-telegram-btn" class="report-btn telegram-btn" style="background: linear-gradient(135deg, #229ED9 0%, #1E88E5 100%); color: white;">إرسال</button>
+        <button id="reset-report-btn" class="report-btn reset-btn">إعادة تعيين</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deposit Percentage Section -->
+  <div id="deposit-percentage-section" class="data-list" style="display: none;">
+    <div class="report-container" dir="rtl">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 class="report-title" style="margin: 0; border: none; padding: 0;">Deposit Percentage Report</h2>
+        <div style="display: flex; gap: 5px;">
+          <button id="deposit-telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+        </div>
+      </div>
+      
+      <div class="report-field-group">
+        <label class="report-label">فترة الشفت:</label>
+        <div class="shift-selector-container">
+          <button type="button" class="shift-btn deposit-shift-btn" data-value="الصباحي">☀️ الصباحي</button>
+          <button type="button" class="shift-btn deposit-shift-btn" data-value="المسائي">🌑 المسائي</button>
+          <button type="button" class="shift-btn deposit-shift-btn" data-value="الخفر">🌙 الخفر</button>
+        </div>
+        <input type="hidden" id="deposit-report-shift" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-ip" class="report-label">IP Address *</label>
+        <input type="text" id="deposit-report-ip" class="report-input" placeholder="أدخل IP">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-country" class="report-label">IP Country *</label>
+        <input type="text" id="deposit-report-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-account" class="report-label">رقم الحساب *</label>
+        <input type="text" id="deposit-report-account" class="report-input" placeholder="أدخل رقم الحساب">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-email" class="report-label">البريد الإلكتروني *</label>
+        <input type="email" id="deposit-report-email" class="report-input" placeholder="أدخل الإيميل">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-margin" class="report-label">نسبة الهامش *</label>
+        <input type="text" id="deposit-report-margin" class="report-input" placeholder="أدخل نسبة الهامش (مثال: 22.56%)">
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">حالة الأرباح العائمة *</label>
+        <div class="selector-container" style="display: flex; gap: 10px;">
+          <button type="button" class="selector-btn" data-group="profits-status" data-value="positive">موجب</button>
+          <button type="button" class="selector-btn" data-group="profits-status" data-value="negative">سالب</button>
+        </div>
+        <input type="hidden" id="deposit-report-profits-status" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">حالة الـ IP الأخير *</label>
+        <div class="selector-container" style="display: flex; gap: 10px;">
+          <button type="button" class="selector-btn" data-group="ip-status" data-value="matching">مطابق</button>
+          <button type="button" class="selector-btn" data-group="ip-status" data-value="not-matching">غير مطابق</button>
+        </div>
+        <input type="hidden" id="deposit-report-ip-status" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">حالة البونص *</label>
+        <div class="selector-container" style="display: flex; gap: 10px;">
+          <button type="button" class="selector-btn" data-group="bonus-status" data-value="not-banned">غير محظور</button>
+          <button type="button" class="selector-btn" data-group="bonus-status" data-value="banned">محظور</button>
+        </div>
+        <input type="hidden" id="deposit-report-bonus-status" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="deposit-report-notes" class="report-label">ملاحظات إضافية (اختياري)</label>
+        <textarea id="deposit-report-notes" class="report-input" rows="4" placeholder="أدخل ملاحظات إضافية" style="resize: vertical;"></textarea>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور):</label>
+        <div class="file-upload-container">
+          <label for="deposit-report-images" class="file-upload-label">
+            <span class="upload-icon">📷</span>
+            <span>اختر صوراً أو اسحبها هنا</span>
+          </label>
+          <input type="file" id="deposit-report-images" multiple accept="image/*" style="display: none;">
+        </div>
+        <div id="deposit-image-preview-container" class="image-preview-container"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المنشن:</label>
+        <div class="mention-buttons-container">
+          <button type="button" id="deposit-mention-ahmed-btn" class="mention-btn">Ahmed (@ahmedelgma)</button>
+          <button type="button" id="deposit-mention-batoul-btn" class="mention-btn">Batoul (@batoulhassan)</button>
+        </div>
+      </div>
+
+      <div class="report-actions">
+        <button id="deposit-generate-report-btn" class="report-btn generate-btn">نسخ التقرير</button>
+        <button id="deposit-send-telegram-btn" class="report-btn telegram-btn" style="background: linear-gradient(135deg, #229ED9 0%, #1E88E5 100%); color: white;">إرسال</button>
+        <button id="deposit-reset-report-btn" class="report-btn reset-btn">إعادة تعيين</button>
+      </div>
+    </div>
+  </div>
+
+  <template id="account-item-template">
+    <li>
+      <svg class="pin-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+      </svg>
+      <button class="account-name"></button>
+      <span class="account-tag-badge" style="display:none;"></span>
+      <div class="timestamp-history"></div>
+      <span class="timestamp"></span>
+      <button class="copy-button">Copy</button>
+      <button class="delete-button">Delete</button>
+      <div class="tag-selector-container">
+        <button class="tag-button" title="تصنيف الحساب">🏷️</button>
+        <div class="tag-dropdown" style="display:none;">
+          <div class="tag-option" data-tag="suspicious">🔴 مشبوه</div>
+          <div class="tag-option" data-tag="safe">🟢 آمن</div>
+          <div class="tag-option" data-tag="under-review">🟡 قيد المراجعة</div>
+          <div class="tag-option" data-tag="flagged">🚩 محظور</div>
+          <div class="tag-option" data-tag="none">❌ إزالة التصنيف</div>
+        </div>
+      </div>
+      <div class="notes-container">
+        <span class="note-text"></span>
+        <input type="text" class="note-input" style="display: none;">
+        <div class="note-buttons">
+          <button class="add-note-button">Add Note</button>
+          <button class="save-note-button" style="display: none;">Save</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <template id="ip-item-template">
+    <li>
+      <span class="highlight-badge" style="display:none;"></span>
+      <div class="ip-info">
+        <span class="ip-address"></span>
+        <span class="ip-country"></span>
+        <span class="ip-region" style="font-size:0.85em;color:#666;"></span>
+      </div>
+      <span class="timestamp"></span>
+      <button class="copy-button">Copy</button>
+      <button class="delete-button">Delete</button>
+      <button class="info-button icon-btn info-pill" title="عرض تفاصيل IP" aria-label="عرض تفاصيل IP">
+        <svg viewBox="0 0 24 24" class="icon-svg" aria-hidden="true">
+          <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2" fill="none"></circle>
+          <line x1="16.5" y1="16.5" x2="22" y2="22" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+        </svg>
+      </button>
+    </li>
+  </template>
+
+  <div class="footer">
+  </div>
+
+  <div id="history-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <h2>Account History</h2>
+      <div id="history-content"></div>
+    </div>
+  </div>
+
+  <div id="ip-details-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button">&times;</span>
+      <h2>تفاصيل IP</h2>
+      <div id="ip-details-content"></div>
+    </div>
+  </div>
+
+  <!-- Suspicious Activity Report Modal -->
+  <div id="suspicious-modal" class="modal">
+    <div class="modal-content suspicious-content" dir="rtl">
+      <span class="close-button" id="suspicious-close">&times;</span>
+      <h2 style="color: #e74c3c; border-bottom: 2px solid #e74c3c; padding-bottom: 10px;">⚠️ تقرير النشاط المشبوه</h2>
+      <div id="suspicious-list"></div>
+    </div>
+  </div>
+
+  <!-- VIP Note Edit Modal (in-extension, no browser prompt) -->
+  <div id="note-edit-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="note-edit-close">&times;</span>
+      <h2 id="note-edit-title">تعديل الملاحظة</h2>
+
+      <div class="note-edit-meta">
+        <div class="note-edit-meta-row">
+          <span class="note-edit-meta-label">النوع:</span>
+          <span class="note-edit-meta-value" id="note-edit-kind">IP</span>
+        </div>
+        <div class="note-edit-meta-row">
+          <span class="note-edit-meta-label">القيمة:</span>
+          <span class="note-edit-meta-value note-edit-mono" id="note-edit-value"></span>
+        </div>
+      </div>
+
+      <label class="note-edit-label" for="note-edit-input">الملاحظة (اتركها فاضية لمسح الملاحظة):</label>
+      <textarea id="note-edit-input" class="note-edit-input" rows="4" placeholder="اكتب الملاحظة هنا..."></textarea>
+
+      <div class="note-edit-actions">
+        <button type="button" id="note-edit-cancel" class="note-edit-cancel">إلغاء</button>
+        <button type="button" id="note-edit-save" class="note-edit-save">حفظ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for delete confirmation -->
+  <div id="delete-confirm-modal" class="modal-overlay" style="display: none;">
+    <div class="modal-content">
+      <h3>تأكيد الحذف</h3>
+      <p id="delete-confirm-message">هل أنت متأكد من حذف هذا العنصر من قائمة VIP؟</p>
+      <div class="modal-actions">
+        <button id="delete-confirm-cancel" class="btn-secondary">إلغاء</button>
+        <button id="delete-confirm-ok" class="btn-danger">حذف</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Saved Notes Modal -->
+  <div id="saved-notes-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="saved-notes-close">&times;</span>
+      <h2>الملاحظات المحفوظة</h2>
+      
+      <div class="saved-notes-input-group">
+        <input type="text" id="new-note-input" placeholder="أضف ملاحظة جديدة..." class="report-input">
+        <button id="add-note-btn" class="report-btn generate-btn" style="flex: 0 0 auto; width: auto;">إضافة</button>
+      </div>
+
+      <ul id="saved-notes-list" class="saved-notes-list">
+        <!-- Notes will be injected here -->
+      </ul>
+    </div>
+  </div>
+
+  <!-- Telegram Settings Modal -->
+  <div id="telegram-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="telegram-settings-close">&times;</span>
+      <h2>إعدادات المستخدم</h2>
+      
+      <div class="report-field-group">
+        <label for="employee-name-select" class="report-label">اسم الموظف:</label>
+        <select id="employee-name-select" class="report-input report-select">
+          <option value="" disabled selected>اختر اسمك...</option>
+        </select>
+      </div>
+
+
+
+      <button id="save-user-settings-btn" class="report-btn generate-btn" style="width: 100%; margin-bottom: 20px;">حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <!-- Credit Out Section -->
+  <div id="credit-out-section" class="data-list" style="display: none;" dir="rtl">
+    <div class="report-container" style="max-width: 100%; padding: 20px; box-shadow: none; background: transparent;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير Credit Out</h2>
+        <div style="display: flex; gap: 5px;">
+          <button id="credit-out-settings-btn" class="icon-btn" title="إعدادات" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+        </div>
+      </div>
+      
+      <div class="report-field-group">
+        <label class="report-label">فترة الشفت:</label>
+        <div class="shift-selector-container" style="display: flex; gap: 10px; margin-bottom: 5px;">
+          <button type="button" class="credit-out-shift-btn shift-btn" data-value="الصباحي">الصباحي ☀️</button>
+          <button type="button" class="credit-out-shift-btn shift-btn" data-value="المسائي">المسائي 🌅</button>
+          <button type="button" class="credit-out-shift-btn shift-btn" data-value="الخفر">الخفر 🌙</button>
+        </div>
+        <input type="hidden" id="credit-out-shift" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-ip" class="report-label">IP:</label>
+        <input type="text" id="credit-out-ip" class="report-input" placeholder="أدخل IP">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-country" class="report-label">IP Country:</label>
+        <input type="text" id="credit-out-country" class="report-input readonly-input" readonly placeholder="سيتم ملؤه تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-account" class="report-label">رقم الحساب:</label>
+        <input type="text" id="credit-out-account" class="report-input" placeholder="أدخل رقم الحساب">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-email" class="report-label">الإيميل:</label>
+        <input type="email" id="credit-out-email" class="report-input" placeholder="أدخل الإيميل">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-date" class="report-label">التاريخ:</label>
+        <input type="text" id="credit-out-date" class="report-input" placeholder="الصق سطر البيانات وسيتم استخراج التاريخ تلقائياً">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-amount" class="report-label">المبلغ:</label>
+        <input type="text" id="credit-out-amount" class="report-input" placeholder="أدخل المبلغ (مثال: 41.83$)">
+      </div>
+
+      <div class="report-field-group">
+        <label for="credit-out-notes" class="report-label">الملاحظة:</label>
+        <div style="position: relative;">
+          <textarea id="credit-out-notes" class="report-input" rows="3" placeholder="أدخل الملاحظة" style="resize: vertical;"></textarea>
+          <button id="credit-out-notes-modal-btn" type="button" style="position: absolute; left: 10px; bottom: 10px; background: none; border: none; cursor: pointer; font-size: 1.2rem;" title="اختر ملاحظة">📋</button>
+        </div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور):</label>
+        <div id="credit-out-drop-zone" class="image-upload-area">
+          <div class="upload-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+          </div>
+          <div class="upload-text">اسحب الصور وأفلتها هنا</div>
+          <div class="upload-hint">أو اضغط للاختيار</div>
+          <input type="file" id="credit-out-file-input" accept="image/*" multiple style="display: none;">
+        </div>
+        <div id="credit-out-preview-container" class="preview-container"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المنشن:</label>
+        <div class="mention-buttons-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" id="credit-out-mention-ahmed" class="mention-btn">Ahmed (@ahmedelgma)</button>
+          <button type="button" id="credit-out-mention-batoul" class="mention-btn">Batoul (@batoulhassan)</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 30px; flex-wrap: wrap;">
+        <button id="credit-out-copy-btn" class="report-btn generate-btn" style="flex: 1;">نسخ التقرير</button>
+        <button id="credit-out-send-btn" class="report-btn telegram-btn" style="flex: 1;">إرسال</button>
+        <button id="credit-out-reset-btn" class="report-btn reset-btn" style="flex: 1;">إعادة تعيين</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Credit Out Notes Modal -->
+  <div id="credit-out-notes-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="credit-out-notes-modal-close">&times;</span>
+      <h2>الملاحظات المحفوظة</h2>
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+        <input type="text" id="credit-out-new-note-input" placeholder="أضف ملاحظة جديدة..." class="report-input">
+        <button id="credit-out-add-note-btn" class="report-btn generate-btn" style="flex: 0 0 auto; width: auto; padding: 10px 20px;">إضافة</button>
+      </div>
+
+      <ul id="credit-out-notes-list" style="list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto;">
+      </ul>
+    </div>
+  </div>
+
+  <!-- Credit Out Settings Modal -->
+  <div id="credit-out-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="credit-out-settings-close">&times;</span>
+      <h2>إعدادات المستخدم</h2>
+      
+      <div class="report-field-group">
+        <label for="credit-out-employee-select" class="report-label">اسم الموظف:</label>
+        <select id="credit-out-employee-select" class="report-input report-select">
+          <option value="" disabled selected>اختر اسمك...</option>
+        </select>
+      </div>
+
+      <button id="credit-out-save-settings-btn" class="report-btn generate-btn" style="width: 100%;">حفظ الإعدادات</button>
+    </div>
+  </div>
+
+  <!-- Withdrawal Report Section -->
+  <div id="withdrawal-report-section" class="data-list" style="display: none;" dir="rtl">
+    <div class="report-container" style="max-width: 100%; padding: 20px; box-shadow: none; background: transparent;">
+      <h2 class="report-title" style="color: #e0e0e0; border-bottom-color: #444;">تقرير سحب جديد</h2>
+      
+      <div class="report-field-group">
+        <label class="report-label" style="color: #ccc;">عنوان المحفظة <span style="color: #e74c3c;">*</span></label>
+        <input type="text" id="withdrawal-wallet" class="report-input" placeholder="أدخل عنوان المحفظة" style="background: #2d3748; color: white; border-color: #4a5568;">
+        <div id="withdrawal-wallet-feedback" style="margin-top: 8px; font-size: 13px; font-weight: 500; min-height: 20px; transition: all 0.3s ease;"></div>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label" style="color: #ccc;">الإيميلات <span style="color: #e74c3c;">*</span></label>
+        <textarea id="withdrawal-email" class="report-input" placeholder="أدخل البريد الإلكتروني (كل إيميل في سطر)" style="background: #2d3748; color: white; border-color: #4a5568; min-height: 100px; resize: vertical; font-family: monospace;"></textarea>
+        <small style="color: #a0aec0; display: block; margin-top: 5px;">يمكنك لصق نص كامل وسيتم استخراج الإيميلات تلقائياً</small>
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">المرفقات (صور)</label>
+        <div id="withdrawal-drop-zone" class="image-upload-area">
+            <div class="upload-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+            </div>
+            <div class="upload-text">اسحب الصور وأفلتها هنا</div>
+            <div class="upload-hint">أو اضغط للاختيار (الحد الأقصى 3 صور)</div>
+            <div class="upload-hint">يمكنك أيضاً لصق الصور (Ctrl+V)</div>
+            <input type="file" id="withdrawal-file-input" accept="image/*" multiple style="display: none;">
+        </div>
+        <div id="withdrawal-preview-container" class="preview-container"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 30px;">
+        <button id="withdrawal-reset-btn" class="report-btn reset-btn" style="flex: 1; background: #4a5568; color: white;">إعادة تعيين</button>
+        <button id="withdrawal-submit-btn" class="report-btn generate-btn" style="flex: 2; background: #3498db;">إرسال التقرير</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Form Settings Modal -->
+  <div id="google-form-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar" style="max-height: 80vh; overflow-y: auto;">
+      <span class="close-button" id="google-form-settings-close">&times;</span>
+      <h2>إعدادات Google Form</h2>
+      
+      <div class="report-field-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+        <input type="checkbox" id="google-form-enable" style="width: auto; margin: 0; cursor: pointer;">
+        <label for="google-form-enable" style="margin: 0; cursor: pointer;">تفعيل الإرسال إلى Google Form</label>
+      </div>
+
+      <div class="report-field-group">
+        <label for="google-form-url" class="report-label">رابط الفورم (Form Action URL):</label>
+        <input type="text" id="google-form-url" class="report-input" placeholder="https://docs.google.com/forms/d/e/.../formResponse">
+      </div>
+
+      <h3>معرفات الحقول (Entry IDs)</h3>
+      
+      <div class="report-field-group">
+        <label for="entry-ip" class="report-label">IP Entry ID:</label>
+        <input type="text" id="entry-ip" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-country" class="report-label">Country Entry ID:</label>
+        <input type="text" id="entry-country" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-account" class="report-label">Account Entry ID:</label>
+        <input type="text" id="entry-account" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-email" class="report-label">Email Entry ID:</label>
+        <input type="text" id="entry-email" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-employee" class="report-label">Employee Name Entry ID:</label>
+        <input type="text" id="entry-employee" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-shift" class="report-label">Shift Entry ID:</label>
+        <input type="text" id="entry-shift" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-profits" class="report-label">Profits Entry ID:</label>
+        <input type="text" id="entry-profits" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-old-group" class="report-label">Old Group Entry ID:</label>
+        <input type="text" id="entry-old-group" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-new-group" class="report-label">New Group Entry ID:</label>
+        <input type="text" id="entry-new-group" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-source" class="report-label">Source Entry ID:</label>
+        <input type="text" id="entry-source" class="report-input" placeholder="entry.123456">
+      </div>
+      <div class="report-field-group">
+        <label for="entry-notes" class="report-label">Notes Entry ID:</label>
+        <input type="text" id="entry-notes" class="report-input" placeholder="entry.123456">
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <button id="restore-google-form-defaults" class="report-btn reset-btn" style="flex: 1;">استعادة الافتراضي</button>
+        <button id="save-google-form-settings" class="report-btn generate-btn" style="flex: 1;">حفظ الإعدادات</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core: Variables, Toast, Translations -->
+  <script src="./sidepanel-core.js"></script>
+  
+  <!-- Modals: All Modal Windows -->
+  <script src="./sidepanel-modals.js"></script>
+  
+  <!-- Tabs: Navigation & Filters -->
+  <script src="./sidepanel-tabs.js"></script>
+
+  <!-- Shared IP geolocation client -->
+  <script src="../../src/shared/ip-geo-client.js"></script>
+  <script src="../../src/shared/employee-directory.js"></script>
+  <script src="../../src/shared/services/storage-service.js"></script>
+  <script src="../../src/shared/services/ip-geo-service.js"></script>
+  <script src="../../src/shared/services/report-submit-service.js"></script>
+  <script src="../../src/shared/services/input-utils-service.js"></script>
+  <script src="./core/sidepanel-config.js"></script>
+  <script src="./core/sidepanel-app.js"></script>
+  
+  <!-- Feature Logic: split from legacy sidepanel.js -->
+  <script src="./features/01-critical-watchlist.js"></script>
+  <script src="./features/02-data-rendering.js"></script>
+  <script src="./features/03-profit-wallets.js"></script>
+  <script src="./features/transfer-report/state.js"></script>
+  <script src="./features/transfer-report/ip-country.js"></script>
+  <script src="./features/transfer-report/dom.js"></script>
+  <script src="./features/transfer-report/report-builder.js"></script>
+  <script src="./features/transfer-report/notes-modal.js"></script>
+  <script src="./features/transfer-report/settings-google-form.js"></script>
+  <script src="./features/transfer-report/settings-user.js"></script>
+  <script src="./features/transfer-report/mentions.js"></script>
+  <script src="./features/transfer-report/images.js"></script>
+  <script src="./features/transfer-report/shift.js"></script>
+  <script src="./features/transfer-report/submit.js"></script>
+  <script src="./features/transfer-report/index.js"></script>
+  <script src="./features/05-deposit-report.js"></script>
+  <script src="./features/06-withdrawal-report.js"></script>
+  <script src="./features/08-credit-out.js"></script>
+  <script src="./features/09-bootstrap.js"></script>
+</body>
+</html>
+
