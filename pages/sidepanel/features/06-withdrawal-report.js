@@ -214,7 +214,11 @@ if (withdrawalWalletInput) {
 }
 
 function getCurrentShiftInfo() {
-    const now = new Date();
+    // تحديد وقت القاهرة عشان يفضل ثابت للموظفين اللي في دول تانية
+    const localNow = new Date();
+    const cairoTimeStr = localNow.toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+    const now = new Date(cairoTimeStr);
+
     const day = now.getDay(); // 5 = Friday
     const hour = now.getHours();
     const minute = now.getMinutes();
@@ -224,15 +228,15 @@ function getCurrentShiftInfo() {
 
     // Friday Special Schedule
     if (day === 5) {
-        if (totalMinutes >= 420 && totalMinutes <= 759) shift = 'الصباحي';
-        else if (totalMinutes >= 760 && totalMinutes <= 1099) shift = 'المسائي';
-        else shift = 'الخفر';
+        if (totalMinutes >= 420 && totalMinutes <= 739) shift = 'الصباحي'; // 07:00 -> 12:19
+        else if (totalMinutes >= 740 && totalMinutes <= 1059) shift = 'المسائي'; // 12:20 -> 17:39
+        else if (totalMinutes >= 1060 || totalMinutes < 420) shift = 'الخفر'; // 17:40 -> 06:59
     } 
     // Standard Schedule
     else {
-        if (hour >= 7 && hour < 15) shift = 'الصباحي';
-        else if (hour >= 15 && hour < 23) shift = 'المسائي';
-        else shift = 'الخفر';
+        if (hour >= 7 && hour < 15) shift = 'الصباحي'; // 07:00 -> 14:59
+        else if (hour >= 15 && hour < 23) shift = 'المسائي'; // 15:00 -> 22:59
+        else if (hour >= 23 || hour < 7) shift = 'الخفر'; // 23:00 -> 06:59
     }
     
     let date = new Date(now);

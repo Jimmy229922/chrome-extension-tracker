@@ -219,16 +219,34 @@
 
   // Auto-detect shift
   window.creditOutAutoDetectShift = function() {
-    const now = new Date();
-    const hour = now.getHours();
-    let shift = '';
+    // تحديد وقت القاهرة عشان يفضل ثابت للموظفين اللي في دول تانية زي سوريا
+    const localNow = new Date();
+    const cairoTimeStr = localNow.toLocaleString("en-US", { timeZone: "Africa/Cairo" });
+    const now = new Date(cairoTimeStr);
     
-    if (hour >= 8 && hour < 16) {
-      shift = 'الصباحي';
-    } else if (hour >= 16 && hour < 24) {
-      shift = 'المسائي';
+    const day = now.getDay(); // 0 = Sunday, 5 = Friday
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+    const totalMinutes = hour * 60 + minute;
+    
+    let shift = 'الخفر';
+    
+    if (day === 5) {
+      if (totalMinutes >= 420 && totalMinutes <= 739) {
+        shift = 'الصباحي'; // 07:00 -> 12:19
+      } else if (totalMinutes >= 740 && totalMinutes <= 1059) {
+        shift = 'المسائي'; // 12:20 -> 17:39
+      } else if (totalMinutes >= 1060 || totalMinutes < 420) {
+        shift = 'الخفر'; // 17:40 -> 06:59
+      }
     } else {
-      shift = 'الخفر';
+      if (hour >= 7 && hour < 15) {
+        shift = 'الصباحي'; // 07:00 -> 14:59
+      } else if (hour >= 15 && hour < 23) {
+        shift = 'المسائي'; // 15:00 -> 22:59
+      } else if (hour >= 23 || hour < 7) {
+        shift = 'الخفر'; // 23:00 -> 06:59
+      }
     }
     
     creditOutShiftBtns.forEach(btn => {
@@ -638,19 +656,17 @@
     const rawAmount = creditOutAmountInput?.value.trim() || '';
     const amount = rawAmount ? formatCreditOutAmountWithDollar(rawAmount) : 'غير محدد';
     const notes = creditOutNotesInput?.value.trim() || 'لا توجد';
-    const employeeName = await getCreditOutEmployeeName();
 
     let reportText = ``;
-    reportText += `الموظف: ${employeeName}\n`;
     reportText += `فترة الشفت: ${shift}\n`;
-    reportText += `ip country: ${country}\n`;
-    reportText += `IP: ${ip}\n`;
-    reportText += `الإيميل: ${email}\n`;
-    reportText += `رقم الحساب: ${account}\n`;
-    reportText += `التاريخ: ${dateTime}\n`;
-    reportText += `المبلغ: ${amount}\n`;
-    reportText += `الملاحظات: ${notes}\n\n`;
-    reportText += `#credit-out`;
+    reportText += `ip country: \`${country}\`\n`;
+    reportText += `IP: \`${ip}\`\n`;
+    reportText += `الإيميل: \`${email}\`\n`;
+    reportText += `رقم الحساب: \`${account}\`\n`;
+    reportText += `التاريخ: \`${dateTime}\`\n`;
+    reportText += `المبلغ: \`${amount}\`\n`;
+    reportText += `الملاحظات: \`${notes}\`\n\n`;
+    reportText += `#credit_out`;
 
     const mentions = [];
     if (creditOutMentionAhmed?.classList.contains('active')) {
@@ -676,10 +692,8 @@
     const rawAmount = creditOutAmountInput?.value.trim() || '';
     const amount = rawAmount ? formatCreditOutAmountWithDollar(rawAmount) : 'غير محدد';
     const notes = creditOutNotesInput?.value.trim() || 'لا توجد';
-    const employeeName = await getCreditOutEmployeeName();
 
     let message = `<b>تقرير Credit Out</b>\n\n`;
-    message += `<b>الموظف:</b> ${escapeCreditOutHtml(employeeName)}\n`;
     message += `<b>فترة الشفت:</b> ${escapeCreditOutHtml(shift)}\n`;
     message += `<b>ip country:</b> <code>${escapeCreditOutHtml(country)}</code>\n`;
     message += `<b>IP:</b> <code>${escapeCreditOutHtml(ip)}</code>\n`;
@@ -688,7 +702,7 @@
     message += `<b>التاريخ:</b> <code>${escapeCreditOutHtml(dateTime)}</code>\n`;
     message += `<b>المبلغ:</b> <code>${escapeCreditOutHtml(amount)}</code>\n`;
     message += `<b>الملاحظات:</b> <code>${escapeCreditOutHtml(notes)}</code>\n\n`;
-    message += `#credit-out`;
+    message += `#credit_out`;
 
     const mentions = [];
     if (creditOutMentionAhmed?.classList.contains('active')) {
