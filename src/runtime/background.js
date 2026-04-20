@@ -86,6 +86,12 @@ const CRITICAL_POPUP_MARGIN = 16;
 // Telegram Configuration
 const TELEGRAM_BOT_TOKEN = '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA'; // Same token as Sidepanel
 const ALERT_CHAT_ID = '-1003537370414'; // Telegram group: IP BLOCKED (Supergroup)
+const PROFIT_TRACKER_STORAGE_KEY = 'profitTrackerClients';
+const PROFIT_TRACKER_SETTINGS_KEY = 'profitTrackerSettings';
+const TELEGRAM_CHECK_OFFSET_STORAGE_KEY = 'telegramCheckOffset';
+const TELEGRAM_CHECK_POLL_INTERVAL_MS = 9000;
+
+let telegramCheckPollingBusy = false;
 
 const BACKGROUND_I18N_FALLBACK = {
   unknown: 'غير معروف',
@@ -1046,6 +1052,182 @@ function formatSecurityAlertErrorArabic(rawError) {
   return `فشل الإرسال إلى Telegram: ${cleaned || text}`;
 }
 
+function normalizeTelegramChatId(chatId) {
+  if (chatId === null || chatId === undefined) return '';
+  return String(chatId).trim();
+}
+
+function parseTelegramAccountCheckCommand(text) {
+  if (typeof text !== 'string') return null;
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+
+  const commandMatch = trimmed.match(/^\/check(?:@\w+)?\s+(\d{6,7})$/i);
+  if (commandMatch && commandMatch[1]) {
+    return commandMatch[1];
+  }
+
+  if (/^\d{6,7}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  return null;
+}
+
+async function getProfitTrackerClientsMap() {
+  const data = await chrome.storage.local.get(PROFIT_TRACKER_STORAGE_KEY);
+  const raw = data && data[PROFIT_TRACKER_STORAGE_KEY];
+  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+    return raw;
+  }
+  return {};
+}
+
+async function getProfitTrackerAllowedChatId() {
+  const data = await chrome.storage.local.get(PROFIT_TRACKER_SETTINGS_KEY);
+  const settings = data && data[PROFIT_TRACKER_SETTINGS_KEY];
+  if (!settings || typeof settings !== 'object') return '';
+  return normalizeTelegramChatId(settings.chatId);
+}
+
+async function sendTelegramTextMessage(chatId, text, replyToMessageId) {
+  if (!TELEGRAM_BOT_TOKEN) return;
+
+  const normalizedChatId = normalizeTelegramChatId(chatId);
+  if (!normalizedChatId) return;
+
+  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+  const payload = {
+    chat_id: normalizedChatId,
+    text: String(text || '').trim()
+  };
+
+  if (Number.isFinite(Number(replyToMessageId)) && Number(replyToMessageId) > 0) {
+    payload.reply_to_message_id = Number(replyToMessageId);
+    payload.allow_sending_without_reply = true;
+  }
+
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (error) {
+    console.warn('Telegram check reply failed:', error);
+  }
+}
+
+function buildAccountCheckReplyText(account, entries) {
+  const list = Array.isArray(entries) ? entries : [];
+  const isRegistered = list.length > 0;
+
+  if (!isRegistered) {
+    return `❌ الحساب ${account} غير مسجل في Profit Tracker`;
+  }
+
+  const latest = list[list.length - 1] || null;
+  const latestDate = latest && Number.isFinite(Number(latest.timestamp))
+    ? new Date(latest.timestamp).toLocaleString('ar-EG')
+    : 'غير متوفر';
+
+  return `✅ الحساب ${account} مسجل\nعدد التسجيلات: ${list.length}\nآخر تحديث: ${latestDate}`;
+}
+
+async function handleTelegramAccountCheckMessage(message) {
+  if (!message || typeof message !== 'object') return false;
+
+  const from = message.from && typeof message.from === 'object' ? message.from : null;
+  if (from && from.is_bot) return false;
+
+  const rawText = typeof message.text === 'string' ? message.text : '';
+  const account = parseTelegramAccountCheckCommand(rawText);
+  if (!account) return false;
+
+  const chat = message.chat && typeof message.chat === 'object' ? message.chat : null;
+  const incomingChatId = normalizeTelegramChatId(chat && chat.id);
+  if (!incomingChatId) return false;
+
+  const allowedChatId = await getProfitTrackerAllowedChatId();
+  if (allowedChatId && incomingChatId !== allowedChatId) {
+    return false;
+  }
+
+  const clients = await getProfitTrackerClientsMap();
+  const entries = clients && Object.prototype.hasOwnProperty.call(clients, account) ? clients[account] : [];
+  const replyText = buildAccountCheckReplyText(account, entries);
+
+  await sendTelegramTextMessage(incomingChatId, replyText, message.message_id);
+  return true;
+}
+
+async function pollTelegramAccountCheckCommands(reason = 'interval') {
+  if (telegramCheckPollingBusy) return;
+  telegramCheckPollingBusy = true;
+
+  try {
+    if (!TELEGRAM_BOT_TOKEN) return;
+
+    const offsetData = await chrome.storage.local.get(TELEGRAM_CHECK_OFFSET_STORAGE_KEY);
+    let offset = Number(offsetData && offsetData[TELEGRAM_CHECK_OFFSET_STORAGE_KEY]);
+    if (!Number.isFinite(offset) || offset < 0) {
+      offset = 0;
+    }
+
+    const params = new URLSearchParams();
+    params.set('timeout', '0');
+    params.set('limit', '40');
+    params.set('allowed_updates', JSON.stringify(['message', 'edited_message']));
+    if (offset > 0) {
+      params.set('offset', String(offset));
+    }
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?${params.toString()}`;
+    const response = await fetch(url, { method: 'GET', cache: 'no-store' });
+    if (!response.ok) return;
+
+    const payload = await response.json();
+    if (!payload || payload.ok !== true || !Array.isArray(payload.result) || payload.result.length === 0) {
+      return;
+    }
+
+    // First run: skip old backlog and start from latest offset.
+    if (offset === 0) {
+      const latestUpdate = payload.result[payload.result.length - 1];
+      const bootstrapOffset = Number(latestUpdate && latestUpdate.update_id) + 1;
+      if (Number.isFinite(bootstrapOffset) && bootstrapOffset > 0) {
+        await chrome.storage.local.set({ [TELEGRAM_CHECK_OFFSET_STORAGE_KEY]: bootstrapOffset });
+      }
+      return;
+    }
+
+    let nextOffset = offset;
+    for (const update of payload.result) {
+      const updateId = Number(update && update.update_id);
+      if (Number.isFinite(updateId)) {
+        nextOffset = Math.max(nextOffset, updateId + 1);
+      }
+
+      const message = update && (update.message || update.edited_message);
+      if (!message || typeof message !== 'object') continue;
+
+      try {
+        await handleTelegramAccountCheckMessage(message);
+      } catch (error) {
+        console.warn('Telegram /check message handling failed:', error);
+      }
+    }
+
+    if (nextOffset > offset) {
+      await chrome.storage.local.set({ [TELEGRAM_CHECK_OFFSET_STORAGE_KEY]: nextOffset });
+    }
+  } catch (error) {
+    console.warn(`Telegram /check polling failed (${reason}):`, error);
+  } finally {
+    telegramCheckPollingBusy = false;
+  }
+}
+
 async function sendTelegramAlert(ipMessage, country, type, accountNumber = null, groupType = null, customerEmail = null) {
   console.log('%c >>> STARTING TELEGRAM ALERT <<<', 'background: #222; color: #bada55; font-size: 20px');
   console.log('Parameters:', { ipMessage, country, type, ALERT_CHAT_ID, accountNumber, groupType, customerEmail });
@@ -1477,6 +1659,7 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'sidepanel') {
     isSidePanelOpen = true;
+    void pollTelegramAccountCheckCommands('sidepanel-connect');
     // Flush queued toasts
     if (toastQueue.length) {
       toastQueue.forEach(t => chrome.runtime.sendMessage({ type: 'showToast', ...t }));
@@ -1512,10 +1695,14 @@ async function clearOldAccounts() {
 chrome.runtime.onStartup.addListener(() => {
   setupOffscreenDocument('src/runtime/offscreen.html');
   clearOldAccounts();
+  void pollTelegramAccountCheckCommands('startup');
 });
 
 // Clear old accounts periodically (e.g., every hour)
 setInterval(clearOldAccounts, 60 * 60 * 1000);
+setInterval(() => {
+  void pollTelegramAccountCheckCommands('interval');
+}, TELEGRAM_CHECK_POLL_INTERVAL_MS);
 
 async function setupOffscreenDocument(path) {
   const offscreenUrl = chrome.runtime.getURL(path);
@@ -2813,6 +3000,7 @@ chrome.action.onClicked.addListener(async (tab) => {
 // Ensure the offscreen document is created when the extension is installed or updated.
 chrome.runtime.onInstalled.addListener(async (details) => {
   await setupOffscreenDocument('src/runtime/offscreen.html');
+  void pollTelegramAccountCheckCommands('install');
   if (details.reason === 'install') {
       chrome.storage.local.set({ copiedAccounts: [], copiedIPs: [] });
       await clearCriticalIpBadge();
@@ -2835,6 +3023,7 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 setupOffscreenDocument('src/runtime/offscreen.html');
 restoreCriticalIpBadge();
 loadCriticalWatchlistFromSync().catch(() => {});
+void pollTelegramAccountCheckCommands('boot');
 
 // Strip Origin header from ipwhois.app requests to avoid free-plan CORS rejection
 chrome.declarativeNetRequest.updateDynamicRules({

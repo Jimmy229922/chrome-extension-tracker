@@ -152,3 +152,206 @@ body.dark-mode .shift-btn[data-value="الخفر"].active:hover {
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
 }
 
+/* ============================================
+   PROFIT TRACKER STYLES
+   ============================================ */
+
+/* Analysis Result Container */
+.pt-analysis-result {
+  margin-top: 20px;
+  padding: 20px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  border: 1px solid #334155;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pt-analysis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #334155;
+}
+
+.pt-analysis-header h3 {
+  margin: 0;
+  color: #e0e0e0;
+  font-size: 1.1rem;
+}
+
+.pt-time-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Analysis Card */
+.pt-analysis-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pt-analysis-account-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pt-account-badge {
+  background: linear-gradient(135deg, #229ED9 0%, #1E88E5 100%);
+  color: white;
+  padding: 5px 14px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.pt-account-type {
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+/* Metric Rows */
+.pt-metric-row {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pt-metric-row:hover {
+  transform: translateX(-2px);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pt-metric-label {
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.pt-metric-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.pt-prev-value {
+  color: #a0aec0;
+  font-size: 0.9rem;
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.pt-arrow {
+  color: #667eea;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.pt-curr-value {
+  color: #e0e0e0;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.pt-metric-change {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* History Section */
+.pt-history-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #334155;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pt-history-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #667eea;
+  transform: translateX(-2px);
+}
+
+.pt-history-item-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.pt-entries-count {
+  background: #334155;
+  color: #94a3b8;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.pt-delete-client-btn {
+  margin-right: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.pt-delete-client-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.pt-history-item-details {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  line-height: 1.8;
+}
+
+/* Timestamps Footer in Analysis */
+.pt-timestamps-footer {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+  color: #64748b;
+  line-height: 1.8;
+}
+
+/* Submit button loading state */
+#pt-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#pt-send-telegram-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+#profit-tracker-section .report-input.readonly-input,
+#profit-tracker-section .report-input[readonly] {
+  background: linear-gradient(180deg, rgba(8, 20, 33, 0.78), rgba(9, 23, 38, 0.72));
+  color: #cdd9df;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+

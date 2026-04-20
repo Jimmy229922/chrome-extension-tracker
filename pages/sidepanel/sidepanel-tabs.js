@@ -97,6 +97,9 @@ if (depositPercentageBtn) depositPercentageBtn.addEventListener('click', () => s
 const creditOutBtn = document.getElementById('credit-out-btn');
 if (creditOutBtn) creditOutBtn.addEventListener('click', () => switchTab('credit-out'));
 
+const profitTrackerBtn = document.getElementById('profit-tracker-btn');
+if (profitTrackerBtn) profitTrackerBtn.addEventListener('click', () => switchTab('profit-tracker'));
+
 function switchTab(tabName) {
   activeTab = tabName;
 
@@ -109,6 +112,7 @@ function switchTab(tabName) {
   transferReportTab.classList.remove('active');
   if (depositPercentageBtn) depositPercentageBtn.classList.remove('active');
   if (creditOutBtn) creditOutBtn.classList.remove('active');
+  if (profitTrackerBtn) profitTrackerBtn.classList.remove('active');
 
   accountList.classList.remove('active');
   ipList.classList.remove('active');
@@ -121,6 +125,9 @@ function switchTab(tabName) {
 
   const creditOutSection = document.getElementById('credit-out-section');
   if (creditOutSection) creditOutSection.style.display = 'none';
+
+  const profitTrackerSection = document.getElementById('profit-tracker-section');
+  if (profitTrackerSection) profitTrackerSection.style.display = 'none';
 
   document.getElementById('tag-filter-bar').style.display = 'none';
   searchBar.style.display = 'none';
@@ -242,6 +249,19 @@ function switchTab(tabName) {
     return;
   }
 
+  if (tabName === 'profit-tracker') {
+    if (profitTrackerBtn) profitTrackerBtn.classList.add('active');
+    if (profitTrackerSection) profitTrackerSection.style.display = 'block';
+
+    if (headerEl) {
+      headerEl.style.display = 'block';
+      headerEl.classList.add('static-mode');
+    }
+
+    runWithSkeleton(profitTrackerSection, tabName, () => window.runTabInitializer(tabName), initPending);
+    return;
+  }
+
   if (headerEl) headerEl.style.display = 'block';
 }
 
@@ -286,7 +306,7 @@ document.getElementById('open-settings').addEventListener('click', () => {
 let lastScrollY = 0;
 let ticking = false;
 function handleScroll() {
-  if (activeTab === 'transfer-report') {
+  if (activeTab === 'transfer-report' || activeTab === 'profit-tracker') {
     headerEl.classList.remove('hidden');
     ticking = false;
     return;

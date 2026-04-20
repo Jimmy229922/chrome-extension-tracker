@@ -28,6 +28,7 @@
       <button id="withdrawal-report-btn" class="tab-button">Withdrawal Report</button>
       <button id="credit-out-btn" class="tab-button">Credit Out</button>
       <button id="deposit-percentage-btn" class="tab-button">Deposit Percentage</button>
+      <button id="profit-tracker-btn" class="tab-button">Profit Tracker</button>
     </div>
     <div class="tracking-toggle-wrapper">
       <label class="switch">
@@ -781,6 +782,96 @@
     </div>
   </div>
 
+  <!-- Profit Tracker Section -->
+  <div id="profit-tracker-section" class="data-list" style="display: none;" dir="rtl">
+    <div class="report-container" style="max-width: 100%; padding: 20px; box-shadow: none; background: transparent;">
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 class="report-title" style="margin: 0; border: none; padding: 0;">📊 Profit Tracker</h2>
+        <div style="display: flex; gap: 5px;">
+          <button id="profit-tracker-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+          <button id="profit-tracker-history-btn" class="icon-btn" title="سجل العملاء" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">📋</button>
+        </div>
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-account" class="report-label">رقم الحساب *</label>
+        <input type="text" id="pt-account" class="report-input" placeholder="مثال: 3175861" inputmode="numeric" maxlength="7" autocomplete="off" pattern="\d{6,7}" title="رقم الحساب لازم يكون 6 أو 7 أرقام">
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-account-type" class="report-label">نوع الحساب</label>
+        <input type="text" id="pt-account-type" class="report-input" placeholder="مثال: Zero Standard Account 2">
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-email" class="report-label">الإيميل</label>
+        <input type="email" id="pt-email" class="report-input" placeholder="مثال: client@example.com">
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-ip" class="report-label">IP</label>
+        <input type="text" id="pt-ip" class="report-input" placeholder="مثال: 91.106.40.81">
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-country" class="report-label">الدولة</label>
+        <input type="text" id="pt-country" class="report-input readonly-input" placeholder="تتحدد تلقائيًا من الـ IP" readonly aria-readonly="true" title="الدولة تتحدد تلقائيًا من الـ IP ولا يمكن الكتابة فيها">
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-floating-loss" class="report-label">الصفقات العائمة خاسرة ($) *</label>
+        <input type="text" id="pt-floating-loss" class="report-input" placeholder="مثال: -2656">
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-total-profit" class="report-label">الأرباح الكلية ($) *</label>
+        <input type="text" id="pt-total-profit" class="report-input" placeholder="مثال: 16985">
+      </div>
+
+      <div class="report-field-group">
+        <label for="pt-weekly-profit" class="report-label">الأرباح في هذا الأسبوع ($) *</label>
+        <input type="text" id="pt-weekly-profit" class="report-input" placeholder="مثال: 1369">
+      </div>
+
+      <!-- Analysis Result Area -->
+      <div id="pt-analysis-result" class="pt-analysis-result" style="display: none;">
+        <div class="pt-analysis-header">
+          <h3>📈 تحليل التغيرات</h3>
+          <span id="pt-analysis-time-diff" class="pt-time-badge"></span>
+        </div>
+        <div id="pt-analysis-content"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
+        <button id="pt-submit-btn" class="report-btn generate-btn" style="flex: 1;">💾 تسجيل البيانات</button>
+        <button id="pt-send-telegram-btn" class="report-btn telegram-btn" style="flex: 1; display: none;">📤 إرسال التحليل</button>
+        <button id="pt-reset-btn" class="report-btn reset-btn" style="flex: 1;">🔄 إعادة تعيين</button>
+      </div>
+
+      <!-- Client History List -->
+      <div id="pt-history-section" style="display: none; margin-top: 20px;">
+        <h3 style="color: #e0e0e0; border-bottom: 1px solid #444; padding-bottom: 8px;">📋 سجل العملاء المحفوظين</h3>
+        <div id="pt-history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profit Tracker Settings Modal -->
+  <div id="profit-tracker-settings-modal" class="modal">
+    <div class="modal-content" dir="rtl" lang="ar">
+      <span class="close-button" id="pt-settings-close">&times;</span>
+      <h2>إعدادات Profit Tracker</h2>
+
+      <div class="report-field-group">
+        <label for="pt-telegram-chat-id" class="report-label">Chat ID لجروب التلجرام:</label>
+        <input type="text" id="pt-telegram-chat-id" class="report-input" placeholder="مثال: -1001234567890">
+        <small style="color: #a0aec0; display: block; margin-top: 5px;">أدخل الـ Chat ID الخاص بالجروب اللي عايز التحليل يتبعت عليه</small>
+      </div>
+
+      <button id="pt-save-settings-btn" class="report-btn generate-btn" style="width: 100%; margin-top: 15px;">حفظ الإعدادات</button>
+    </div>
+  </div>
+
   <!-- Google Form Settings Modal -->
   <div id="google-form-settings-modal" class="modal">
     <div class="modal-content" dir="rtl" lang="ar" style="max-height: 80vh; overflow-y: auto;">
@@ -889,6 +980,7 @@
   <script src="./features/05-deposit-report.js"></script>
   <script src="./features/06-withdrawal-report.js"></script>
   <script src="./features/08-credit-out.js"></script>
+  <script src="./features/10-profit-tracker.js"></script>
   <script src="./features/09-bootstrap.js"></script>
 </body>
 </html>
