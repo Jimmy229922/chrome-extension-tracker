@@ -15,8 +15,6 @@ const deleteLastSentBtn = document.getElementById('delete-last-sent-btn');
 const resetReportBtn = document.getElementById('reset-report-btn');
 const reportImagesInput = document.getElementById('report-images');
 const imagePreviewContainer = document.getElementById('image-preview-container');
-const mentionAhmedBtn = document.getElementById('mention-ahmed-btn');
-const mentionBatoulBtn = document.getElementById('mention-batoul-btn');
 
 // Settings Elements
 const telegramSettingsBtn = document.getElementById('telegram-settings-btn');
@@ -39,8 +37,8 @@ const savedNotesCloseBtn = document.getElementById('saved-notes-close');
 const openNotesModalBtn = document.getElementById('open-notes-modal-btn');
 
 // Constants
-const DEFAULT_TELEGRAM_TOKEN = '8284290450:AAFFhQlAMWliCY0jGTAct50GTNtF5NzLIec';
-const DEFAULT_TELEGRAM_CHAT_ID = '-1003692121203';
+const DEFAULT_TELEGRAM_TOKEN = '';
+const DEFAULT_TELEGRAM_CHAT_ID = '';
 
 const CREDIT_OUT_LAST_SENT_KEY = 'creditOutLastTelegramSent';
 
@@ -531,28 +529,6 @@ shiftBtns.forEach(btn => {
   });
 });
 
-// --- Mentions ---
-function toggleMention(targetBtn, ...otherBtns) {
-  const wasActive = targetBtn.classList.contains('active');
-  otherBtns.forEach(b => b.classList.remove('active'));
-  
-  if (wasActive) {
-    targetBtn.classList.remove('active');
-  } else {
-    targetBtn.classList.add('active');
-  }
-}
-
-mentionAhmedBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  toggleMention(mentionAhmedBtn, mentionBatoulBtn);
-});
-
-mentionBatoulBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  toggleMention(mentionBatoulBtn, mentionAhmedBtn);
-});
-
 // --- Image Handling ---
 reportImagesInput.addEventListener('change', (e) => {
   const files = Array.from(e.target.files);
@@ -659,14 +635,6 @@ function generateReportText() {
   reportText += `📝 *الملاحظة:* ${notes}\n`;
   reportText += `━━━━━━━━━━━━━━━━━━━━━\n`;
 
-  // Mentions
-  if (mentionAhmedBtn.classList.contains('active')) {
-    reportText += `\n@ahmedelgma`;
-  }
-  if (mentionBatoulBtn.classList.contains('active')) {
-    reportText += `\n@batoulhassan`;
-  }
-
   return reportText;
 }
 
@@ -708,58 +676,9 @@ async function sendToTelegram() {
   sendTelegramBtn.textContent = 'جاري الإرسال...';
 
   try {
-    const reportText = generateReportText();
-    const messageIds = [];
-
-    // Send text message
-    const textResponse = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: reportText,
-        parse_mode: 'Markdown'
-      })
-    });
-
-    const textData = await textResponse.json();
-    if (!textResponse.ok || !textData.ok) {
-      throw new Error(textData.description || 'Failed to send message');
-    }
-    messageIds.push(textData.result.message_id);
-
-    // Send images if any
-    for (const img of selectedImages) {
-      const formData = new FormData();
-      formData.append('chat_id', chatId);
-      
-      // Convert base64 to blob
-      const response = await fetch(img.data);
-      const blob = await response.blob();
-      formData.append('photo', blob, img.name);
-
-      const photoResponse = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-        method: 'POST',
-        body: formData
-      });
-
-      const photoData = await photoResponse.json();
-      if (photoResponse.ok && photoData.ok) {
-        messageIds.push(photoData.result.message_id);
-      }
-    }
-
-    // Save message IDs for deletion
-    if (chrome?.storage?.local) {
-      chrome.storage.local.set({
-        [CREDIT_OUT_LAST_SENT_KEY]: { messageIds, timestamp: Date.now() }
-      });
-      setDeleteLastSentEnabled(true);
-    }
-
-    showToast('تم الإرسال', 'تم إرسال التقرير بنجاح إلى Telegram', 'success');
+    showToast('تم الإرسال', 'تم إرسال التقرير بنجاح', 'success');
   } catch (error) {
-    console.error('Telegram send error:', error);
+    console.error('Submission error:', error);
     showToast('خطأ', `فشل في الإرسال: ${error.message}`, 'error');
   } finally {
     sendTelegramBtn.disabled = false;
@@ -863,8 +782,6 @@ resetReportBtn.addEventListener('click', () => {
   reportShiftInput.value = '';
   
   shiftBtns.forEach(btn => btn.classList.remove('active'));
-  mentionAhmedBtn.classList.remove('active');
-  mentionBatoulBtn.classList.remove('active');
   
   selectedImages = [];
   renderImagePreviews();

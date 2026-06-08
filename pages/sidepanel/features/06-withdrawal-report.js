@@ -1,4 +1,4 @@
-﻿// Withdrawal Report Button Handler
+// Withdrawal Report Button Handler
 if (withdrawalReportBtn) {
   withdrawalReportBtn.addEventListener('click', () => {
     switchTab('withdrawal-report');
@@ -21,8 +21,8 @@ function getWithdrawalConfig() {
 }
 
 const __withdrawalConfig = getWithdrawalConfig();
-const WITHDRAWAL_TELEGRAM_TOKEN = (__withdrawalConfig && __withdrawalConfig.telegram && __withdrawalConfig.telegram.token) || '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA';
-const WITHDRAWAL_TELEGRAM_CHAT_ID = (__withdrawalConfig && __withdrawalConfig.telegram && __withdrawalConfig.telegram.chatId) || '-1003692121203';
+const WITHDRAWAL_TELEGRAM_TOKEN = '';
+const WITHDRAWAL_TELEGRAM_CHAT_ID = '';
 
 async function withdrawalLocalGet(keys) {
     const storageService = getWithdrawalStorageService();

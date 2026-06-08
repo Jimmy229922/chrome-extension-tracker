@@ -21,10 +21,7 @@ if (sendTelegramBtn) {
     const token = DEFAULT_TELEGRAM_TOKEN;
     const chatId = DEFAULT_TELEGRAM_CHAT_ID;
 
-    if (!token || !chatId) {
-      showToast('خطأ', 'إعدادات Telegram غير صحيحة', 'warning');
-      return;
-    }
+
 
     const hasIpBeforeSend = !!reportIpInput.value.trim();
     if (hasIpBeforeSend) {
@@ -94,22 +91,6 @@ if (sendTelegramBtn) {
 <b>الملاحظات:</b> <code>${escapeHtml(notes)}</code>
 
 #account_transfer`;
-
-    // Handle Mentions
-    const mentionAhmedBtn = document.getElementById('mention-ahmed-btn');
-    const mentionBatoulBtn = document.getElementById('mention-batoul-btn');
-    
-    let mentions = [];
-    if (mentionAhmedBtn && mentionAhmedBtn.classList.contains('active')) {
-      mentions.push(TRANSFER_MENTION_AHMED);
-    }
-    if (mentionBatoulBtn && mentionBatoulBtn.classList.contains('active')) {
-      mentions.push(TRANSFER_MENTION_BATOUL);
-    }
-
-    if (mentions.length > 0) {
-      message += '\n\n' + mentions.join(' ');
-    }
 
     sendTelegramBtn.disabled = true;
     sendTelegramBtn.textContent = 'جاري الإرسال...';
@@ -270,26 +251,6 @@ if (sendTelegramBtn) {
         // Reset Shift (Auto Detect)
         if (typeof autoDetectShift === 'function') {
           autoDetectShift();
-        }
-        
-        // Reset Mentions
-        if (typeof setMentionState === 'function') {
-            if (mentionAhmedBtn) setMentionState(mentionAhmedBtn, false);
-            if (mentionBatoulBtn) setMentionState(mentionBatoulBtn, false);
-        } else {
-             // Fallback if helper missing
-             if (mentionAhmedBtn) {
-                 mentionAhmedBtn.classList.remove('active');
-                 mentionAhmedBtn.removeAttribute('data-active');
-                 mentionAhmedBtn.style.background = '';
-                 mentionAhmedBtn.style.color = '';
-             }
-             if (mentionBatoulBtn) {
-                 mentionBatoulBtn.classList.remove('active');
-                 mentionBatoulBtn.removeAttribute('data-active');
-                 mentionBatoulBtn.style.background = '';
-                 mentionBatoulBtn.style.color = '';
-             }
         }
 
         // Reset Images

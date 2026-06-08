@@ -19,8 +19,6 @@ const deleteLastSentBtn = document.getElementById('delete-last-sent-btn');
 const resetReportBtn = document.getElementById('reset-report-btn');
 const reportImagesInput = document.getElementById('report-images');
 const imagePreviewContainer = document.getElementById('image-preview-container');
-const mentionAhmedBtn = document.getElementById('mention-ahmed-btn');
-const mentionBatoulBtn = document.getElementById('mention-batoul-btn');
 
 // Settings Elements
 const telegramSettingsBtn = document.getElementById('telegram-settings-btn');
@@ -85,8 +83,8 @@ const savedNotesCloseBtn = document.getElementById('saved-notes-close');
 const openNotesModalBtn = document.getElementById('open-notes-modal-btn');
 
 // Constants
-const DEFAULT_TELEGRAM_TOKEN = '8284290450:AAFFhQlAMWliCY0jGTAct50GTNtF5NzLIec';
-const DEFAULT_TELEGRAM_CHAT_ID = '-1003692121203';
+const DEFAULT_TELEGRAM_TOKEN = '';
+const DEFAULT_TELEGRAM_CHAT_ID = '';
 
 const TRANSFER_REPORT_LAST_SENT_KEY = 'transferReportLastTelegramSent';
 
@@ -606,41 +604,6 @@ shiftBtns.forEach(btn => {
     console.log('All buttons:', shiftBtns);
     reportShiftInput.value = btn.dataset.value;
   });
-});
-
-// --- Mentions ---
-function toggleMention(targetBtn, ...otherBtns) {
-  console.log('toggleMention called for:', targetBtn.id);
-  // Toggle the target
-  const wasActive = targetBtn.classList.contains('active');
-  console.log('wasActive:', wasActive);
-  
-  // Reset others
-  otherBtns.forEach(b => {
-    console.log('Deactivating other:', b.id);
-    b.classList.remove('active');
-  });
-
-  // Toggle target (if it was active, it becomes inactive. If it was inactive, it becomes active)
-  if (wasActive) {
-    console.log('Removing active class from target');
-    targetBtn.classList.remove('active');
-  } else {
-    console.log('Adding active class to target');
-    targetBtn.classList.add('active');
-  }
-}
-
-mentionAhmedBtn.addEventListener('click', (e) => {
-  console.log('Ahmed Mention Button Clicked');
-  e.preventDefault();
-  toggleMention(mentionAhmedBtn, mentionBatoulBtn);
-});
-
-mentionBatoulBtn.addEventListener('click', (e) => {
-  console.log('Batoul Mention Button Clicked');
-  e.preventDefault();
-  toggleMention(mentionBatoulBtn, mentionAhmedBtn);
 });
 
 // --- Field Completion Indicator (Filled field marker) ---
@@ -1168,13 +1131,13 @@ generateReportBtn.addEventListener('click', async () => {
 
   const report = `تقرير تحويل الحسابات
 
-ip country: ${country}
-IP: ${ip}
-الإيميل: ${email}
-رقم الحساب: ${account}
-مصدر التحويل: ${source}
-الارباح: ${profits}
-الملاحظات: ${notes}
+ip country: \`${country}\`
+IP: \`${ip}\`
+الإيميل: \`${email}\`
+رقم الحساب: \`${account}\`
+مصدر التحويل: \`${source}\`
+الارباح: \`${profits}\`
+الملاحظات: \`${notes}\`
 
 #account_transfer`;
 
@@ -1202,10 +1165,6 @@ resetReportBtn.addEventListener('click', () => {
   reportNotesInput.value = '';
   reportShiftInput.value = '';
   shiftBtns.forEach(b => b.classList.remove('active'));
-  
-  // Reset Mentions
-  mentionAhmedBtn.classList.remove('active');
-  mentionBatoulBtn.classList.remove('active');
 
   selectedImages = [];
   renderImagePreviews();
@@ -1287,14 +1246,6 @@ sendTelegramBtn.addEventListener('click', async () => {
 
 #account_transfer`;
 
-  let mentions = [];
-  if (mentionAhmedBtn.classList.contains('active')) mentions.push('@ahmedelgma');
-  if (mentionBatoulBtn.classList.contains('active')) mentions.push('@batoulhassan');
-
-  if (mentions.length > 0) {
-    message += '\n\n' + mentions.join(' ');
-  }
-
   sendTelegramBtn.disabled = true;
   sendTelegramBtn.textContent = 'جاري الإرسال...';
 
@@ -1331,72 +1282,18 @@ sendTelegramBtn.addEventListener('click', async () => {
 
     console.log('Google Form request sent successfully');
 
-    // 2. Telegram Submission
-    console.log('Sending to Telegram...');
-    let response;
+    // 2. Telegram Submission removed
     
-    if (selectedImages.length > 0) {
-      const formData = new FormData();
-      formData.append('chat_id', chatId);
-      
-      const mediaArray = selectedImages.map((file, index) => {
-        const attachName = `file${index}`;
-        formData.append(attachName, file);
-        return {
-          type: 'photo',
-          media: `attach://${attachName}`,
-          caption: index === 0 ? message : '',
-          parse_mode: 'HTML'
-        };
-      });
-      
-      formData.append('media', JSON.stringify(mediaArray));
-      
-      response = await fetch(`https://api.telegram.org/bot${token}/sendMediaGroup`, {
-        method: 'POST',
-        body: formData
-      });
+    showToast('تم الإرسال', 'تم إرسال التقرير بنجاح', 'success');
 
+    resetReportBtn.click();
+
+    // Start a fresh report from the top.
+    const container = document.querySelector('.report-container');
+    if (container && typeof container.scrollTo === 'function') {
+      container.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-      response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: message,
-          parse_mode: 'HTML'
-        })
-      });
-    }
-
-    const data = await response.json();
-
-    if (data.ok) {
-      showToast('تم الإرسال', 'تم إرسال التقرير إلى Telegram و Google Form بنجاح', 'success');
-
-      // Save last Telegram message ids so user can delete the sent images/messages if needed.
-      const messageIds = extractTelegramMessageIds(data);
-      if (chrome?.storage?.local && messageIds.length) {
-        chrome.storage.local.set({
-          [TRANSFER_REPORT_LAST_SENT_KEY]: {
-            messageIds,
-            sentAt: Date.now()
-          }
-        }, () => loadLastSentState());
-      }
-
-      resetReportBtn.click();
-
-      // Start a fresh report from the top.
-      const container = document.querySelector('.report-container');
-      if (container && typeof container.scrollTo === 'function') {
-        container.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-    } else {
-      console.error('Telegram Error:', data);
-      showToast('فشل الإرسال', `خطأ من Telegram: ${data.description}`, 'error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   } catch (error) {
     console.error('Submission Error:', error);

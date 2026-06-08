@@ -34,13 +34,13 @@ if (generateReportBtn) {
 
     const report = `تقرير تحويل الحسابات
 
-ip country: ${country}
-IP: ${ip}
-الإيميل: ${email}
-رقم الحساب: ${account}
-مصدر التحويل: ${source}
-الارباح: ${profits}
-الملاحظات: ${notes}
+ip country: \`${country}\`
+IP: \`${ip}\`
+الإيميل: \`${email}\`
+رقم الحساب: \`${account}\`
+مصدر التحويل: \`${source}\`
+الارباح: \`${profits}\`
+الملاحظات: \`${notes}\`
 
 #account_transfer`;
 
@@ -81,12 +81,6 @@ if (resetReportBtn) {
       if (reportShiftInput) reportShiftInput.value = '';
       if (shiftBtns) shiftBtns.forEach(b => b.classList.remove('active'));
     }
-    
-    // Reset Mentions
-    const mentionAhmedBtn = document.getElementById('mention-ahmed-btn');
-    const mentionBatoulBtn = document.getElementById('mention-batoul-btn');
-    if (mentionAhmedBtn) mentionAhmedBtn.classList.remove('active');
-    if (mentionBatoulBtn) mentionBatoulBtn.classList.remove('active');
 
     // Reset Images
     selectedImages = [];

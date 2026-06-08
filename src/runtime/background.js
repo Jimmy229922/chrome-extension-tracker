@@ -1,4 +1,4 @@
-﻿let creating;
+let creating;
 let lastProcessedText = '';
 let isSidePanelOpen = false;
 let lastNotificationId = null; // Track the last notification ID
@@ -83,15 +83,7 @@ const CRITICAL_POPUP_WIDTH = 560;
 const CRITICAL_POPUP_HEIGHT = 340;
 const CRITICAL_POPUP_MARGIN = 16;
 
-// Telegram Configuration
-const TELEGRAM_BOT_TOKEN = '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA'; // Same token as Sidepanel
-const ALERT_CHAT_ID = '-1003537370414'; // Telegram group: IP BLOCKED (Supergroup)
-const PROFIT_TRACKER_STORAGE_KEY = 'profitTrackerClients';
-const PROFIT_TRACKER_SETTINGS_KEY = 'profitTrackerSettings';
-const TELEGRAM_CHECK_OFFSET_STORAGE_KEY = 'telegramCheckOffset';
-const TELEGRAM_CHECK_POLL_INTERVAL_MS = 9000;
-
-let telegramCheckPollingBusy = false;
+// Telegram Configuration Removed
 
 const BACKGROUND_I18N_FALLBACK = {
   unknown: 'غير معروف',
@@ -1013,319 +1005,7 @@ function openSecurityAlertPopup(ipMessage, country, type) {
     }).catch(err => console.warn('Failed to open security popup:', err));
 }
 
-function formatSecurityAlertErrorArabic(rawError) {
-  const text = String(rawError || '').trim();
-  if (!text) return 'فشل الإرسال إلى Telegram بسبب غير معروف.';
 
-  // If already Arabic, keep it as-is
-  if (/[\u0600-\u06FF]/.test(text)) return text;
-
-  const lower = text.toLowerCase();
-
-  if (lower.includes('group chat was upgraded to a supergroup chat')) {
-    return 'فشل الإرسال: تم ترقية الجروب إلى Supergroup. استخدم Chat ID الجديد.';
-  }
-  if (lower.includes('chat not found')) {
-    return 'فشل الإرسال: Chat ID غير صحيح أو البوت غير موجود داخل الجروب.';
-  }
-  if (lower.includes('bot was kicked from the supergroup chat') || lower.includes('bot was blocked by the user')) {
-    return 'فشل الإرسال: البوت محظور أو تم طرده من الجروب.';
-  }
-  if (
-    lower.includes('not enough rights') ||
-    lower.includes('have no rights to send a message') ||
-    lower.includes('need administrator rights')
-  ) {
-    return 'فشل الإرسال: البوت لا يملك صلاحية إرسال رسائل في الجروب.';
-  }
-  if (lower.includes('unauthorized')) {
-    return 'فشل الإرسال: Bot Token غير صحيح.';
-  }
-  if (lower.includes('forbidden')) {
-    return 'فشل الإرسال: Telegram رفض الطلب. تحقق من صلاحيات البوت داخل الجروب.';
-  }
-
-  const cleaned = text
-    .replace(/^telegram api error:\s*/i, '')
-    .replace(/^error:\s*/i, '')
-    .trim();
-  return `فشل الإرسال إلى Telegram: ${cleaned || text}`;
-}
-
-function normalizeTelegramChatId(chatId) {
-  if (chatId === null || chatId === undefined) return '';
-  return String(chatId).trim();
-}
-
-function parseTelegramAccountCheckCommand(text) {
-  if (typeof text !== 'string') return null;
-  const trimmed = text.trim();
-  if (!trimmed) return null;
-
-  const commandMatch = trimmed.match(/^\/check(?:@\w+)?\s+(\d{6,7})$/i);
-  if (commandMatch && commandMatch[1]) {
-    return commandMatch[1];
-  }
-
-  if (/^\d{6,7}$/.test(trimmed)) {
-    return trimmed;
-  }
-
-  return null;
-}
-
-async function getProfitTrackerClientsMap() {
-  const data = await chrome.storage.local.get(PROFIT_TRACKER_STORAGE_KEY);
-  const raw = data && data[PROFIT_TRACKER_STORAGE_KEY];
-  if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
-    return raw;
-  }
-  return {};
-}
-
-async function getProfitTrackerAllowedChatId() {
-  const data = await chrome.storage.local.get(PROFIT_TRACKER_SETTINGS_KEY);
-  const settings = data && data[PROFIT_TRACKER_SETTINGS_KEY];
-  if (!settings || typeof settings !== 'object') return '';
-  return normalizeTelegramChatId(settings.chatId);
-}
-
-async function sendTelegramTextMessage(chatId, text, replyToMessageId) {
-  if (!TELEGRAM_BOT_TOKEN) return;
-
-  const normalizedChatId = normalizeTelegramChatId(chatId);
-  if (!normalizedChatId) return;
-
-  const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-  const payload = {
-    chat_id: normalizedChatId,
-    text: String(text || '').trim()
-  };
-
-  if (Number.isFinite(Number(replyToMessageId)) && Number(replyToMessageId) > 0) {
-    payload.reply_to_message_id = Number(replyToMessageId);
-    payload.allow_sending_without_reply = true;
-  }
-
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-  } catch (error) {
-    console.warn('Telegram check reply failed:', error);
-  }
-}
-
-function buildAccountCheckReplyText(account, entries) {
-  const list = Array.isArray(entries) ? entries : [];
-  const isRegistered = list.length > 0;
-
-  if (!isRegistered) {
-    return `❌ الحساب ${account} غير مسجل في Profit Tracker`;
-  }
-
-  const latest = list[list.length - 1] || null;
-  const latestDate = latest && Number.isFinite(Number(latest.timestamp))
-    ? new Date(latest.timestamp).toLocaleString('ar-EG')
-    : 'غير متوفر';
-
-  return `✅ الحساب ${account} مسجل\nعدد التسجيلات: ${list.length}\nآخر تحديث: ${latestDate}`;
-}
-
-async function handleTelegramAccountCheckMessage(message) {
-  if (!message || typeof message !== 'object') return false;
-
-  const from = message.from && typeof message.from === 'object' ? message.from : null;
-  if (from && from.is_bot) return false;
-
-  const rawText = typeof message.text === 'string' ? message.text : '';
-  const account = parseTelegramAccountCheckCommand(rawText);
-  if (!account) return false;
-
-  const chat = message.chat && typeof message.chat === 'object' ? message.chat : null;
-  const incomingChatId = normalizeTelegramChatId(chat && chat.id);
-  if (!incomingChatId) return false;
-
-  const allowedChatId = await getProfitTrackerAllowedChatId();
-  if (allowedChatId && incomingChatId !== allowedChatId) {
-    return false;
-  }
-
-  const clients = await getProfitTrackerClientsMap();
-  const entries = clients && Object.prototype.hasOwnProperty.call(clients, account) ? clients[account] : [];
-  const replyText = buildAccountCheckReplyText(account, entries);
-
-  await sendTelegramTextMessage(incomingChatId, replyText, message.message_id);
-  return true;
-}
-
-async function pollTelegramAccountCheckCommands(reason = 'interval') {
-  if (telegramCheckPollingBusy) return;
-  telegramCheckPollingBusy = true;
-
-  try {
-    if (!TELEGRAM_BOT_TOKEN) return;
-
-    const offsetData = await chrome.storage.local.get(TELEGRAM_CHECK_OFFSET_STORAGE_KEY);
-    let offset = Number(offsetData && offsetData[TELEGRAM_CHECK_OFFSET_STORAGE_KEY]);
-    if (!Number.isFinite(offset) || offset < 0) {
-      offset = 0;
-    }
-
-    const params = new URLSearchParams();
-    params.set('timeout', '0');
-    params.set('limit', '40');
-    params.set('allowed_updates', JSON.stringify(['message', 'edited_message']));
-    if (offset > 0) {
-      params.set('offset', String(offset));
-    }
-
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?${params.toString()}`;
-    const response = await fetch(url, { method: 'GET', cache: 'no-store' });
-    if (!response.ok) return;
-
-    const payload = await response.json();
-    if (!payload || payload.ok !== true || !Array.isArray(payload.result) || payload.result.length === 0) {
-      return;
-    }
-
-    // First run: skip old backlog and start from latest offset.
-    if (offset === 0) {
-      const latestUpdate = payload.result[payload.result.length - 1];
-      const bootstrapOffset = Number(latestUpdate && latestUpdate.update_id) + 1;
-      if (Number.isFinite(bootstrapOffset) && bootstrapOffset > 0) {
-        await chrome.storage.local.set({ [TELEGRAM_CHECK_OFFSET_STORAGE_KEY]: bootstrapOffset });
-      }
-      return;
-    }
-
-    let nextOffset = offset;
-    for (const update of payload.result) {
-      const updateId = Number(update && update.update_id);
-      if (Number.isFinite(updateId)) {
-        nextOffset = Math.max(nextOffset, updateId + 1);
-      }
-
-      const message = update && (update.message || update.edited_message);
-      if (!message || typeof message !== 'object') continue;
-
-      try {
-        await handleTelegramAccountCheckMessage(message);
-      } catch (error) {
-        console.warn('Telegram /check message handling failed:', error);
-      }
-    }
-
-    if (nextOffset > offset) {
-      await chrome.storage.local.set({ [TELEGRAM_CHECK_OFFSET_STORAGE_KEY]: nextOffset });
-    }
-  } catch (error) {
-    console.warn(`Telegram /check polling failed (${reason}):`, error);
-  } finally {
-    telegramCheckPollingBusy = false;
-  }
-}
-
-async function sendTelegramAlert(ipMessage, country, type, accountNumber = null, groupType = null, customerEmail = null) {
-  console.log('%c >>> STARTING TELEGRAM ALERT <<<', 'background: #222; color: #bada55; font-size: 20px');
-  console.log('Parameters:', { ipMessage, country, type, ALERT_CHAT_ID, accountNumber, groupType, customerEmail });
-
-  try {
-    if (!TELEGRAM_BOT_TOKEN || !ALERT_CHAT_ID) {
-      throw new Error('فشل الإرسال: إعدادات Telegram غير مكتملة (Bot Token أو Chat ID).');
-    }
-
-    const { userSettings } = await chrome.storage.local.get(['userSettings']);
-    console.log('Fetched User Settings:', userSettings);
-
-    const employee = userSettings && userSettings.employeeName ? userSettings.employeeName : 'Unknown/Not Set';
-
-    let ip = 'N/A';
-    let regionName = '';
-
-    if (ipMessage) {
-      const ipMatch = ipMessage.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/);
-      ip = ipMatch ? ipMatch[0] : ipMessage.substring(0, 20);
-
-      const labelsToTry = [IP_UI_TEXT.regionLabel, 'المحافظة', 'Region'].filter(Boolean);
-      for (const label of labelsToTry) {
-        const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const regionMatch = ipMessage.match(new RegExp(`${escaped}:\\s*(.+)`));
-        if (regionMatch && regionMatch[1]) {
-          regionName = regionMatch[1].trim();
-          break;
-        }
-      }
-    }
-
-    console.log(`Processing Alert -> IP: ${ip}, Country: ${country}, ChatID: ${ALERT_CHAT_ID}, Employee: ${employee}`);
-
-    const escHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-    let text = '';
-    if (accountNumber) {
-      text += `رقم الحساب: ${escHtml(accountNumber)}\n`;
-    }
-    if (customerEmail) {
-      text += `البريد الإلكتروني للعميل: ${escHtml(customerEmail)}\n`;
-    }
-    if (groupType) {
-      text += `نوع الجروب: ${escHtml(groupType)}\n`;
-    }
-
-    text += `IP: <code>${escHtml(ip)}</code> // <code>${escHtml(country)}</code>`;
-    if (regionName) {
-      text += ` // ${escHtml(regionName)}`;
-    }
-    text += `\n${escHtml(employee)}`;
-
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
-    const body = {
-      chat_id: ALERT_CHAT_ID,
-      text: text,
-      parse_mode: 'HTML'
-    };
-
-    console.log('Attempting fetch to:', url);
-    console.log('Request Body:', JSON.stringify(body));
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-
-    console.log('Fetch Response Status:', response.status);
-
-    const rawResponseText = await response.text();
-    let responseData = null;
-    try {
-      responseData = rawResponseText ? JSON.parse(rawResponseText) : null;
-    } catch (parseError) {
-      responseData = null;
-    }
-
-    if (!response.ok || (responseData && responseData.ok === false)) {
-      const apiError = (responseData && responseData.description)
-        ? responseData.description
-        : (rawResponseText || `HTTP ${response.status}`);
-      console.error('TELEGRAM ALERT FAILED');
-      console.error('Status:', response.status);
-      console.error('Error Body:', rawResponseText);
-      throw new Error(formatSecurityAlertErrorArabic(apiError));
-    } else {
-      console.log('TELEGRAM ALERT SENT SUCCESSFULLY');
-      console.log('Response Data:', responseData);
-      await markIpAsSent(ip, { accountNumber, groupType });
-      return responseData;
-    }
-  } catch (e) {
-    console.error('EXCEPTION IN SEND TELEGRAM ALERT', e);
-    throw new Error(formatSecurityAlertErrorArabic(e && e.message ? e.message : String(e)));
-  }
-}
 let criticalAlertWindowId = null;
 let criticalAlertTabId = null;
 let lastCriticalPopupKey = '';
@@ -1492,7 +1172,7 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
   const isIpToast = tempToastType === 'ip' || isBannedOrHighlightedToast;
 
   const createSystemNotification = (baseTitle, baseMessage, baseToastType, baseButtons, baseNotificationItems, baseContextMessage) => {
-    if (isSidePanelOpen || skipSystemNotification) {
+    if ((isSidePanelOpen && !isIpToast) || skipSystemNotification) {
       return;
     }
 
@@ -1659,7 +1339,6 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
 chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'sidepanel') {
     isSidePanelOpen = true;
-    void pollTelegramAccountCheckCommands('sidepanel-connect');
     // Flush queued toasts
     if (toastQueue.length) {
       toastQueue.forEach(t => chrome.runtime.sendMessage({ type: 'showToast', ...t }));
@@ -1695,14 +1374,10 @@ async function clearOldAccounts() {
 chrome.runtime.onStartup.addListener(() => {
   setupOffscreenDocument('src/runtime/offscreen.html');
   clearOldAccounts();
-  void pollTelegramAccountCheckCommands('startup');
 });
 
 // Clear old accounts periodically (e.g., every hour)
 setInterval(clearOldAccounts, 60 * 60 * 1000);
-setInterval(() => {
-  void pollTelegramAccountCheckCommands('interval');
-}, TELEGRAM_CHECK_POLL_INTERVAL_MS);
 
 async function setupOffscreenDocument(path) {
   const offscreenUrl = chrome.runtime.getURL(path);
@@ -2457,11 +2132,176 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 const BANNED_COUNTRIES = {
+  'BJ': { name: 'Benin', type: 'benin', emoji: '' },
+  'BW': { name: 'Botswana', type: 'botswana', emoji: '' },
+  'BF': { name: 'Burkina Faso', type: 'burkina_faso', emoji: '' },
+  'BI': { name: 'Burundi', type: 'burundi', emoji: '' },
+  'CM': { name: 'Cameroon', type: 'cameroon', emoji: '' },
+  'CF': { name: 'Central African Republic', type: 'central_african_republic', emoji: '' },
+  'TD': { name: 'Chad', type: 'chad', emoji: '' },
+  'KM': { name: 'Comoros', type: 'comoros', emoji: '' },
+  'CG': { name: 'Republic of the Congo', type: 'republic_of_the_congo', emoji: '' },
+  'CD': { name: 'Democratic Republic of the Congo', type: 'democratic_republic_of_the_congo', emoji: '' },
+  'DJ': { name: 'Djibouti', type: 'djibouti', emoji: '' },
+  'GQ': { name: 'Equatorial Guinea', type: 'equatorial_guinea', emoji: '' },
+  'ER': { name: 'Eritrea', type: 'eritrea', emoji: '' },
+  'SZ': { name: 'Eswatini', type: 'eswatini', emoji: '' },
+  'ET': { name: 'Ethiopia', type: 'ethiopia', emoji: '' },
+  'GA': { name: 'Gabon', type: 'gabon', emoji: '' },
+  'GM': { name: 'Gambia', type: 'gambia', emoji: '' },
+  'GH': { name: 'Ghana', type: 'ghana', emoji: '' },
+  'GN': { name: 'Guinea', type: 'guinea', emoji: '' },
+  'GW': { name: 'Guinea-Bissau', type: 'guinea_bissau', emoji: '' },
+  'CI': { name: 'Ivory Coast', type: 'ivory_coast', emoji: '' },
+  'KE': { name: 'Kenya', type: 'kenya', emoji: '' },
+  'LS': { name: 'Lesotho', type: 'lesotho', emoji: '' },
+  'LR': { name: 'Liberia', type: 'liberia', emoji: '' },
+  'MG': { name: 'Madagascar', type: 'madagascar', emoji: '' },
+  'MW': { name: 'Malawi', type: 'malawi', emoji: '' },
+  'ML': { name: 'Mali', type: 'mali', emoji: '' },
+  'MU': { name: 'Mauritius', type: 'mauritius', emoji: '' },
+  'MZ': { name: 'Mozambique', type: 'mozambique', emoji: '' },
+  'NA': { name: 'Namibia', type: 'namibia', emoji: '' },
+  'NE': { name: 'Niger', type: 'niger', emoji: '' },
+  'NG': { name: 'Nigeria', type: 'nigeria', emoji: '' },
+  'RW': { name: 'Rwanda', type: 'rwanda', emoji: '' },
+  'ST': { name: 'Sao Tome and Principe', type: 'sao_tome_and_principe', emoji: '' },
+  'SN': { name: 'Senegal', type: 'senegal', emoji: '' },
+  'SC': { name: 'Seychelles', type: 'seychelles', emoji: '' },
+  'SL': { name: 'Sierra Leone', type: 'sierra_leone', emoji: '' },
+  'SO': { name: 'Somalia', type: 'somalia', emoji: '' },
+  'ZA': { name: 'South Africa', type: 'south_africa', emoji: '' },
+  'SS': { name: 'South Sudan', type: 'south_sudan', emoji: '' },
+  'TZ': { name: 'Tanzania', type: 'tanzania', emoji: '' },
+  'TG': { name: 'Togo', type: 'togo', emoji: '' },
+  'UG': { name: 'Uganda', type: 'uganda', emoji: '' },
+  'ZM': { name: 'Zambia', type: 'zambia', emoji: '' },
+  'ZW': { name: 'Zimbabwe', type: 'zimbabwe', emoji: '' },
+  'AL': { name: 'Albania', type: 'albania', emoji: '' },
+  'AD': { name: 'Andorra', type: 'andorra', emoji: '' },
+  'AT': { name: 'Austria', type: 'austria', emoji: '' },
+  'BY': { name: 'Belarus', type: 'belarus', emoji: '' },
+  'BE': { name: 'Belgium', type: 'belgium', emoji: '' },
+  'BA': { name: 'Bosnia and Herzegovina', type: 'bosnia_and_herzegovina', emoji: '' },
+  'BG': { name: 'Bulgaria', type: 'bulgaria', emoji: '' },
+  'HR': { name: 'Croatia', type: 'croatia', emoji: '' },
+  'CY': { name: 'Cyprus', type: 'cyprus', emoji: '' },
+  'CZ': { name: 'Czech Republic', type: 'czech_republic', emoji: '' },
+  'DK': { name: 'Denmark', type: 'denmark', emoji: '' },
+  'EE': { name: 'Estonia', type: 'estonia', emoji: '' },
+  'FI': { name: 'Finland', type: 'finland', emoji: '' },
   'GB': { name: 'United Kingdom', type: 'uk', emoji: '' },
+  'GR': { name: 'Greece', type: 'greece', emoji: '' },
+  'HU': { name: 'Hungary', type: 'hungary', emoji: '' },
+  'IS': { name: 'Iceland', type: 'iceland', emoji: '' },
+  'IE': { name: 'Ireland', type: 'ireland', emoji: '' },
+  'IT': { name: 'Italy', type: 'italy', emoji: '' },
+  'XK': { name: 'Kosovo', type: 'kosovo', emoji: '' },
+  'LV': { name: 'Latvia', type: 'latvia', emoji: '' },
+  'LI': { name: 'Liechtenstein', type: 'liechtenstein', emoji: '' },
   'NL': { name: 'Netherlands', type: 'netherlands', emoji: '' },
+  'LU': { name: 'Luxembourg', type: 'luxembourg', emoji: '' },
+  'MT': { name: 'Malta', type: 'malta', emoji: '' },
+  'MD': { name: 'Moldova', type: 'moldova', emoji: '' },
+  'MC': { name: 'Monaco', type: 'monaco', emoji: '' },
+  'ME': { name: 'Montenegro', type: 'montenegro', emoji: '' },
+  'MK': { name: 'North Macedonia', type: 'north_macedonia', emoji: '' },
+  'NO': { name: 'Norway', type: 'norway', emoji: '' },
+  'PL': { name: 'Poland', type: 'poland', emoji: '' },
+  'PT': { name: 'Portugal', type: 'portugal', emoji: '' },
+  'RO': { name: 'Romania', type: 'romania', emoji: '' },
+  'SM': { name: 'San Marino', type: 'san_marino', emoji: '' },
+  'RS': { name: 'Serbia', type: 'serbia', emoji: '' },
+  'SK': { name: 'Slovakia', type: 'slovakia', emoji: '' },
+  'SI': { name: 'Slovenia', type: 'slovenia', emoji: '' },
+  'ES': { name: 'Spain', type: 'spain', emoji: '' },
+  'SE': { name: 'Sweden', type: 'sweden', emoji: '' },
+  'CH': { name: 'Switzerland', type: 'switzerland', emoji: '' },
+  'UA': { name: 'Ukraine', type: 'ukraine', emoji: '' },
+  'VA': { name: 'Vatican City', type: 'vatican_city', emoji: '' },
+  'AF': { name: 'Afghanistan', type: 'afghanistan', emoji: '' },
+  'AM': { name: 'Armenia', type: 'armenia', emoji: '' },
+  'AZ': { name: 'Azerbaijan', type: 'azerbaijan', emoji: '' },
+  'BD': { name: 'Bangladesh', type: 'bangladesh', emoji: '' },
+  'BT': { name: 'Bhutan', type: 'bhutan', emoji: '' },
+  'BN': { name: 'Brunei', type: 'brunei', emoji: '' },
+  'KH': { name: 'Cambodia', type: 'cambodia', emoji: '' },
+  'CN': { name: 'China', type: 'china', emoji: '' },
+  'GE': { name: 'Georgia', type: 'georgia', emoji: '' },
+  'IN': { name: 'India', type: 'india', emoji: '' },
+  'ID': { name: 'Indonesia', type: 'indonesia', emoji: '' },
+  'IR': { name: 'Iran', type: 'iran', emoji: '' },
+  'JP': { name: 'Japan', type: 'japan', emoji: '' },
+  'KZ': { name: 'Kazakhstan', type: 'kazakhstan', emoji: '' },
+  'KG': { name: 'Kyrgyzstan', type: 'kyrgyzstan', emoji: '' },
+  'LA': { name: 'Laos', type: 'laos', emoji: '' },
+  'MY': { name: 'Malaysia', type: 'malaysia', emoji: '' },
+  'MV': { name: 'Maldives', type: 'maldives', emoji: '' },
+  'MN': { name: 'Mongolia', type: 'mongolia', emoji: '' },
+  'MM': { name: 'Myanmar', type: 'myanmar', emoji: '' },
+  'NP': { name: 'Nepal', type: 'nepal', emoji: '' },
+  'KP': { name: 'North Korea', type: 'north_korea', emoji: '' },
   'SG': { name: 'Singapore', type: 'singapore', emoji: '' },
+  'PH': { name: 'Philippines', type: 'philippines', emoji: '' },
+  'KR': { name: 'South Korea', type: 'south_korea', emoji: '' },
+  'LK': { name: 'Sri Lanka', type: 'sri_lanka', emoji: '' },
+  'TJ': { name: 'Tajikistan', type: 'tajikistan', emoji: '' },
+  'TH': { name: 'Thailand', type: 'thailand', emoji: '' },
+  'TL': { name: 'Timor-Leste', type: 'timor_leste', emoji: '' },
   'FR': { name: 'France', type: 'france', emoji: '' },
   'DE': { name: 'Germany', type: 'germany', emoji: '' },
+  'TM': { name: 'Turkmenistan', type: 'turkmenistan', emoji: '' },
+  'UZ': { name: 'Uzbekistan', type: 'uzbekistan', emoji: '' },
+  'VN': { name: 'Vietnam', type: 'vietnam', emoji: '' },
+  'AG': { name: 'Antigua and Barbuda', type: 'antigua_and_barbuda', emoji: '' },
+  'BS': { name: 'Bahamas', type: 'bahamas', emoji: '' },
+  'BB': { name: 'Barbados', type: 'barbados', emoji: '' },
+  'BZ': { name: 'Belize', type: 'belize', emoji: '' },
+  'CA': { name: 'Canada', type: 'canada', emoji: '' },
+  'CR': { name: 'Costa Rica', type: 'costa_rica', emoji: '' },
+  'CU': { name: 'Cuba', type: 'cuba', emoji: '' },
+  'DM': { name: 'Dominica', type: 'dominica', emoji: '' },
+  'DO': { name: 'Dominican Republic', type: 'dominican_republic', emoji: '' },
+  'SV': { name: 'El Salvador', type: 'el_salvador', emoji: '' },
+  'GD': { name: 'Grenada', type: 'grenada', emoji: '' },
+  'GT': { name: 'Guatemala', type: 'guatemala', emoji: '' },
+  'HT': { name: 'Haiti', type: 'haiti', emoji: '' },
+  'HN': { name: 'Honduras', type: 'honduras', emoji: '' },
+  'JM': { name: 'Jamaica', type: 'jamaica', emoji: '' },
+  'MX': { name: 'Mexico', type: 'mexico', emoji: '' },
+  'NI': { name: 'Nicaragua', type: 'nicaragua', emoji: '' },
+  'PA': { name: 'Panama', type: 'panama', emoji: '' },
+  'KN': { name: 'Saint Kitts and Nevis', type: 'saint_kitts_and_nevis', emoji: '' },
+  'LC': { name: 'Saint Lucia', type: 'saint_lucia', emoji: '' },
+  'VC': { name: 'Saint Vincent and the Grenadines', type: 'saint_vincent_and_the_grenadines', emoji: '' },
+  'TT': { name: 'Trinidad and Tobago', type: 'trinidad_and_tobago', emoji: '' },
+  'US': { name: 'United States', type: 'usa', emoji: '' },
+  'AR': { name: 'Argentina', type: 'argentina', emoji: '' },
+  'BO': { name: 'Bolivia', type: 'bolivia', emoji: '' },
+  'BR': { name: 'Brazil', type: 'brazil', emoji: '' },
+  'CL': { name: 'Chile', type: 'chile', emoji: '' },
+  'CO': { name: 'Colombia', type: 'colombia', emoji: '' },
+  'EC': { name: 'Ecuador', type: 'ecuador', emoji: '' },
+  'GY': { name: 'Guyana', type: 'guyana', emoji: '' },
+  'PY': { name: 'Paraguay', type: 'paraguay', emoji: '' },
+  'PE': { name: 'Peru', type: 'peru', emoji: '' },
+  'SR': { name: 'Suriname', type: 'suriname', emoji: '' },
+  'UY': { name: 'Uruguay', type: 'uruguay', emoji: '' },
+  'VE': { name: 'Venezuela', type: 'venezuela', emoji: '' },
+  'AU': { name: 'Australia', type: 'australia', emoji: '' },
+  'FJ': { name: 'Fiji', type: 'fiji', emoji: '' },
+  'KI': { name: 'Kiribati', type: 'kiribati', emoji: '' },
+  'MH': { name: 'Marshall Islands', type: 'marshall_islands', emoji: '' },
+  'FM': { name: 'Micronesia', type: 'micronesia', emoji: '' },
+  'NR': { name: 'Nauru', type: 'nauru', emoji: '' },
+  'NZ': { name: 'New Zealand', type: 'new_zealand', emoji: '' },
+  'PW': { name: 'Palau', type: 'palau', emoji: '' },
+  'PG': { name: 'Papua New Guinea', type: 'papua_new_guinea', emoji: '' },
+  'WS': { name: 'Samoa', type: 'samoa', emoji: '' },
+  'SB': { name: 'Solomon Islands', type: 'solomon_islands', emoji: '' },
+  'TO': { name: 'Tonga', type: 'tonga', emoji: '' },
+  'TV': { name: 'Tuvalu', type: 'tuvalu', emoji: '' },
+  'VU': { name: 'Vanuatu', type: 'vanuatu', emoji: '' },
   'TR': { name: 'Turkey', type: 'turkey', emoji: '' },
   'PK': { name: 'Pakistan', type: 'pakistan', emoji: '' },
   'LT': { name: 'Lithuania', type: 'lithuania', emoji: '' }
@@ -2993,14 +2833,22 @@ async function updateStorageWithNewAccount(text) {
   await chrome.storage.local.set({ copiedAccounts });
 }
 
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
+
 chrome.action.onClicked.addListener(async (tab) => {
-  await chrome.sidePanel.open({ tabId: tab.id });
+  try {
+    await chrome.sidePanel.open({ windowId: tab.windowId });
+  } catch (err) {
+    console.error("Failed to open sidePanel:", err);
+  }
 });
 
 // Ensure the offscreen document is created when the extension is installed or updated.
 chrome.runtime.onInstalled.addListener(async (details) => {
   await setupOffscreenDocument('src/runtime/offscreen.html');
-  void pollTelegramAccountCheckCommands('install');
+  // void pollTelegramAccountCheckCommands('install');
   if (details.reason === 'install') {
       chrome.storage.local.set({ copiedAccounts: [], copiedIPs: [] });
       await clearCriticalIpBadge();
@@ -3023,7 +2871,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 setupOffscreenDocument('src/runtime/offscreen.html');
 restoreCriticalIpBadge();
 loadCriticalWatchlistFromSync().catch(() => {});
-void pollTelegramAccountCheckCommands('boot');
 
 // Strip Origin header from ipwhois.app requests to avoid free-plan CORS rejection
 chrome.declarativeNetRequest.updateDynamicRules({
@@ -3053,14 +2900,8 @@ chrome.notifications.onClicked.addListener((notificationId) => {
 // --- Handle Security Alert Submission ---
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === 'sendSecurityAlert') {
-      console.log('Received Security Alert Request:', message);
-      sendTelegramAlert(message.ipMessage, message.country, message.type, message.accountNumber, message.groupType, message.customerEmail)
-        .then(() => sendResponse({ success: true }))
-        .catch(err => {
-            console.error('Security Alert Error:', err);
-            const errorMessage = err && err.message ? err.message : String(err);
-            sendResponse({ success: false, error: errorMessage });
-        });
+      console.log('Received Security Alert Request (Telegram sending removed):', message);
+      sendResponse({ success: true });
       return true; // Keep channel open
   }
 });
@@ -3162,94 +3003,11 @@ async function handleReportSubmission(data) {
     return; // STOP HERE
   }
 
-  // 2. Send to Telegram (Only if Form Success or Form Disabled)
+  // 2. Send to Telegram (Removed)
   try {
-    console.log('Background: Sending to Telegram...');
-    let response;
-
-    if (telegramImages && telegramImages.length > 0) {
-      if (telegramImages.length === 1) {
-        // Send Single Photo
-        const imgData = telegramImages[0];
-        const byteString = atob(imgData.data.split(',')[1]);
-        const ab = new ArrayBuffer(byteString.length);
-        const ia = new Uint8Array(ab);
-        for (let i = 0; i < byteString.length; i++) {
-          ia[i] = byteString.charCodeAt(i);
-        }
-        const blob = new Blob([ab], { type: imgData.type });
-
-        const formData = new FormData();
-        formData.append('chat_id', telegramChatId);
-        formData.append('photo', blob, 'image.png');
-        formData.append('caption', telegramMessage);
-        formData.append('parse_mode', 'HTML');
-
-        response = await fetch(`https://api.telegram.org/bot${telegramToken}/sendPhoto`, {
-          method: 'POST',
-          body: formData
-        });
-      } else {
-        // Send Media Group
-        const formData = new FormData();
-        formData.append('chat_id', telegramChatId);
-        
-        const mediaArray = telegramImages.map((imgData, index) => {
-          // Convert base64 to Blob
-          const byteString = atob(imgData.data.split(',')[1]);
-          const ab = new ArrayBuffer(byteString.length);
-          const ia = new Uint8Array(ab);
-          for (let i = 0; i < byteString.length; i++) {
-            ia[i] = byteString.charCodeAt(i);
-          }
-          const blob = new Blob([ab], { type: imgData.type });
-          
-          const attachName = `file${index}`;
-          formData.append(attachName, blob, `image${index}.png`);
-          
-          return {
-            type: 'photo',
-            media: `attach://${attachName}`,
-            caption: index === 0 ? telegramMessage : '',
-            parse_mode: 'HTML'
-          };
-        });
-        
-        formData.append('media', JSON.stringify(mediaArray));
-        
-        response = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMediaGroup`, {
-          method: 'POST',
-          body: formData
-        });
-      }
-
-    } else {
-      // Send Text Only
-      response = await fetch(`https://api.telegram.org/bot${telegramToken}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: telegramChatId,
-          text: telegramMessage,
-          parse_mode: 'HTML'
-        })
-      });
-    }
-
-    const data = await response.json();
-    if (data.ok) {
-      console.log('Background: Telegram sent successfully');
-      // Notify sidepanel if open, or show system notification
-      chrome.runtime.sendMessage({ type: 'showToast', title: 'تم الإرسال', message: 'تم إرسال التقرير بنجاح', toastType: 'default' }).catch(() => {});
-    } else {
-      console.error('Background: Telegram Error:', data);
-      chrome.runtime.sendMessage({ type: 'showToast', title: 'فشل الإرسال', message: `Telegram Error: ${data.description}`, toastType: 'warning' }).catch(() => {});
-    }
-
+    console.log('Background: Telegram submission disabled.');
+    chrome.runtime.sendMessage({ type: 'showToast', title: 'تم الإرسال', message: 'تم إرسال التقرير بنجاح', toastType: 'default' }).catch(() => {});
   } catch (error) {
-    console.error('Background: Telegram Submission Error:', error);
   }
 }
-
-
 

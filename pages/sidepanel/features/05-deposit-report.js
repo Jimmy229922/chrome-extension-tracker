@@ -1,4 +1,4 @@
-﻿// --- Deposit Percentage Report Logic ---
+// --- Deposit Percentage Report Logic ---
 
 function getDepositStorageService() {
   return typeof getStorageService === 'function' ? getStorageService() : null;
@@ -29,10 +29,8 @@ function getDepositMention(key, fallbackValue) {
 }
 
 const __depositConfig = getDepositConfig();
-const DEPOSIT_TELEGRAM_TOKEN = (__depositConfig && __depositConfig.telegram && __depositConfig.telegram.token) || '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA';
-const DEPOSIT_TELEGRAM_CHAT_ID = (__depositConfig && __depositConfig.telegram && __depositConfig.telegram.chatId) || '-1003692121203';
-const DEPOSIT_MENTION_AHMED = getDepositMention('ahmed', '@ahmedelgma');
-const DEPOSIT_MENTION_BATOUL = getDepositMention('batoul', '@batoulhassan');
+const DEPOSIT_TELEGRAM_TOKEN = '';
+const DEPOSIT_TELEGRAM_CHAT_ID = '';
 async function fetchDepositIpInfo(ip) {
   if (!ip) return false;
   try {
@@ -294,20 +292,6 @@ document.addEventListener('paste', (e) => {
   }
 });
 
-// Deposit Report Mentions
-if (depositMentionAhmedBtn) {
-  depositMentionAhmedBtn.classList.add('active');
-  depositMentionAhmedBtn.addEventListener('click', () => {
-    depositMentionAhmedBtn.classList.toggle('active');
-  });
-}
-if (depositMentionBatoulBtn) {
-  depositMentionBatoulBtn.classList.add('active');
-  depositMentionBatoulBtn.addEventListener('click', () => {
-    depositMentionBatoulBtn.classList.toggle('active');
-  });
-}
-
 // Deposit Report Settings Button
 if (depositTelegramSettingsBtn) {
   depositTelegramSettingsBtn.addEventListener('click', () => {
@@ -357,8 +341,8 @@ if (depositResetReportBtn) {
     // Reset Selectors
     document.querySelectorAll('#deposit-percentage-section .selector-btn').forEach(b => b.classList.remove('active'));
     if (depositReportProfitsStatusInput) depositReportProfitsStatusInput.value = '';
+    if (depositReportProfitsTypeInput) depositReportProfitsTypeInput.value = '';
     if (depositReportIpStatusInput) depositReportIpStatusInput.value = '';
-    if (depositReportBonusStatusInput) depositReportBonusStatusInput.value = '';
     
     // Reset Shift
     const now = new Date();
@@ -368,10 +352,6 @@ if (depositResetReportBtn) {
     else if (hour >= 15 && hour < 23) shift = 'المسائي';
     setDepositShift(shift);
 
-    // Reset Mentions
-    if (depositMentionAhmedBtn) depositMentionAhmedBtn.classList.add('active');
-    if (depositMentionBatoulBtn) depositMentionBatoulBtn.classList.add('active');
-    
     // Reset Images
     depositSelectedImages = [];
     renderDepositImagePreviews();
@@ -405,38 +385,27 @@ if (depositGenerateReportBtn) {
     const account = depositReportAccountInput.value.trim();
     const email = depositReportEmailInput.value.trim();
     const margin = depositReportMarginInput.value.trim();
+    const profitsType = depositReportProfitsTypeInput.value;
     const profitsStatus = depositReportProfitsStatusInput.value;
     const ipStatus = depositReportIpStatusInput.value;
-    const bonusStatus = depositReportBonusStatusInput.value;
     const notes = depositReportNotesInput.value.trim();
 
     // Arabization mappings
+    const profitsTypeText = profitsType === 'closed' ? 'المغلقة' : 'العائمة';
     const profitsText = profitsStatus === 'positive' ? 'موجب' : 'سالب';
     const ipStatusText = ipStatus === 'matching' ? 'مطابق' : 'غير مطابق';
-    const bonusText = bonusStatus === 'not-banned' ? 'العميل غير محظور من البونص' : 'العميل محظور من البونص';
-
-    // Mentions
-    let mentions = [];
-    if (depositMentionAhmedBtn && depositMentionAhmedBtn.classList.contains('active')) {
-      mentions.push(DEPOSIT_MENTION_AHMED);
-    }
-    if (depositMentionBatoulBtn && depositMentionBatoulBtn.classList.contains('active')) {
-      mentions.push(DEPOSIT_MENTION_BATOUL);
-    }
-    const mentionsText = mentions.length > 0 ? '\n' + mentions.join(' ') : '';
 
     const report = `تقرير Deposit Report
 
-ip country: ${country}
-IP: ${ip}
-الإيميل: ${email}
-رقم الحساب: ${account}
-نسبة الهامش: ${margin}
+ip country: \`${country}\`
+IP: \`${ip}\`
+الإيميل: \`${email}\`
+رقم الحساب: \`${account}\`
+نسبة الهامش: \`${margin}\`
 
-الأرباح للصفقات العائمة (${profitsText})
-الـ IP الأخير (${ipStatusText}) لبلد التسجيل، ${bonusText}
+الأرباح للصفقات ${profitsTypeText} (${profitsText})
+الـ IP الأخير (${ipStatusText}) لبلد التسجيل
 ${notes ? '\n' + notes : ''}
-${mentionsText}
 #deposit_percentages`;
 
     try {
@@ -490,13 +459,13 @@ if (depositSendTelegramBtn) {
     const account = depositReportAccountInput.value.trim();
     const email = depositReportEmailInput.value.trim();
     const margin = depositReportMarginInput.value.trim();
+    const profitsType = depositReportProfitsTypeInput.value;
     const profitsStatus = depositReportProfitsStatusInput.value;
     const ipStatus = depositReportIpStatusInput.value;
-    const bonusStatus = depositReportBonusStatusInput.value;
     const notes = depositReportNotesInput.value.trim();
     const shift = depositReportShiftInput ? depositReportShiftInput.value : '';
 
-    if (!ip || !account || !email || !margin || !profitsStatus || !ipStatus || !bonusStatus || !shift) {
+    if (!ip || !account || !email || !margin || !profitsType || !profitsStatus || !ipStatus || !shift) {
       showToast('بيانات ناقصة', 'الرجاء ملء جميع الحقول المطلوبة', 'warning');
       return;
     }
@@ -521,8 +490,8 @@ if (depositSendTelegramBtn) {
       'negative': 'سالب',
       'matching': 'مطابق',
       'not-matching': 'غير مطابق',
-      'not-banned': 'غير محظور',
-      'banned': 'محظور'
+      'floating': 'العائمة',
+      'closed': 'المغلقة'
     };
 
     // Ensure margin has %
@@ -541,26 +510,13 @@ if (depositSendTelegramBtn) {
 <b>رقم الحساب:</b> <code>${escapeHtml(account)}</code>
 <b>نسبة الهامش:</b> <code>${escapeHtml(formattedMargin)}</code>
 
-<b>الملاحظة:</b> <code>الأرباح للصفقات العائمة (${statusMap[profitsStatus] || profitsStatus}) - الـ IP الأخير (${statusMap[ipStatus] || ipStatus}) لبلد التسجيل، العميل ${statusMap[bonusStatus] || bonusStatus} من البونص</code>`;
+<b>الملاحظة:</b> <code>الأرباح للصفقات ${statusMap[profitsType] || profitsType} (${statusMap[profitsStatus] || profitsStatus}) - الـ IP الأخير (${statusMap[ipStatus] || ipStatus}) لبلد التسجيل</code>`;
 
     if (notes) {
       message += `\n\n<b>ملاحظة اضافية:</b> <code>${escapeHtml(notes)}</code>`;
     }
 
     message += `\n\n#deposit_percentages`;
-
-    // Mentions
-    let mentions = [];
-    if (depositMentionAhmedBtn && depositMentionAhmedBtn.classList.contains('active')) {
-      mentions.push(DEPOSIT_MENTION_AHMED);
-    }
-    if (depositMentionBatoulBtn && depositMentionBatoulBtn.classList.contains('active')) {
-      mentions.push(DEPOSIT_MENTION_BATOUL);
-    }
-
-    if (mentions.length > 0) {
-      message += '\n\n' + mentions.join(' ');
-    }
 
     depositSendTelegramBtn.disabled = true;
     depositSendTelegramBtn.textContent = 'جاري الإرسال...';

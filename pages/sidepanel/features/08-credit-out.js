@@ -1,4 +1,4 @@
-﻿// =====================================================
+// =====================================================
 // CREDIT OUT SECTION LOGIC
 // =====================================================
 
@@ -21,9 +21,6 @@
   const creditOutDropZone = document.getElementById('credit-out-drop-zone');
   const creditOutFileInput = document.getElementById('credit-out-file-input');
   const creditOutPreviewContainer = document.getElementById('credit-out-preview-container');
-  
-  const creditOutMentionAhmed = document.getElementById('credit-out-mention-ahmed');
-  const creditOutMentionBatoul = document.getElementById('credit-out-mention-batoul');
   
   // Modals
   const creditOutNotesModal = document.getElementById('credit-out-notes-modal');
@@ -59,19 +56,9 @@
     return typeof getInputUtilsService === 'function' ? getInputUtilsService() : (window.InputUtilsService || null);
   }
 
-  function getCreditOutMention(key, fallbackValue) {
-    const cfg = getCreditOutConfig();
-    if (cfg && cfg.mentions && typeof cfg.mentions[key] === 'string' && cfg.mentions[key].trim()) {
-      return cfg.mentions[key].trim();
-    }
-    return fallbackValue;
-  }
-
   const __creditOutConfig = getCreditOutConfig();
-  const CREDIT_OUT_TELEGRAM_TOKEN = (__creditOutConfig && __creditOutConfig.telegram && __creditOutConfig.telegram.token) || '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA';
-  const CREDIT_OUT_TELEGRAM_CHAT_ID = (__creditOutConfig && __creditOutConfig.telegram && __creditOutConfig.telegram.chatId) || '-1003692121203';
-  const CREDIT_OUT_MENTION_AHMED = getCreditOutMention('ahmed', '@ahmedelgma');
-  const CREDIT_OUT_MENTION_BATOUL = getCreditOutMention('batoul', '@batoulhassan');
+  const CREDIT_OUT_TELEGRAM_TOKEN = '';
+  const CREDIT_OUT_TELEGRAM_CHAT_ID = '';
 
   let creditOutSelectedImages = [];
   let creditOutSavedNotes = [];
@@ -513,18 +500,6 @@
     });
   });
 
-  // Mentions - Allow selecting both or one or none
-  if (creditOutMentionAhmed) {
-    creditOutMentionAhmed.addEventListener('click', () => {
-      creditOutMentionAhmed.classList.toggle('active');
-    });
-  }
-  if (creditOutMentionBatoul) {
-    creditOutMentionBatoul.addEventListener('click', () => {
-      creditOutMentionBatoul.classList.toggle('active');
-    });
-  }
-
   // Image handling
   function renderCreditOutImagePreviews() {
     if (!creditOutPreviewContainer) return;
@@ -668,17 +643,6 @@
     reportText += `الملاحظات: \`${notes}\`\n\n`;
     reportText += `#credit_out`;
 
-    const mentions = [];
-    if (creditOutMentionAhmed?.classList.contains('active')) {
-      mentions.push(CREDIT_OUT_MENTION_AHMED);
-    }
-    if (creditOutMentionBatoul?.classList.contains('active')) {
-      mentions.push(CREDIT_OUT_MENTION_BATOUL);
-    }
-    if (mentions.length > 0) {
-      reportText += `\n${mentions.join(' ')}`;
-    }
-
     return reportText;
   }
 
@@ -703,18 +667,6 @@
     message += `<b>المبلغ:</b> <code>${escapeCreditOutHtml(amount)}</code>\n`;
     message += `<b>الملاحظات:</b> <code>${escapeCreditOutHtml(notes)}</code>\n\n`;
     message += `#credit_out`;
-
-    const mentions = [];
-    if (creditOutMentionAhmed?.classList.contains('active')) {
-      mentions.push(CREDIT_OUT_MENTION_AHMED);
-    }
-    if (creditOutMentionBatoul?.classList.contains('active')) {
-      mentions.push(CREDIT_OUT_MENTION_BATOUL);
-    }
-
-    if (mentions.length > 0) {
-      message += `\n\n${mentions.join(' ')}`;
-    }
 
     return message;
   }
@@ -761,9 +713,7 @@
         const token = CREDIT_OUT_TELEGRAM_TOKEN;
         const chatId = CREDIT_OUT_TELEGRAM_CHAT_ID;
 
-        if (!token || !chatId) {
-          throw new Error('إعدادات Telegram غير صحيحة');
-        }
+
 
         const imageFiles = creditOutSelectedImages
           .map((img) => (img && img.file ? img.file : null))
@@ -812,8 +762,6 @@
         if (creditOutNotesInput) creditOutNotesInput.value = '';
         creditOutSelectedImages = [];
         renderCreditOutImagePreviews();
-        if (creditOutMentionAhmed) creditOutMentionAhmed.classList.remove('active');
-        if (creditOutMentionBatoul) creditOutMentionBatoul.classList.remove('active');
 
         // Remove green/active states from shift buttons
         creditOutShiftBtns.forEach(btn => btn.classList.remove('active'));

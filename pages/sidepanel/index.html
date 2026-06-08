@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
@@ -164,7 +164,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
         <h2 class="report-title" style="margin: 0; border: none; padding: 0;">تقرير تحويل الحسابات</h2>
         <div style="display: flex; gap: 5px;">
-          <button id="telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+          <button id="telegram-settings-btn" class="icon-btn" title="إعدادات المستخدم" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
         </div>
       </div>
       
@@ -249,6 +249,7 @@
             <option value="ZERO 3">ZERO 3</option>
             <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
             <option value="Zero Standard A 2">Zero Standard A 2</option>
+            <option value="Zero Standard A 3">Zero Standard A 3</option>
           </optgroup>
           <optgroup label="B1 Family">
             <option value="B1">B1</option>
@@ -257,14 +258,17 @@
           </optgroup>
           <optgroup label="Standard Family">
             <option value="Standard Acccount 2">Standard Acccount 2</option>
+            <option value="Standard Acccount 3">Standard Acccount 3</option>
             <option value="standard account 2 w">standard account 2 w</option>
             <option value="Standard Bonus">Standard Bonus</option>
+            <option value="Standard Bonus 1">Standard Bonus 1</option>
           </optgroup>
           <optgroup label="Mini Family">
             <option value="mini">mini</option>
             <option value="mini 2">mini 2</option>
             <option value="mini 3">mini 3</option>
             <option value="mini 4">mini 4</option>
+            <option value="mini 5">mini 5</option>
           </optgroup>
           <optgroup label="Others">
             <option value="B2 AD">B2 AD</option>
@@ -295,6 +299,7 @@
             <option value="ZERO 3">ZERO 3</option>
             <option value="DEPOSITOR ZERO">DEPOSITOR ZERO</option>
             <option value="Zero Standard A 2">Zero Standard A 2</option>
+            <option value="Zero Standard A 3">Zero Standard A 3</option>
           </optgroup>
           <optgroup label="B1 Family">
             <option value="B1">B1</option>
@@ -303,14 +308,17 @@
           </optgroup>
           <optgroup label="Standard Family">
             <option value="Standard Acccount 2">Standard Acccount 2</option>
+            <option value="Standard Acccount 3">Standard Acccount 3</option>
             <option value="standard account 2 w">standard account 2 w</option>
             <option value="Standard Bonus">Standard Bonus</option>
+            <option value="Standard Bonus 1">Standard Bonus 1</option>
           </optgroup>
           <optgroup label="Mini Family">
             <option value="mini">mini</option>
             <option value="mini 2">mini 2</option>
             <option value="mini 3">mini 3</option>
             <option value="mini 4">mini 4</option>
+            <option value="mini 5">mini 5</option>
           </optgroup>
           <optgroup label="Others">
             <option value="B2 AD">B2 AD</option>
@@ -340,13 +348,7 @@
         <div id="image-preview-container" class="image-preview-container"></div>
       </div>
 
-      <div class="report-field-group">
-        <label class="report-label">المنشن:</label>
-        <div class="mention-buttons-container">
-          <button type="button" id="mention-ahmed-btn" class="mention-btn">Ahmed (@ahmedelgma)</button>
-          <button type="button" id="mention-batoul-btn" class="mention-btn">Batoul (@batoulhassan)</button>
-        </div>
-      </div>
+
 
       <div class="report-actions">
         <button id="generate-report-btn" class="report-btn generate-btn">نسخ التقرير</button>
@@ -362,7 +364,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
         <h2 class="report-title" style="margin: 0; border: none; padding: 0;">Deposit Percentage Report</h2>
         <div style="display: flex; gap: 5px;">
-          <button id="deposit-telegram-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+          <button id="deposit-telegram-settings-btn" class="icon-btn" title="إعدادات المستخدم" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
         </div>
       </div>
       
@@ -402,7 +404,16 @@
       </div>
 
       <div class="report-field-group">
-        <label class="report-label">حالة الأرباح العائمة *</label>
+        <label class="report-label">نوع الأرباح *</label>
+        <div class="selector-container" style="display: flex; gap: 10px; margin-bottom: 10px;">
+          <button type="button" class="selector-btn" data-group="profits-type" data-value="floating">عائمة</button>
+          <button type="button" class="selector-btn" data-group="profits-type" data-value="closed">مغلقة</button>
+        </div>
+        <input type="hidden" id="deposit-report-profits-type" value="">
+      </div>
+
+      <div class="report-field-group">
+        <label class="report-label">حالة الأرباح *</label>
         <div class="selector-container" style="display: flex; gap: 10px;">
           <button type="button" class="selector-btn" data-group="profits-status" data-value="positive">موجب</button>
           <button type="button" class="selector-btn" data-group="profits-status" data-value="negative">سالب</button>
@@ -420,15 +431,6 @@
       </div>
 
       <div class="report-field-group">
-        <label class="report-label">حالة البونص *</label>
-        <div class="selector-container" style="display: flex; gap: 10px;">
-          <button type="button" class="selector-btn" data-group="bonus-status" data-value="not-banned">غير محظور</button>
-          <button type="button" class="selector-btn" data-group="bonus-status" data-value="banned">محظور</button>
-        </div>
-        <input type="hidden" id="deposit-report-bonus-status" value="">
-      </div>
-
-      <div class="report-field-group">
         <label for="deposit-report-notes" class="report-label">ملاحظات إضافية (اختياري)</label>
         <textarea id="deposit-report-notes" class="report-input" rows="4" placeholder="أدخل ملاحظات إضافية" style="resize: vertical;"></textarea>
       </div>
@@ -443,14 +445,6 @@
           <input type="file" id="deposit-report-images" multiple accept="image/*" style="display: none;">
         </div>
         <div id="deposit-image-preview-container" class="image-preview-container"></div>
-      </div>
-
-      <div class="report-field-group">
-        <label class="report-label">المنشن:</label>
-        <div class="mention-buttons-container">
-          <button type="button" id="deposit-mention-ahmed-btn" class="mention-btn">Ahmed (@ahmedelgma)</button>
-          <button type="button" id="deposit-mention-batoul-btn" class="mention-btn">Batoul (@batoulhassan)</button>
-        </div>
       </div>
 
       <div class="report-actions">
@@ -691,17 +685,11 @@
         <div id="credit-out-preview-container" class="preview-container"></div>
       </div>
 
-      <div class="report-field-group">
-        <label class="report-label">المنشن:</label>
-        <div class="mention-buttons-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button type="button" id="credit-out-mention-ahmed" class="mention-btn">Ahmed (@ahmedelgma)</button>
-          <button type="button" id="credit-out-mention-batoul" class="mention-btn">Batoul (@batoulhassan)</button>
-        </div>
-      </div>
+
 
       <div style="display: flex; gap: 10px; margin-top: 30px; flex-wrap: wrap;">
         <button id="credit-out-copy-btn" class="report-btn generate-btn" style="flex: 1;">نسخ التقرير</button>
-        <button id="credit-out-send-btn" class="report-btn telegram-btn" style="flex: 1;">إرسال</button>
+        <button id="credit-out-send-btn" class="report-btn telegram-btn" style="flex: 1; background: linear-gradient(135deg, #229ED9 0%, #1E88E5 100%); color: white;">إرسال</button>
         <button id="credit-out-reset-btn" class="report-btn reset-btn" style="flex: 1;">إعادة تعيين</button>
       </div>
     </div>
@@ -788,7 +776,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #334155; margin-bottom: 20px; padding-bottom: 10px;">
         <h2 class="report-title" style="margin: 0; border: none; padding: 0;">📊 Profit Tracker</h2>
         <div style="display: flex; gap: 5px;">
-          <button id="profit-tracker-settings-btn" class="icon-btn" title="إعدادات Telegram" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">⚙️</button>
+          <button id="profit-tracker-settings-btn" class="icon-btn" title="إعدادات المستخدم" style="display: none !important;">⚙️</button>
           <button id="profit-tracker-history-btn" class="icon-btn" title="سجل العملاء" style="background: none; border: none; cursor: pointer; font-size: 1.2rem;">📋</button>
         </div>
       </div>
@@ -844,7 +832,7 @@
 
       <div style="display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap;">
         <button id="pt-submit-btn" class="report-btn generate-btn" style="flex: 1;">💾 تسجيل البيانات</button>
-        <button id="pt-send-telegram-btn" class="report-btn telegram-btn" style="flex: 1; display: none;">📤 إرسال التحليل</button>
+        <button id="pt-send-telegram-btn" class="report-btn telegram-btn" style="display: none !important;">📤 إرسال التحليل</button>
         <button id="pt-reset-btn" class="report-btn reset-btn" style="flex: 1;">🔄 إعادة تعيين</button>
       </div>
 
@@ -857,7 +845,7 @@
   </div>
 
   <!-- Profit Tracker Settings Modal -->
-  <div id="profit-tracker-settings-modal" class="modal">
+  <div id="profit-tracker-settings-modal" class="modal" style="display: none !important;">
     <div class="modal-content" dir="rtl" lang="ar">
       <span class="close-button" id="pt-settings-close">&times;</span>
       <h2>إعدادات Profit Tracker</h2>

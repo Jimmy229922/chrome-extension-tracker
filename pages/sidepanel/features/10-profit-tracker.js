@@ -13,13 +13,6 @@
   const PT_STORAGE_KEY = 'profitTrackerClients';
   const PT_SETTINGS_KEY = 'profitTrackerSettings';
 
-  // --- Telegram Config ---
-  function getPtConfig() {
-    return typeof getSidepanelConfig === 'function' ? getSidepanelConfig() : (window.SidepanelConfig || null);
-  }
-  const __ptConfig = getPtConfig();
-  const PT_TELEGRAM_TOKEN = (__ptConfig && __ptConfig.telegram && __ptConfig.telegram.token) || '7954534358:AAGMgtExdxKKW5JblrRLeFHin0uaOsbyMrA';
-
   // --- DOM Elements ---
   const ptAccountInput = document.getElementById('pt-account');
   const ptAccountTypeInput = document.getElementById('pt-account-type');
@@ -731,7 +724,7 @@
     }
 
     try {
-      const url = `https://api.telegram.org/bot${PT_TELEGRAM_TOKEN}/sendMessage`;
+      const url = `https://api.telegram.org/bot${''}/sendMessage`;
       const resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -945,10 +938,7 @@
   if (ptSaveSettingsBtn) {
     ptSaveSettingsBtn.addEventListener('click', async () => {
       const chatId = (ptChatIdInput.value || '').trim();
-      if (!chatId) {
-        showToast('خطأ', 'من فضلك أدخل Chat ID', 'warning');
-        return;
-      }
+      return;
       await saveSettings({ chatId });
       ptSettingsModal.style.display = 'none';
       showToast('\u2705 تم الحفظ', 'تم حفظ إعدادات Profit Tracker بنجاح', 'ip');
