@@ -75,71 +75,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const sendReport = () => {
-        const accountNumber = accountInput.value.trim();
-        const groupType = groupTypeSelect ? groupTypeSelect.value.trim() : '';
-        const customerEmail = customerEmailInput ? customerEmailInput.value.trim() : '';
-        
-        // Check required fields
-        if (!accountNumber) {
-            showError('⚠️ رقم الحساب مطلوب!');
-            accountInput.focus();
-            return;
-        }
-        
-        if (!groupType) {
-            showError('⚠️ نوع الجروب مطلوب!');
-            if (groupTypeSelect) groupTypeSelect.focus();
-            return;
-        }
-        
-        // Validate account number format
-        if (!validateAccount(accountNumber)) {
-            showError('⚠️ رقم الحساب غير صحيح! يجب أن يكون 6-7 أرقام فقط');
-            accountInput.focus();
-            return;
-        }
 
-        const btn = document.getElementById('sendBtn');
-        btn.disabled = true;
-        const defaultText = 'إرسال التقرير';
-        btn.textContent = 'جاري الإرسال...';
-        
-        chrome.runtime.sendMessage({
-            action: 'sendSecurityAlert',
-            ipMessage: ipMessage,
-            country: country,
-            type: type,
-            accountNumber: accountNumber,
-            customerEmail: customerEmail,
-            groupType: groupType
-        }, (response) => {
-            if (chrome.runtime.lastError) {
-                showError(`⚠️ فشل الإرسال: ${chrome.runtime.lastError.message}`);
-                btn.disabled = false;
-                btn.textContent = defaultText;
+    const copyBtn = document.getElementById('copyBtn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            const accountNumber = accountInput.value.trim();
+            const groupType = groupTypeSelect ? groupTypeSelect.value.trim() : '';
+            const customerEmail = customerEmailInput ? customerEmailInput.value.trim() : '';
+            
+            if (!accountNumber) {
+                showError('⚠️ رقم الحساب مطلوب للنسخ!');
+                accountInput.focus();
+                return;
+            }
+            if (!groupType) {
+                showError('⚠️ نوع الجروب مطلوب للنسخ!');
+                if (groupTypeSelect) groupTypeSelect.focus();
+                return;
+            }
+            if (!validateAccount(accountNumber)) {
+                showError('⚠️ رقم الحساب غير صحيح! يجب أن يكون 6-7 أرقام فقط');
+                accountInput.focus();
                 return;
             }
 
-            if (!response || response.success !== true) {
-                const reason = response && response.error ? response.error : 'سبب غير معروف';
-                showError(`⚠️ لم يتم الإرسال إلى Telegram: ${reason}`);
-                btn.disabled = false;
-                btn.textContent = defaultText;
-                return;
-            }
+            chrome.storage.local.get(['userSettings', 'creditOutEmployeeName'], (result) => {
+                let employeeName = '';
+                if (result.userSettings && typeof result.userSettings.employeeName === 'string') {
+                    employeeName = result.userSettings.employeeName.trim();
+                } else if (typeof result.creditOutEmployeeName === 'string') {
+                    employeeName = result.creditOutEmployeeName.trim();
+                }
 
-            window.close();
+                const reportText = `رقم الحساب: ${accountNumber}\nالبريد الإلكتروني للعميل:${customerEmail}\nنوع الجروب: ${groupType}\nIP:${ip} // ${displayCountry}\n${employeeName}`;
+
+                navigator.clipboard.writeText(reportText).then(() => {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = '✅ تم النسخ وسيتم الإغلاق';
+                    setTimeout(() => {
+                        window.close();
+                    }, 800);
+                }).catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    showError('⚠️ فشل في نسخ التقرير');
+                });
+            });
         });
-    };
+    }
 
-    document.getElementById('sendBtn').addEventListener('click', sendReport);
-    
     // Auto-submit on Enter
     accountInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault(); // Prevent default form submission if any
-            sendReport();
+            if (copyBtn) copyBtn.click();
         }
     });
 
@@ -149,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
              const val = accountInput.value.trim();
              if (val && accountRegex.test(val)) {
-                 sendReport();
+                 if (copyBtn) copyBtn.click();
              } else if (val) {
                  showError('⚠️ رقم الحساب غير صحيح! يجب أن يكون 6-7 أرقام فقط');
              }
