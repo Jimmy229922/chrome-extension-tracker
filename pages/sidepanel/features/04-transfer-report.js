@@ -608,7 +608,7 @@ const entryNewGroupInput = document.getElementById('entry-new-group');
 const entryNotesInput = document.getElementById('entry-notes');
 
 // Constants for Google Form (Extracted from user link)
-const DEFAULT_GF_URL = 'https://script.google.com/macros/s/AKfycbyBv0x_fzNTvgOQPD-CHlYPInx3L15Em22vKLhpS5MSVzz748DQRMGBtsQCURjTfvVn/exec';
+const DEFAULT_GF_URL = 'https://script.google.com/macros/s/AKfycbwfpOv3ly-zpdR3YZTW34jE0iWo01fEAz9k7uw8KfHRgDVGEz1LpE6PQi29lh3um75i/exec';
 const DEFAULT_GF_IP = 'entry.529442460';
 const DEFAULT_GF_COUNTRY = ''; // Merged with IP
 const DEFAULT_GF_ACCOUNT = 'entry.792356739';
