@@ -13,14 +13,52 @@ document.addEventListener('DOMContentLoaded', () => {
         ip = 'N/A';
     }
 
-    document.getElementById('ipDisplay').textContent = ip;
+    const ipDisplay = document.getElementById('ipDisplay');
+    ipDisplay.textContent = ip;
+
+    // Make IP clickable for copying
+    ipDisplay.style.cursor = 'pointer';
+    ipDisplay.title = 'انقر لنسخ الـ IP';
+    ipDisplay.addEventListener('click', () => {
+        navigator.clipboard.writeText(ipDisplay.textContent).then(() => {
+            const originalText = ipDisplay.textContent;
+            ipDisplay.textContent = '✅ تم النسخ';
+            setTimeout(() => { ipDisplay.textContent = originalText; }, 1000);
+        });
+    });
     
     // Better country display
     let displayCountry = country;
-    if (type === 'IQ') {
-        displayCountry = 'Iraq (Special Region) - ' + (ipMessage.match(/المحافظة:\s*(.+)/)?.[1] || 'Unknown');
+    const govMatch = ipMessage.match(/المحافظة:\s*([^\n\r]+)/);
+    const gov = govMatch ? govMatch[1].trim() : '';
+
+    if (gov && gov !== 'N/A' && gov !== 'Unknown') {
+        if (type === 'IQ') {
+            displayCountry = 'Iraq (Special Region) // ' + gov;
+        } else {
+            displayCountry = country + ' // ' + gov;
+        }
+    } else {
+        if (type === 'IQ') {
+            displayCountry = 'Iraq (Special Region)';
+        } else {
+            displayCountry = country;
+        }
     }
-    document.getElementById('countryDisplay').textContent = displayCountry;
+
+    const countryDisplay = document.getElementById('countryDisplay');
+    countryDisplay.textContent = displayCountry;
+
+    // Make Country clickable for copying
+    countryDisplay.style.cursor = 'pointer';
+    countryDisplay.title = 'انقر لنسخ الدولة والمحافظة';
+    countryDisplay.addEventListener('click', () => {
+        navigator.clipboard.writeText(countryDisplay.textContent).then(() => {
+            const originalText = countryDisplay.textContent;
+            countryDisplay.textContent = '✅ تم النسخ';
+            setTimeout(() => { countryDisplay.textContent = originalText; }, 1000);
+        });
+    });
 
     // Focus input
     const accountInput = document.getElementById('accountNumber');
@@ -107,7 +145,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     employeeName = result.creditOutEmployeeName.trim();
                 }
 
-                const reportText = `رقم الحساب: ${accountNumber}\nالبريد الإلكتروني للعميل:${customerEmail}\nنوع الجروب: ${groupType}\nIP:${ip} // ${displayCountry}\n${employeeName}`;
+                let telegramCountry = country;
+                if (type === 'IQ') telegramCountry = 'Iraq (Special Region)';
+                
+                let telegramDisplayCountry = `\`${telegramCountry}\``;
+                if (gov && gov !== 'N/A' && gov !== 'Unknown') {
+                    telegramDisplayCountry += ` // \`${gov}\``;
+                }
+                
+                const formattedEmail = customerEmail ? `\`${customerEmail}\`` : '';
+                const reportText = `رقم الحساب: \`${accountNumber}\`\nالبريد الإلكتروني للعميل: ${formattedEmail}\nنوع الجروب: ${groupType}\nIP: \`${ip}\` // ${telegramDisplayCountry}\n${employeeName}`;
 
                 navigator.clipboard.writeText(reportText).then(() => {
                     const originalText = copyBtn.textContent;
