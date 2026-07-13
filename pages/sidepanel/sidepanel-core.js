@@ -78,6 +78,7 @@ const criticalAccountNoteInput = document.getElementById('critical-account-note'
 const criticalAddIpBtn = document.getElementById('critical-add-ip');
 const criticalAddAccountBtn = document.getElementById('critical-add-account');
 const criticalClearCustomBtn = document.getElementById('critical-clear-custom');
+const criticalManualRefreshBtn = document.getElementById('critical-manual-refresh');
 
 // Telegram Integration Elements
 const telegramSettingsBtn = document.getElementById('telegram-settings-btn');
@@ -186,6 +187,88 @@ document.querySelector('.toast-close').addEventListener('click', () => {
     currentToast = null;
   }
 });
+
+if (criticalManualRefreshBtn) {
+  criticalManualRefreshBtn.addEventListener('click', async () => {
+    const originalText = criticalManualRefreshBtn.textContent;
+    criticalManualRefreshBtn.disabled = true;
+    criticalManualRefreshBtn.textContent = 'جارٍ التحديث...';
+
+    try {
+      const response = await chrome.runtime.sendMessage({ type: 'SYNC_VIP_WATCHLIST' });
+      if (!response || response.success !== true) {
+        const syncError = new Error(response && response.error ? response.error : 'VIP sync failed');
+        syncError.code = response && response.code ? response.code : '';
+        throw syncError;
+      }
+      showToast('VIP', 'تم تحديث قائمة VIP بنجاح', 'ip');
+    } catch (error) {
+      console.error('فشل تحديث قائمة VIP:', error);
+      const errorMessage = error && error.code === 'PORTAL_LOGIN_REQUIRED'
+        ? 'يرجى تسجيل الدخول إلى Take Profit وإبقاء الموقع مفتوحًا'
+        : error && error.message
+          ? error.message
+          : 'سبب غير معروف';
+      showToast('VIP', `فشل تحديث قائمة VIP: ${errorMessage}`, 'warning', 8000);
+    } finally {
+      criticalManualRefreshBtn.disabled = false;
+      criticalManualRefreshBtn.textContent = originalText;
+    }
+  });
+}
+
+let portalLockOverlay = null;
+
+function setPortalLockState(locked) {
+  if (!locked) {
+    if (portalLockOverlay) portalLockOverlay.remove();
+    portalLockOverlay = null;
+    return;
+  }
+
+  if (portalLockOverlay) return;
+  portalLockOverlay = document.createElement('div');
+  portalLockOverlay.id = 'portal-lock-overlay';
+  portalLockOverlay.dir = 'rtl';
+  portalLockOverlay.style.cssText = [
+    'position:fixed',
+    'inset:0',
+    'z-index:9999',
+    'display:flex',
+    'align-items:center',
+    'justify-content:center',
+    'padding:24px',
+    'text-align:center',
+    'color:#ffffff',
+    'background:rgba(7,18,35,0.96)'
+  ].join(';');
+  portalLockOverlay.innerHTML = `
+    <div>
+      <h2 style="margin:0 0 12px;">Take Profit</h2>
+      <p style="margin:0;line-height:1.8;font-size:16px;">يرجى تسجيل الدخول إلى Take Profit وإبقاء الموقع مفتوحًا</p>
+    </div>
+  `;
+  document.body.appendChild(portalLockOverlay);
+}
+
+async function refreshSidepanelPortalState(showWarning) {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'GET_VIP_PORTAL_STATUS' });
+    const available = !!(response && response.available === true);
+    setPortalLockState(!available);
+    if (!available && showWarning) {
+      showToast('VIP', 'يرجى تسجيل الدخول إلى Take Profit وإبقاء الموقع مفتوحًا', 'warning', 8000);
+    }
+  } catch (error) {
+    setPortalLockState(true);
+    if (showWarning) {
+      showToast('VIP', 'يرجى تسجيل الدخول إلى Take Profit وإبقاء الموقع مفتوحًا', 'warning', 8000);
+    }
+  }
+}
+
+refreshSidepanelPortalState(true);
+window.setInterval(() => refreshSidepanelPortalState(false), 3000);
 
 // --- Arabic Translation Maps ---
 const arabicMaps = {

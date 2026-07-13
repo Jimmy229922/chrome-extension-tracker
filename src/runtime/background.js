@@ -8,61 +8,30 @@ let justCopiedFromExtension = false; // Flag to ignore clipboard content after c
 let lastCopiedText = ''; // Track the last text copied from extension
 const accountNumberRegex = /^\d{6,7}$/;
 const emailRegex = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
+const VIP_WATCHLIST_API_URL = 'https://api.takesprofit.com/api/risk-vip';
+const VIP_WATCHLIST_CACHE_KEY = 'criticalWatchlist';
+const VIP_SYNC_ALARM_NAME = 'syncVipWatchlist';
+const VIP_SYNC_INTERVAL_MINUTES = 5;
+const VIP_SYNC_PER_PAGE = 500;
+const VIP_PORTAL_TAB_URL_PATTERNS = [
+  '*://localhost/*',
+  '*://127.0.0.1/*',
+  '*://*.takesprofit.com/*'
+];
+const VIP_PORTAL_LOGIN_REQUIRED_CODE = 'PORTAL_LOGIN_REQUIRED';
+const VIP_PORTAL_LOGIN_NOTIFICATION_ID = 'vip-portal-login-required';
+const VIP_PORTAL_LOGIN_NOTICE_SESSION_KEY = 'vipPortalLoginNoticeShown';
+const VIP_PORTAL_LOGIN_REQUIRED_MESSAGE = 'يرجى تسجيل الدخول إلى Take Profit وإبقاء الموقع مفتوحًا';
 
-const DEFAULT_CRITICAL_IPS = ['166.88.54.203', '166.88.167.40', '77.76.9.250', '188.240.63.210'];
-const DEFAULT_CRITICAL_IP_NOTE_MAP = new Map([
-  ['77.76.9.250', 'ايبي خاص بسيرفر الشركة'],
-  ['188.240.63.210', 'ايبي مزود النسخ']
-]);
-const DEFAULT_CRITICAL_ACCOUNT_ITEMS = Object.freeze([
-  { account: '2041233', note: 'وكيل لا يتم الحظر' },
-  { account: '3348067', note: 'وكيل لا يتم الحظر' },
-  { account: '2058979', note: 'وكيل لا يتم الحظر' },
-  { account: '2153392', note: 'وكيل لا يتم الحظر' },
-  { account: '3342008', note: 'وكيل لا يتم الحظر' },
-  { account: '3332257', note: 'وكيل لا يتم الحظر' },
-  { account: '2945609', note: 'وكيل لا يتم الحظر' },
-  { account: '3187748', note: 'وكيل لا يتم الحظر' },
-  { account: '3008530', note: 'وكيل لا يتم الحظر' },
-  { account: '2074142', note: 'بعض صفقاته expert' },
-  { account: '2934735', note: 'لا يتم حظر الايبي التركي' },
-  { account: '2975135', note: 'مقيم بالمانيا' },
-  { account: '3005420', note: 'مقيم بالمانيا' },
-  { account: '2979448', note: 'مقيم بالمانيا' },
-  { account: '3049338', note: 'مقيم بالمانيا' },
-  { account: '3031306', note: 'مقيم بالمانيا' },
-  { account: '3041333', note: 'مقيم بالمانيا' },
-  { account: '3034898', note: 'العميل مقيم بالدنمارك' },
-  { account: '3036560', note: 'اكسبرت' },
-  { account: '3044094', note: 'اكسبرت' },
-  { account: '3079967', note: 'عميل مقيم بالهند' },
-  { account: '3100474', note: 'العميل مقيم ب فينزويلا' },
-  { account: '3125660', note: 'مقيم في تركيا' },
-  { account: '3146070', note: 'مقيم في تركيا' },
-  { account: '3228868', note: 'مقيم في تركيا' },
-  { account: '3236766', note: 'بعض صفقاته expert' },
-  { account: '3237681', note: 'مقيم في تركيا' },
-  { account: '3261443', note: 'ساكن عالحدود مع تركيا' },
-  { account: '3311500', note: 'ساكن عالحدود مع تركيا' },
-  { account: '3317530', note: 'ساكن عالحدود مع تركيا' },
-  { account: '3338587', note: 'بعض صفقاته expert' },
-  { account: '3335180', note: 'ساكن عالحدود مع تركيا' },
-  { account: '3331154', note: 'اذا ايبي الماني / استريا النمسا ما ينحظر' },
-  { account: '3349785', note: 'لا يتم حظر الايبي التركي' },
-  { account: '3357990', note: 'بعض صفقاته expert' },
-  { account: '3355764', note: 'ساكن عالحدود مع تركيا' },
-  { account: '3355511', note: 'مقيم في المانيا' },
-  { account: '3361081', note: 'مقيم في تركيا' },
-  { account: '3360871', note: 'ip تركى لا يتم حظره' },
-  { account: '3358131', note: 'بعض صفقاته expert' },
-  { account: '3362504', note: 'مقيم في تركيا' },
-  { account: '3362325', note: 'ساكن عالحدود مع تركيا' },
-  { account: '3142464', note: 'بعض صفقاته expert' },
-  { account: '3316639', note: 'مقيم في تايلاندا' }
-]);
-const DEFAULT_CRITICAL_ACCOUNTS = DEFAULT_CRITICAL_ACCOUNT_ITEMS.map(item => item.account);
-const DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP = new Map(DEFAULT_CRITICAL_ACCOUNT_ITEMS.map(item => [item.account, item.note]));
-const CRITICAL_WATCHLIST_STORAGE_KEY = 'criticalWatchlist';
+let vipWatchlistCache = { accounts: [], ips: [], emails: [], syncedAt: null };
+let vipAccountIndex = new Map();
+let vipIpIndex = new Map();
+let vipEmailIndex = new Map();
+let vipSyncPromise = null;
+let vipWatchlistLoadPromise = null;
+let isPortalSessionAvailable = false;
+let portalSessionRefreshPromise = null;
+
 const CRITICAL_BADGE_COLOR = '#dc2626';
 const CRITICAL_IP_ALERT_STORAGE_KEY = 'criticalIpAlert';
 const DEFAULT_ACTION_TITLE = (() => {
@@ -73,11 +42,6 @@ const DEFAULT_ACTION_TITLE = (() => {
     return 'Extension';
   }
 })();
-
-let criticalIpSet = new Set(DEFAULT_CRITICAL_IPS);
-let criticalAccountSet = new Set(DEFAULT_CRITICAL_ACCOUNTS);
-let criticalIpNoteMap = new Map(DEFAULT_CRITICAL_IP_NOTE_MAP); // ip -> note
-let criticalAccountNoteMap = new Map(DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP); // account -> note
 
 const CRITICAL_POPUP_WIDTH = 560;
 const CRITICAL_POPUP_HEIGHT = 340;
@@ -1055,66 +1019,18 @@ function normalizeSevenDigitAccounts(values) {
   return Array.from(new Set(normalized));
 }
 
-async function loadCriticalWatchlistFromSync() {
-  try {
-    const data = await chrome.storage.sync.get(CRITICAL_WATCHLIST_STORAGE_KEY);
-    const watchlist = data[CRITICAL_WATCHLIST_STORAGE_KEY] || {};
-
-    const rawIps = Array.isArray(watchlist.ips) ? watchlist.ips : [];
-    const rawAccounts = Array.isArray(watchlist.accounts) ? watchlist.accounts : [];
-
-    const userIps = [];
-    const ipNotes = new Map();
-    for (const item of rawIps) {
-      if (typeof item === 'string') {
-        const ips = normalizeIPv4List([item]);
-        if (ips[0]) userIps.push(ips[0]);
-        continue;
-      }
-      if (item && typeof item === 'object') {
-        const ips = normalizeIPv4List([item.ip]);
-        if (!ips[0]) continue;
-        userIps.push(ips[0]);
-        const note = typeof item.note === 'string' ? item.note.trim() : '';
-        if (note) ipNotes.set(ips[0], note);
-      }
-    }
-
-    const userAccounts = [];
-    const accountNotes = new Map();
-    for (const item of rawAccounts) {
-      if (typeof item === 'string') {
-        const accounts = normalizeSevenDigitAccounts([item]);
-        if (accounts[0]) userAccounts.push(accounts[0]);
-        continue;
-      }
-      if (item && typeof item === 'object') {
-        const accounts = normalizeSevenDigitAccounts([item.account]);
-        if (!accounts[0]) continue;
-        userAccounts.push(accounts[0]);
-        const note = typeof item.note === 'string' ? item.note.trim() : '';
-        if (note) accountNotes.set(accounts[0], note);
-      }
-    }
-
-    DEFAULT_CRITICAL_IP_NOTE_MAP.forEach((note, ip) => {
-      if (!ipNotes.has(ip)) ipNotes.set(ip, note);
-    });
-    DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP.forEach((note, account) => {
-      if (!accountNotes.has(account)) accountNotes.set(account, note);
-    });
-
-    criticalIpNoteMap = ipNotes;
-    criticalAccountNoteMap = accountNotes;
-    criticalIpSet = new Set(DEFAULT_CRITICAL_IPS.concat(userIps));
-    criticalAccountSet = new Set(DEFAULT_CRITICAL_ACCOUNTS.concat(userAccounts));
-  } catch (e) {
-    // Fall back to defaults
-    criticalIpSet = new Set(DEFAULT_CRITICAL_IPS);
-    criticalAccountSet = new Set(DEFAULT_CRITICAL_ACCOUNTS);
-    criticalIpNoteMap = new Map(DEFAULT_CRITICAL_IP_NOTE_MAP);
-    criticalAccountNoteMap = new Map(DEFAULT_CRITICAL_ACCOUNT_NOTE_MAP);
+function normalizeEmailList(values) {
+  const list = Array.isArray(values) ? values : [];
+  const normalized = [];
+  for (const raw of list) {
+    if (typeof raw !== 'string') continue;
+    const email = raw.trim();
+    if (!email) continue;
+    const match = email.match(emailRegex);
+    if (!match || match[0] !== email) continue;
+    normalized.push(email);
   }
+  return Array.from(new Set(normalized));
 }
 
 function enqueueToast(toast) {
@@ -1374,6 +1290,10 @@ async function clearOldAccounts() {
 chrome.runtime.onStartup.addListener(() => {
   setupOffscreenDocument('src/runtime/offscreen.html');
   clearOldAccounts();
+  ensureVipSyncAlarm();
+  syncVipWatchlist({ notifyIfPortalUnavailable: true }).catch(error => {
+    console.warn('VIP watchlist startup sync failed:', error);
+  });
 });
 
 // Clear old accounts periodically (e.g., every hour)
@@ -1883,7 +1803,375 @@ function detectSuspiciousPatterns(trades) {
   return patterns;
 }
 
+function normalizeVipWatchlistEntry(entry, fallbackType) {
+  if (!entry || typeof entry !== 'object') return null;
+
+  const type = Number(entry.type) || fallbackType;
+  const rawValue = entry.value ?? entry.account ?? entry.ip ?? entry.email;
+  const value = typeof rawValue === 'number'
+    ? String(rawValue)
+    : typeof rawValue === 'string'
+      ? rawValue.trim()
+      : '';
+  if (!value) return null;
+
+  if (type === 1 && !normalizeSevenDigitAccounts([value]).length) return null;
+  if (type === 2 && !normalizeIPv4List([value]).length) return null;
+  if (type === 3 && !normalizeEmailList([value]).length) return null;
+  if (![1, 2, 3].includes(type)) return null;
+
+  return {
+    ...entry,
+    type,
+    value,
+    note: typeof entry.note === 'string' ? entry.note.trim() : ''
+  };
+}
+
+function rebuildVipWatchlistIndex(watchlist) {
+  const source = watchlist && typeof watchlist === 'object' ? watchlist : {};
+  const accounts = (Array.isArray(source.accounts) ? source.accounts : [])
+    .map(entry => normalizeVipWatchlistEntry(entry, 1))
+    .filter(Boolean);
+  const ips = (Array.isArray(source.ips) ? source.ips : [])
+    .map(entry => normalizeVipWatchlistEntry(entry, 2))
+    .filter(Boolean);
+  const emails = (Array.isArray(source.emails) ? source.emails : [])
+    .map(entry => normalizeVipWatchlistEntry(entry, 3))
+    .filter(Boolean);
+
+  vipWatchlistCache = {
+    accounts,
+    ips,
+    emails,
+    syncedAt: source.syncedAt || null
+  };
+  vipAccountIndex = new Map(accounts.map(entry => [entry.value, entry]));
+  vipIpIndex = new Map(ips.map(entry => [entry.value, entry]));
+  vipEmailIndex = new Map(emails.map(entry => [entry.value.toLowerCase(), entry]));
+}
+
+function loadVipWatchlistCache() {
+  if (vipWatchlistLoadPromise) return vipWatchlistLoadPromise;
+
+  vipWatchlistLoadPromise = chrome.storage.local.get(VIP_WATCHLIST_CACHE_KEY)
+    .then(stored => {
+      rebuildVipWatchlistIndex(stored[VIP_WATCHLIST_CACHE_KEY]);
+    })
+    .catch(error => {
+      vipWatchlistLoadPromise = null;
+      throw error;
+    });
+  return vipWatchlistLoadPromise;
+}
+
+function getVipResponseRecords(payload) {
+  const candidates = [
+    payload,
+    payload && payload.data,
+    payload && payload.items,
+    payload && payload.records,
+    payload && payload.data && payload.data.data,
+    payload && payload.data && payload.data.items,
+    payload && payload.data && payload.data.records
+  ];
+  const records = candidates.find(Array.isArray);
+  if (!records) throw new Error('VIP watchlist response does not contain records');
+  return records;
+}
+
+function getVipResponseLastPage(payload) {
+  const candidates = [
+    payload && payload.last_page,
+    payload && payload.meta && payload.meta.last_page,
+    payload && payload.data && payload.data.last_page,
+    payload && payload.data && payload.data.meta && payload.data.meta.last_page
+  ];
+  const lastPage = candidates.map(Number).find(value => Number.isInteger(value) && value > 0);
+  return lastPage || 1;
+}
+
+async function fetchVipWatchlistType(type, token) {
+  const entries = [];
+  let page = 1;
+  let lastPage = 1;
+
+  do {
+    const response = await fetch(VIP_WATCHLIST_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ type, per_page: VIP_SYNC_PER_PAGE, page })
+    });
+
+    if (!response.ok) {
+      let responseDetails = '';
+      try {
+        const responseBody = await response.text();
+        if (responseBody) {
+          try {
+            const parsedBody = JSON.parse(responseBody);
+            responseDetails = parsedBody.message || parsedBody.error || responseBody;
+          } catch (error) {
+            responseDetails = responseBody;
+          }
+        }
+      } catch (error) {
+        // Keep the HTTP status when the response body cannot be read.
+      }
+      const detailsSuffix = responseDetails ? ` - ${String(responseDetails).slice(0, 300)}` : '';
+      throw new Error(`VIP watchlist HTTP ${response.status}${detailsSuffix}`);
+    }
+
+    const result = await response.json();
+    if (result && result.success === false) {
+      throw new Error('VIP watchlist request failed');
+    }
+
+    for (const rawEntry of getVipResponseRecords(result)) {
+      const entry = normalizeVipWatchlistEntry(rawEntry, type);
+      if (entry) entries.push(entry);
+    }
+
+    lastPage = getVipResponseLastPage(result);
+    page += 1;
+  } while (page <= lastPage);
+
+  return Array.from(new Map(entries.map(entry => [entry.value.toLowerCase(), entry])).values());
+}
+
+async function getPortalTokenFromOpenTab() {
+  const tabs = await chrome.tabs.query({ url: VIP_PORTAL_TAB_URL_PATTERNS });
+  const orderedTabs = tabs.slice().sort((a, b) => Number(!!b.active) - Number(!!a.active));
+
+  for (const tab of orderedTabs) {
+    if (typeof tab.id !== 'number') continue;
+    try {
+      const response = await chrome.tabs.sendMessage(tab.id, { type: 'GET_PORTAL_TOKEN' });
+      const token = response && typeof response.token === 'string' ? response.token.trim() : '';
+      if (token) return token;
+    } catch (error) {
+      // Continue searching other open Take Profit tabs.
+    }
+  }
+
+  const error = new Error(VIP_PORTAL_LOGIN_REQUIRED_MESSAGE);
+  error.code = VIP_PORTAL_LOGIN_REQUIRED_CODE;
+  throw error;
+}
+
+async function showVipPortalLoginRequiredNotification() {
+  const state = await chrome.storage.session.get(VIP_PORTAL_LOGIN_NOTICE_SESSION_KEY);
+  if (state[VIP_PORTAL_LOGIN_NOTICE_SESSION_KEY]) return;
+
+  await chrome.notifications.create(VIP_PORTAL_LOGIN_NOTIFICATION_ID, {
+    type: 'basic',
+    iconUrl: chrome.runtime.getURL('assets/images/icon128.png'),
+    title: 'VIP',
+    message: VIP_PORTAL_LOGIN_REQUIRED_MESSAGE
+  });
+  await chrome.storage.session.set({ [VIP_PORTAL_LOGIN_NOTICE_SESSION_KEY]: true });
+}
+
+async function clearVipPortalLoginRequiredNotification() {
+  await chrome.notifications.clear(VIP_PORTAL_LOGIN_NOTIFICATION_ID);
+  await chrome.storage.session.remove(VIP_PORTAL_LOGIN_NOTICE_SESSION_KEY);
+}
+
+async function suspendVipRuntimeAlerts() {
+  await clearCriticalIpBadge();
+  await chrome.storage.local.remove('criticalAlertPayload');
+
+  if (typeof criticalAlertWindowId === 'number') {
+    try {
+      await chrome.windows.remove(criticalAlertWindowId);
+    } catch (error) {
+      // The alert window may already be closed.
+    }
+  }
+  criticalAlertWindowId = null;
+  criticalAlertTabId = null;
+  lastCriticalPopupKey = '';
+  lastCriticalPopupAt = 0;
+}
+
+async function refreshPortalSessionAvailability(options = {}) {
+  if (portalSessionRefreshPromise) return portalSessionRefreshPromise;
+
+  portalSessionRefreshPromise = (async () => {
+    try {
+      await getPortalTokenFromOpenTab();
+      isPortalSessionAvailable = true;
+      try {
+        await clearVipPortalLoginRequiredNotification();
+      } catch (error) {
+        console.warn('Failed to clear Take Profit login notification:', error);
+      }
+      return true;
+    } catch (error) {
+      isPortalSessionAvailable = false;
+      try {
+        await suspendVipRuntimeAlerts();
+      } catch (suspendError) {
+        console.warn('Failed to suspend VIP runtime alerts:', suspendError);
+      }
+      if (options.notifyIfUnavailable) {
+        try {
+          await showVipPortalLoginRequiredNotification();
+        } catch (notificationError) {
+          console.warn('Failed to show Take Profit login notification:', notificationError);
+        }
+      }
+      return false;
+    }
+  })();
+
+  try {
+    return await portalSessionRefreshPromise;
+  } finally {
+    portalSessionRefreshPromise = null;
+  }
+}
+
+async function syncVipWatchlist(options = {}) {
+  if (vipSyncPromise) return vipSyncPromise;
+
+  vipSyncPromise = (async () => {
+    let token = '';
+    try {
+      token = await getPortalTokenFromOpenTab();
+      isPortalSessionAvailable = true;
+      try {
+        await clearVipPortalLoginRequiredNotification();
+      } catch (error) {
+        console.warn('Failed to clear Take Profit login notification:', error);
+      }
+    } catch (error) {
+      isPortalSessionAvailable = false;
+      if (error && error.code === VIP_PORTAL_LOGIN_REQUIRED_CODE && options.notifyIfPortalUnavailable) {
+        try {
+          await showVipPortalLoginRequiredNotification();
+        } catch (notificationError) {
+          console.warn('Failed to show Take Profit login notification:', notificationError);
+        }
+      }
+      if (error && error.code === VIP_PORTAL_LOGIN_REQUIRED_CODE) {
+        try {
+          await suspendVipRuntimeAlerts();
+        } catch (suspendError) {
+          console.warn('Failed to suspend VIP runtime alerts:', suspendError);
+        }
+      }
+      throw error;
+    }
+
+    const [accounts, ips, emails] = await Promise.all([
+      fetchVipWatchlistType(1, token),
+      fetchVipWatchlistType(2, token),
+      fetchVipWatchlistType(3, token)
+    ]);
+    const mergedWatchlist = { accounts, ips, emails, syncedAt: Date.now() };
+
+    await chrome.storage.local.set({ [VIP_WATCHLIST_CACHE_KEY]: mergedWatchlist });
+    rebuildVipWatchlistIndex(mergedWatchlist);
+
+    return {
+      counts: {
+        accounts: accounts.length,
+        ips: ips.length,
+        emails: emails.length
+      },
+      syncedAt: mergedWatchlist.syncedAt
+    };
+  })();
+
+  try {
+    return await vipSyncPromise;
+  } finally {
+    vipSyncPromise = null;
+  }
+}
+
+function ensureVipSyncAlarm() {
+  chrome.alarms.create(VIP_SYNC_ALARM_NAME, { periodInMinutes: VIP_SYNC_INTERVAL_MINUTES });
+}
+
+function getCriticalHitsFromVipCache(text) {
+  const clipboardText = typeof text === 'string' ? text : '';
+  const accountCandidates = clipboardText.match(/\b\d{6,7}\b/g) || [];
+  const ipCandidates = normalizeIPv4List(clipboardText.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g) || []);
+  const emailCandidates = normalizeEmailList(clipboardText.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) || []);
+  const accounts = [];
+  const ips = [];
+  const emails = [];
+  const items = [];
+
+  for (const value of Array.from(new Set(accountCandidates))) {
+    const entry = vipAccountIndex.get(value);
+    if (!entry) continue;
+    accounts.push(value);
+    items.push({ type: 'AC', value, note: entry.note || '' });
+  }
+
+  for (const value of ipCandidates) {
+    const entry = vipIpIndex.get(value);
+    if (!entry) continue;
+    ips.push(value);
+    items.push({ type: 'IP', value, note: entry.note || '' });
+  }
+
+  for (const value of emailCandidates) {
+    const entry = vipEmailIndex.get(value.toLowerCase());
+    if (!entry) continue;
+    emails.push(value);
+    items.push({ type: 'EMAIL', value, note: entry.note || '' });
+  }
+
+  return { accounts, ips, emails, items };
+}
+
+chrome.alarms.onAlarm.addListener(alarm => {
+  if (alarm.name !== VIP_SYNC_ALARM_NAME) return;
+  syncVipWatchlist({ notifyIfPortalUnavailable: true }).catch(error => {
+    console.warn('VIP watchlist sync failed:', error);
+  });
+});
+
+chrome.tabs.onRemoved.addListener(() => {
+  isPortalSessionAvailable = false;
+  refreshPortalSessionAvailability({ notifyIfUnavailable: true }).catch(() => {});
+});
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'PORTAL_AUTH_STATE_CHANGED') {
+    if (message.authenticated !== true) isPortalSessionAvailable = false;
+    refreshPortalSessionAvailability({ notifyIfUnavailable: true }).catch(() => {});
+    return false;
+  }
+
+  if (message.type === 'GET_VIP_PORTAL_STATUS') {
+    refreshPortalSessionAvailability({ notifyIfUnavailable: true })
+      .then(available => sendResponse({
+        available,
+        code: available ? '' : VIP_PORTAL_LOGIN_REQUIRED_CODE,
+        error: available ? '' : VIP_PORTAL_LOGIN_REQUIRED_MESSAGE
+      }))
+      .catch(error => sendResponse({ available: false, code: error.code || '', error: error.message }));
+    return true;
+  }
+
+  if (message.type === 'SYNC_VIP_WATCHLIST') {
+    syncVipWatchlist()
+      .then(result => sendResponse({ success: true, ...result }))
+      .catch(error => {
+        console.error('Manual VIP watchlist sync failed:', error);
+        sendResponse({ success: false, error: error.message, code: error.code || '' });
+      });
+    return true;
+  }
+
   if (message.type === 'writeClipboardText') {
     justCopiedFromExtension = true;
     lastCopiedText = message.text || '';
@@ -1910,6 +2198,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return false;
     }
 
+    if (!isPortalSessionAvailable) {
+      return false;
+    }
+
     // --- FIX: Bring Security Alert to Front if open ---
     if (securityAlertWindowId) {
         console.log('Security Alert is open - bringing to front on new copy');
@@ -1929,23 +2221,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     // ------------------------------------------------_
 
-    const criticalHits = getCriticalMatchesFromText(clipboardText);
-    if (criticalHits.ips.length || criticalHits.accounts.length) {
-      // Check for Special Corporate IP to trigger TTS
-      if (criticalHits.ips.includes('77.76.9.250')) {
-        chrome.runtime.sendMessage({
-          type: 'playTTS',
-          text: 'تنبيه. هذا الآي بي خاص بسيرفر الشركة'
-        }).catch(err => console.warn('Failed to trigger TTS:', err));
-      }
+    getPortalTokenFromOpenTab()
+      .then(async () => {
+        try {
+          await clearVipPortalLoginRequiredNotification();
+        } catch (error) {
+          console.warn('Failed to clear Take Profit login notification:', error);
+        }
+        return loadVipWatchlistCache();
+      })
+      .then(() => {
+        const criticalHits = getCriticalHitsFromVipCache(clipboardText);
+        if (!criticalHits.items.length) return;
 
-      setCriticalAlertBadge(criticalHits).catch(err => {
-        console.warn('Failed to set critical alert badge:', err);
+        setCriticalAlertBadge(criticalHits).catch(err => {
+          console.warn('Failed to set critical alert badge:', err);
+        });
+        openCriticalAlertPopup(criticalHits).catch(err => {
+          console.warn('Failed to open critical alert popup:', err);
+        });
+      })
+      .catch(error => {
+        if (error && error.code === VIP_PORTAL_LOGIN_REQUIRED_CODE) {
+          suspendVipRuntimeAlerts().catch(() => {});
+          return;
+        }
+        console.warn('Failed to match clipboard against VIP watchlist cache:', error);
       });
-      openCriticalAlertPopup(criticalHits).catch(err => {
-        console.warn('Failed to open critical alert popup:', err);
-      });
-    }
 
     if (trackingPaused) {
       return false;
@@ -2116,9 +2418,6 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (changes.trackingPaused) {
       trackingPaused = !!changes.trackingPaused.newValue;
     }
-    if (changes[CRITICAL_WATCHLIST_STORAGE_KEY]) {
-      loadCriticalWatchlistFromSync().catch(() => {});
-    }
     return;
   }
 
@@ -2127,6 +2426,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
     if (hasUserSettingsChange) {
       ipGeoCache.clear();
+    }
+
+    if (changes[VIP_WATCHLIST_CACHE_KEY]) {
+      rebuildVipWatchlistIndex(changes[VIP_WATCHLIST_CACHE_KEY].newValue);
     }
   }
 });
@@ -2308,7 +2611,6 @@ const BANNED_COUNTRIES = {
 };
 
 async function handleNewIP(ip) {
-  const isCriticalIp = criticalIpSet.has(ip);
   try {
     const storageData = await chrome.storage.local.get('copiedIPs');
     const copiedIPs = storageData.copiedIPs || [];
@@ -2390,7 +2692,7 @@ async function handleNewIP(ip) {
         toastType = 'erbil';
       }
 
-      showToastMessage(notificationTitle, notificationMessage, toastType, buttons, undefined, isCriticalIp ? { skipSystemNotification: true } : undefined);
+      showToastMessage(notificationTitle, notificationMessage, toastType, buttons);
 
       copiedIPs.unshift({
         ip: ip,
@@ -2408,7 +2710,7 @@ async function handleNewIP(ip) {
       console.log('Geolocation failed for IP: ' + ip + '. Reason: ' + geoResult.error);
       const title = isDuplicate ? IP_UI_TEXT.duplicateIpTitle : IP_UI_TEXT.newIpTitle;
       const message = buildGeoUnavailableMessage(ip, geoResult.error);
-      showToastMessage(title, message, 'ip', undefined, undefined, isCriticalIp ? { skipSystemNotification: true } : undefined);
+      showToastMessage(title, message, 'ip');
       copiedIPs.unshift({
         ip: ip,
         country: 'N/A',
@@ -2425,7 +2727,7 @@ async function handleNewIP(ip) {
     console.error('Error fetching IP geolocation:', error);
     const title = IP_UI_TEXT.genericIpTitle;
     const message = buildGeoUnavailableMessage(ip, error && error.message ? error.message : String(error));
-    showToastMessage(title, message, 'ip', undefined, undefined, isCriticalIp ? { skipSystemNotification: true } : undefined);
+    showToastMessage(title, message, 'ip');
     try {
       const storageData = await chrome.storage.local.get('copiedIPs');
       const copiedIPs = storageData.copiedIPs || [];
@@ -2501,86 +2803,34 @@ chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) =
 // Keep track of the latest IP payload shown in notification
 let latestIpPayload = null;
 
-function extractAllIPv4(text) {
-  if (!text) return [];
-  const ipv4RegexGlobal = /\b(?:\d{1,3}\.){3}\d{1,3}\b/g;
-  const matches = text.match(ipv4RegexGlobal);
-  if (!matches) return [];
-  const valid = [];
-  for (const candidate of matches) {
-    const octets = candidate.split('.');
-    if (octets.every(o => { const n = Number(o); return n >= 0 && n <= 255; })) {
-      valid.push(candidate);
-    }
-  }
-  return valid;
-}
-
-function getCriticalIpsFromText(text) {
-  const ips = extractAllIPv4(text);
-  if (!ips.length) return [];
-  const found = [];
-  for (const ip of ips) {
-    if (criticalIpSet.has(ip)) found.push(ip);
-  }
-  return Array.from(new Set(found));
-}
-
-function extractAllSevenDigitAccounts(text) {
-  if (!text) return [];
-  const matches = text.match(/\b\d{6,7}\b/g);
-  return matches ? matches : [];
-}
-
-function getCriticalAccountsFromText(text) {
-  const accounts = extractAllSevenDigitAccounts(text);
-  if (!accounts.length) return [];
-  const found = [];
-  for (const acc of accounts) {
-    if (criticalAccountSet.has(acc)) found.push(acc);
-  }
-  return Array.from(new Set(found));
-}
-
-function getCriticalMatchesFromText(text) {
-  const ips = getCriticalIpsFromText(text);
-  const accounts = getCriticalAccountsFromText(text);
-
-  const items = [];
-  for (const ip of ips) {
-    items.push({ type: 'IP', value: ip, note: criticalIpNoteMap.get(ip) || '' });
-  }
-  for (const acc of accounts) {
-    items.push({ type: 'AC', value: acc, note: criticalAccountNoteMap.get(acc) || '' });
-  }
-
-  return { ips, accounts, items };
-}
-
 async function setCriticalAlertBadge(matches) {
   const input = matches && typeof matches === 'object' && !Array.isArray(matches)
     ? matches
-    : { ips: matches, accounts: [] };
+    : { ips: matches, accounts: [], emails: [] };
 
-  const cleanedNextIps = normalizeIPv4List(input.ips).filter(ip => criticalIpSet.has(ip));
-  const cleanedNextAccounts = normalizeSevenDigitAccounts(input.accounts).filter(acc => criticalAccountSet.has(acc));
+  const cleanedNextIps = normalizeIPv4List(input.ips);
+  const cleanedNextAccounts = normalizeSevenDigitAccounts(input.accounts);
+  const cleanedNextEmails = normalizeEmailList(input.emails);
 
-  if (!cleanedNextIps.length && !cleanedNextAccounts.length) return;
+  if (!cleanedNextIps.length && !cleanedNextAccounts.length && !cleanedNextEmails.length) return;
 
   let existingIps = [];
   let existingAccounts = [];
+  let existingEmails = [];
   try {
     const data = await chrome.storage.local.get(CRITICAL_IP_ALERT_STORAGE_KEY);
     const payload = data[CRITICAL_IP_ALERT_STORAGE_KEY];
     if (payload && Array.isArray(payload.ips)) existingIps = normalizeIPv4List(payload.ips);
     if (payload && Array.isArray(payload.accounts)) existingAccounts = normalizeSevenDigitAccounts(payload.accounts);
+    if (payload && Array.isArray(payload.emails)) existingEmails = normalizeEmailList(payload.emails);
   } catch (e) {
     // ignore
   }
 
   const mergedIps = Array.from(new Set(existingIps.concat(cleanedNextIps))).sort();
   const mergedAccounts = Array.from(new Set(existingAccounts.concat(cleanedNextAccounts))).sort();
-  const total = mergedIps.length + mergedAccounts.length;
+  const mergedEmails = Array.from(new Set(existingEmails.concat(cleanedNextEmails))).sort();
+  const total = mergedIps.length + mergedAccounts.length + mergedEmails.length;
   if (!total) return;
 
   // User requested: no numeric badge on the extension icon.
@@ -2588,7 +2838,7 @@ async function setCriticalAlertBadge(matches) {
 
   try {
     await chrome.storage.local.set({
-      [CRITICAL_IP_ALERT_STORAGE_KEY]: { ips: mergedIps, accounts: mergedAccounts, timestamp: Date.now() }
+      [CRITICAL_IP_ALERT_STORAGE_KEY]: { ips: mergedIps, accounts: mergedAccounts, emails: mergedEmails, timestamp: Date.now() }
     });
   } catch (e) {
     // ignore
@@ -2618,6 +2868,7 @@ async function setCriticalAlertBadge(matches) {
     const parts = [];
     if (mergedIps.length) parts.push(`IPs: ${mergedIps.join(', ')}`);
     if (mergedAccounts.length) parts.push(`Accounts: ${mergedAccounts.join(', ')}`);
+    if (mergedEmails.length) parts.push(`Emails: ${mergedEmails.join(', ')}`);
     await chrome.action.setTitle({ title: `CRITICAL COPIED: ${parts.join(' | ')}` });
   } catch (e) {
     // ignore
@@ -2655,7 +2906,8 @@ async function restoreCriticalIpBadge() {
 
     const ips = payload && Array.isArray(payload.ips) ? normalizeIPv4List(payload.ips) : [];
     const accounts = payload && Array.isArray(payload.accounts) ? normalizeSevenDigitAccounts(payload.accounts) : [];
-    const total = ips.length + accounts.length;
+    const emails = payload && Array.isArray(payload.emails) ? normalizeEmailList(payload.emails) : [];
+    const total = ips.length + accounts.length + emails.length;
     if (!total) return;
 
     // User requested: no numeric badge on the extension icon.
@@ -2670,6 +2922,7 @@ async function restoreCriticalIpBadge() {
     const parts = [];
     if (ips.length) parts.push(`IPs: ${ips.join(', ')}`);
     if (accounts.length) parts.push(`Accounts: ${accounts.join(', ')}`);
+    if (emails.length) parts.push(`Emails: ${emails.join(', ')}`);
     await chrome.action.setTitle({ title: `CRITICAL COPIED: ${parts.join(' | ')}` });
   } catch (e) {
     // ignore
@@ -2679,12 +2932,13 @@ async function restoreCriticalIpBadge() {
 function normalizeCriticalHitsForPopup(hits) {
   const input = hits && typeof hits === 'object' && !Array.isArray(hits)
     ? hits
-    : { ips: hits, accounts: [] };
+    : { ips: hits, accounts: [], emails: [] };
 
-  const ips = normalizeIPv4List(input.ips).filter(ip => criticalIpSet.has(ip)).sort();
-  const accounts = normalizeSevenDigitAccounts(input.accounts).filter(acc => criticalAccountSet.has(acc)).sort();
+  const ips = normalizeIPv4List(input.ips).sort();
+  const accounts = normalizeSevenDigitAccounts(input.accounts).sort();
+  const emails = normalizeEmailList(input.emails).sort();
 
-  return { ips, accounts };
+  return { ips, accounts, emails };
 }
 
 function buildCriticalAlertPopupUrl(hits) {
@@ -2692,16 +2946,17 @@ function buildCriticalAlertPopupUrl(hits) {
   const params = [];
   if (normalized.ips.length) params.push(`ips=${encodeURIComponent(normalized.ips.join(','))}`);
   if (normalized.accounts.length) params.push(`accounts=${encodeURIComponent(normalized.accounts.join(','))}`);
+  if (normalized.emails.length) params.push(`emails=${encodeURIComponent(normalized.emails.join(','))}`);
   params.push(`t=${Date.now()}`);
   return chrome.runtime.getURL(`pages/alerts/critical-alert/index.html?${params.join('&')}`);
 }
 
 async function openCriticalAlertPopup(hits) {
   const normalized = normalizeCriticalHitsForPopup(hits);
-  if (!normalized.ips.length && !normalized.accounts.length) return;
+  if (!normalized.ips.length && !normalized.accounts.length && !normalized.emails.length) return;
 
   const now = Date.now();
-  const key = `${normalized.ips.join(',')}|${normalized.accounts.join(',')}`;
+  const key = `${normalized.ips.join(',')}|${normalized.accounts.join(',')}|${normalized.emails.join(',')}`;
   if (key === lastCriticalPopupKey && now - lastCriticalPopupAt < 800) return;
   lastCriticalPopupKey = key;
   lastCriticalPopupAt = now;
@@ -2712,15 +2967,16 @@ async function openCriticalAlertPopup(hits) {
     if (hits && hits.items && Array.isArray(hits.items)) {
       for (const item of hits.items) {
         if (!item || typeof item !== 'object') continue;
-        const type = item.type === 'AC' ? 'AC' : 'IP';
+        const type = item.type === 'AC' ? 'AC' : item.type === 'EMAIL' ? 'EMAIL' : 'IP';
         const value = typeof item.value === 'string' ? item.value.trim() : '';
         const note = typeof item.note === 'string' ? item.note.trim() : '';
         if (!value) continue;
         items.push({ type, value, note });
       }
     } else {
-      normalized.ips.forEach(ip => items.push({ type: 'IP', value: ip, note: criticalIpNoteMap.get(ip) || '' }));
-      normalized.accounts.forEach(acc => items.push({ type: 'AC', value: acc, note: criticalAccountNoteMap.get(acc) || '' }));
+      normalized.ips.forEach(ip => items.push({ type: 'IP', value: ip, note: '' }));
+      normalized.accounts.forEach(acc => items.push({ type: 'AC', value: acc, note: '' }));
+      normalized.emails.forEach(email => items.push({ type: 'EMAIL', value: email, note: '' }));
     }
     await chrome.storage.local.set({ criticalAlertPayload: { items, timestamp: Date.now() } });
   } catch (e) {
@@ -2848,19 +3104,14 @@ chrome.action.onClicked.addListener(async (tab) => {
 // Ensure the offscreen document is created when the extension is installed or updated.
 chrome.runtime.onInstalled.addListener(async (details) => {
   await setupOffscreenDocument('src/runtime/offscreen.html');
+  ensureVipSyncAlarm();
+  syncVipWatchlist({ notifyIfPortalUnavailable: true }).catch(error => {
+    console.warn('VIP watchlist install sync failed:', error);
+  });
   // void pollTelegramAccountCheckCommands('install');
   if (details.reason === 'install') {
       chrome.storage.local.set({ copiedAccounts: [], copiedIPs: [] });
       await clearCriticalIpBadge();
-      // Initialize Critical Watchlist storage (custom items only; defaults are always active)
-      try {
-        const data = await chrome.storage.sync.get(CRITICAL_WATCHLIST_STORAGE_KEY);
-        if (!data || !data[CRITICAL_WATCHLIST_STORAGE_KEY]) {
-          await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ips: [], accounts: [] } });
-        }
-      } catch (e) {
-        // ignore
-      }
       // First run defaults
       await chrome.storage.sync.set({ onboardingCompleted: false, tooltipsEnabled: true, filters: { accounts: { status:'all', date:'all' }, ips: { status:'all', date:'all' } } });
       // Open options page to show onboarding
@@ -2870,7 +3121,12 @@ chrome.runtime.onInstalled.addListener(async (details) => {
 
 setupOffscreenDocument('src/runtime/offscreen.html');
 restoreCriticalIpBadge();
-loadCriticalWatchlistFromSync().catch(() => {});
+chrome.storage.local.remove('portalToken').catch(() => {});
+loadVipWatchlistCache().catch(error => {
+  console.warn('Failed to load VIP watchlist cache:', error);
+});
+ensureVipSyncAlarm();
+refreshPortalSessionAvailability().catch(() => {});
 
 // Strip Origin header from ipwhois.app requests to avoid free-plan CORS rejection
 chrome.declarativeNetRequest.updateDynamicRules({
@@ -3010,4 +3266,3 @@ async function handleReportSubmission(data) {
   } catch (error) {
   }
 }
-

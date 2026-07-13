@@ -24,6 +24,19 @@ function parseAccountsFromQuery() {
   }
 }
 
+function parseEmailsFromQuery() {
+  try {
+    const params = new URLSearchParams(window.location.search || '');
+    const raw = params.get('emails') || '';
+    return raw
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+  } catch (e) {
+    return [];
+  }
+}
+
 function getNoteForItem(item) {
   const note = item && typeof item.note === 'string' ? item.note.trim() : '';
   return note || '';
@@ -37,7 +50,7 @@ async function readPayloadFromStorage() {
     const items = payload.items
       .filter(i => i && typeof i === 'object')
       .map(i => ({
-        type: i.type === 'AC' ? 'AC' : 'IP',
+        type: i.type === 'AC' ? 'AC' : i.type === 'EMAIL' ? 'EMAIL' : 'IP',
         value: typeof i.value === 'string' ? i.value.trim() : '',
         note: typeof i.note === 'string' ? i.note.trim() : ''
       }))
@@ -72,61 +85,6 @@ async function copyText(text) {
   }
 }
 
-async function updateItemNote(item, newNote) {
-  const CRITICAL_WATCHLIST_STORAGE_KEY = 'criticalWatchlist';
-  try {
-    const data = await chrome.storage.sync.get(CRITICAL_WATCHLIST_STORAGE_KEY);
-    const watchlist = data[CRITICAL_WATCHLIST_STORAGE_KEY] || { ips: [], accounts: [] };
-    const trimmedNote = typeof newNote === 'string' ? newNote.trim() : '';
-
-    if (item.type === 'IP') {
-      const ips = Array.isArray(watchlist.ips) ? watchlist.ips : [];
-      const updatedIps = ips.map(v => {
-        if (v && typeof v === 'object' && v.ip === item.value) {
-          return { ...v, note: trimmedNote };
-        }
-        return v;
-      });
-      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, ips: updatedIps } });
-      showToast('تم تحديث الملاحظة');
-    } else if (item.type === 'AC') {
-      const accounts = Array.isArray(watchlist.accounts) ? watchlist.accounts : [];
-      const updatedAccounts = accounts.map(v => {
-        if (v && typeof v === 'object' && v.account === item.value) {
-          return { ...v, note: trimmedNote };
-        }
-        return v;
-      });
-      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, accounts: updatedAccounts } });
-      showToast('تم تحديث الملاحظة');
-    }
-  } catch (e) {
-    showToast('فشل في تحديث الملاحظة');
-  }
-}
-
-async function removeItemFromWatchlist(item) {
-  const CRITICAL_WATCHLIST_STORAGE_KEY = 'criticalWatchlist';
-  try {
-    const data = await chrome.storage.sync.get(CRITICAL_WATCHLIST_STORAGE_KEY);
-    const watchlist = data[CRITICAL_WATCHLIST_STORAGE_KEY] || { ips: [], accounts: [] };
-
-    if (item.type === 'IP') {
-      const ips = Array.isArray(watchlist.ips) ? watchlist.ips : [];
-      const filteredIps = ips.filter(v => !(v && typeof v === 'object' && v.ip === item.value));
-      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, ips: filteredIps } });
-      showToast('تم حذف العنصر');
-    } else if (item.type === 'AC') {
-      const accounts = Array.isArray(watchlist.accounts) ? watchlist.accounts : [];
-      const filteredAccounts = accounts.filter(v => !(v && typeof v === 'object' && v.account === item.value));
-      await chrome.storage.sync.set({ [CRITICAL_WATCHLIST_STORAGE_KEY]: { ...watchlist, accounts: filteredAccounts } });
-      showToast('تم حذف العنصر');
-    }
-  } catch (e) {
-    showToast('فشل في حذف العنصر');
-  }
-}
-
 function tryPlaySound() {
   chrome.storage.sync.get(['alertSoundText'], async (data) => {
     let text = data.alertSoundText || '';
@@ -140,6 +98,8 @@ function tryPlaySound() {
           text = ' آي بي مهم';
         } else if (firstItem.type === 'AC') {
           text = 'تنبيه حساب مهم';
+        } else if (firstItem.type === 'EMAIL') {
+          text = 'تنبيه بريد إلكتروني مهم';
         } else {
           text = 'الحساب خطير';
         }
@@ -147,10 +107,13 @@ function tryPlaySound() {
         // Fallback from query params
         const ips = parseIpsFromQuery();
         const accounts = parseAccountsFromQuery();
+        const emails = parseEmailsFromQuery();
         if (ips.length > 0) {
           text = 'تنبيه آي بي مهم';
         } else if (accounts.length > 0) {
           text = 'تنبيه حساب مهم';
+        } else if (emails.length > 0) {
+          text = 'تنبيه بريد إلكتروني مهم';
         } else {
           text = 'الحساب خطير';
         }
@@ -229,17 +192,19 @@ function tryPlaySound() {
   });
 }
 
-function renderItems({ ips, accounts }) {
+function renderItems({ ips, accounts, emails }) {
   const list = document.getElementById('item-list');
   if (!list) return;
   list.innerHTML = '';
 
   const ipItems = Array.isArray(ips) ? ips : [];
   const accountItems = Array.isArray(accounts) ? accounts : [];
+  const emailItems = Array.isArray(emails) ? emails : [];
 
   const merged = [];
   ipItems.forEach(value => merged.push({ type: 'IP', value }));
   accountItems.forEach(value => merged.push({ type: 'ACC', value }));
+  emailItems.forEach(value => merged.push({ type: 'EMAIL', value }));
 
   const seen = new Set();
   const deduped = merged.filter(item => {
@@ -254,7 +219,7 @@ function renderItems({ ips, accounts }) {
     li.className = 'ipItem';
 
     const tag = document.createElement('span');
-    tag.textContent = item.type === 'ACC' ? 'AC' : 'IP';
+    tag.textContent = item.type === 'ACC' ? 'AC' : item.type;
     tag.style.fontSize = '12px';
     tag.style.fontWeight = '800';
     tag.style.padding = '2px 8px';
@@ -377,7 +342,8 @@ function setupButtons() {
     } else {
       const ips = parseIpsFromQuery();
       const accounts = parseAccountsFromQuery();
-      renderItems({ ips, accounts });
+      const emails = parseEmailsFromQuery();
+      renderItems({ ips, accounts, emails });
     }
   })();
   setupButtons();

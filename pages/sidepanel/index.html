@@ -60,48 +60,10 @@
     <div class="critical-watchlist-container">
       <div class="critical-watchlist-card">
         <h2 style="margin:0 0 8px;">قائمة VIP</h2>
-        <p style="margin:0;line-height:1.8;">
-          أي IP أو رقم حساب (6 أو 7 أرقام) تضيفه هنا، لو اتنسخ هيظهر نفس تنبيه الـ Popup فورًا.
+        <p style="margin:0 0 12px;line-height:1.8;">
+          يتم جلب الحسابات وعناوين IP والبريد الإلكتروني من Take Profit وتحديثها تلقائيًا كل 5 دقائق.
         </p>
-      </div>
-
-      <div class="critical-watchlist-card">
-        <h3 style="margin:0 0 10px;">إضافة IP</h3>
-        <div class="critical-watchlist-form">
-          <input id="critical-ip-input" type="text" placeholder="مثال: 8.8.8.8" autocomplete="off" />
-          <input id="critical-ip-note" type="text" placeholder="اكتب ملاحظة تظهر في التنبيه" autocomplete="off" />
-          <button id="critical-add-ip" type="button" class="critical-add-btn">إضافة</button>
-        </div>
-      </div>
-
-      <div class="critical-watchlist-card">
-        <h3 style="margin:0 0 10px;">إضافة رقم حساب (6 أو 7 أرقام)</h3>
-        <div class="critical-watchlist-form">
-          <input id="critical-account-input" type="text" placeholder="مثال: 123456 أو 1234567" autocomplete="off" />
-          <input id="critical-account-note" type="text" placeholder="اكتب ملاحظة تظهر في التنبيه" autocomplete="off" />
-          <button id="critical-add-account" type="button" class="critical-add-btn">إضافة</button>
-        </div>
-      </div>
-
-      <div class="critical-divider" aria-hidden="true"></div>
-
-      <div class="critical-watchlist-card">
-        <h3 style="margin:0 0 10px;">عناوين IP المحفوظة</h3>
-        <h4 style="margin:0 0 10px;opacity:0.85;">الـ IPs الأساسية (مقفولة)</h4>
-        <ul id="critical-default-ip-list" class="critical-watchlist-list"></ul>
-        <h4 style="margin:14px 0 10px;opacity:0.85;">IPs المضافة</h4>
-        <ul id="critical-custom-ip-list" class="critical-watchlist-list"></ul>
-      </div>
-
-      <div class="critical-divider" aria-hidden="true"></div>
-
-      <div class="critical-watchlist-card">
-        <h3 style="margin:0 0 10px;">أرقام الحسابات المحفوظة</h3>
-        <ul id="critical-account-list" class="critical-watchlist-list"></ul>
-      </div>
-
-      <div class="critical-watchlist-actions">
-        <button id="critical-clear-custom" type="button" class="critical-clear-btn">مسح القائمة المضافة</button>
+        <button id="critical-manual-refresh" type="button" class="critical-add-btn">تحديث القائمة يدويًا</button>
       </div>
     </div>
   </div>

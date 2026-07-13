@@ -13,9 +13,6 @@
     storageKeys: Object.freeze({
       criticalWatchlist: 'criticalWatchlist',
       withdrawalDraft: 'withdrawalReportDraft'
-    }),
-    watchlist: Object.freeze({
-      defaultIps: Object.freeze(['166.88.54.203', '166.88.167.40', '77.76.9.250'])
     })
   });
 
