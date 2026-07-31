@@ -942,12 +942,12 @@ chrome.windows.onRemoved.addListener((winId) => {
     }
 });
 
-function openSecurityAlertPopup(ipMessage, country, type) {
+function openSecurityAlertPopup(ipMessage, country, type, isDuplicate, lastSentAt) {
     // If already open, focus it
     if (securityAlertWindowId) {
         chrome.windows.update(securityAlertWindowId, { focused: true }).catch(() => {
             securityAlertWindowId = null;
-            openSecurityAlertPopup(ipMessage, country, type); // Retry
+            openSecurityAlertPopup(ipMessage, country, type, isDuplicate, lastSentAt); // Retry
         });
         return;
     }
@@ -955,14 +955,16 @@ function openSecurityAlertPopup(ipMessage, country, type) {
     const params = new URLSearchParams({
         ipMessage: ipMessage,
         country: country,
-        type: type
+        type: type,
+        isDuplicate: isDuplicate ? 'true' : 'false',
+        lastSentAt: lastSentAt || ''
     });
     
     chrome.windows.create({
         url: chrome.runtime.getURL('pages/alerts/security-alert/index.html') + '?' + params.toString(),
         type: 'popup',
         width: 420,
-        height: 550,
+        height: 580,
         focused: true
     }).then(win => {
         securityAlertWindowId = win.id;
@@ -1213,7 +1215,7 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
     const ipToCheck = ipMatch ? ipMatch[0] : null;
 
     if (ipToCheck) {
-      const openPopupIfNeeded = () => {
+      const openPopupIfNeeded = (isDup, lastSent) => {
         if (!isBannedOrHighlightedToast) return;
         const countryMapping = Object.entries(BANNED_COUNTRIES).reduce(
           (acc, [code, data]) => {
@@ -1224,7 +1226,7 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
         );
         const countryInfo = countryMapping[tempToastType];
         if (countryInfo) {
-          openSecurityAlertPopup(message, countryInfo.name, countryInfo.code);
+          openSecurityAlertPopup(message, countryInfo.name, countryInfo.code, isDup, lastSent);
         }
       };
 
@@ -1232,12 +1234,23 @@ function showToastMessage(title, message, toastType, buttons, notificationItems,
         .then((sentRecord) => {
           let finalMessage = message;
           let footerContextMessage = '';
+          const lastSentAt = sentRecord ? formatSentAtForNotification(sentRecord.lastSentAt) : '';
+          const isDuplicate = !!sentRecord;
+
           if (sentRecord) {
-            const lastSentAt = formatSentAtForNotification(sentRecord.lastSentAt);
             footerContextMessage = `${notificationText.duplicateSentFooterPrefix} ${lastSentAt}`;
-          } else {
-            openPopupIfNeeded();
+            if (isBannedOrHighlightedToast) {
+              const duplicateToastMsg = `⚠️ هذا الـ IP يتبع منطقة/دولة محظورة وتم إرسال تقرير عنه سابقاً بتاريخ: ${lastSentAt}`;
+              const duplicateToastPayload = { type: 'showToast', title: '⚠️ IP مكرر - تم إرسال تقرير سابق', message: duplicateToastMsg, toastType: 'warning' };
+              if (isSidePanelOpen) {
+                chrome.runtime.sendMessage(duplicateToastPayload).catch(() => {});
+              } else {
+                enqueueToast(duplicateToastPayload);
+              }
+            }
           }
+          
+          openPopupIfNeeded(isDuplicate, lastSentAt);
           createSystemNotification(title, finalMessage, toastType, buttons, notificationItems, footerContextMessage);
         })
         .catch((error) => {
@@ -2145,6 +2158,13 @@ chrome.tabs.onRemoved.addListener(() => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'MARK_IP_AS_SENT' && message.ip) {
+    markIpAsSent(message.ip, { accountNumber: message.accountNumber, groupType: message.groupType })
+      .then(() => sendResponse({ success: true }))
+      .catch(err => sendResponse({ success: false, error: err.message }));
+    return true;
+  }
+
   if (message.type === 'PORTAL_AUTH_STATE_CHANGED') {
     if (message.authenticated !== true) isPortalSessionAvailable = false;
     refreshPortalSessionAvailability({ notifyIfUnavailable: true }).catch(() => {});
@@ -2188,8 +2208,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return false;
     }
 
-    if (justCopiedFromExtension) {
-      console.log('Ignoring clipboard content because it was just copied from extension');
+    if (justCopiedFromExtension && clipboardText === lastCopiedText) {
+      console.log('Ignoring clipboard content because it matches the text just copied from extension');
       return false;
     }
 
@@ -2199,6 +2219,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (!isPortalSessionAvailable) {
+      const earlyIp = extractIPv4(clipboardText);
+      if (earlyIp) {
+        showToastMessage('⚠️ التنبيهات متوقفة', 'يرجى تسجيل الدخول للبورتال لتفعيل تنبيهات الـ IP', 'warning');
+      }
       return false;
     }
 
@@ -2250,18 +2274,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       });
 
     if (trackingPaused) {
+      const earlyIp = extractIPv4(clipboardText);
+      if (earlyIp) {
+        showToastMessage('⚠️ التتبع متوقف', 'تتبع الـ IP متوقف مؤقتاً في الإعدادات', 'warning');
+      }
       return false;
     }
 
+    const ipCandidate = extractIPv4(clipboardText);
+
     if (clipboardText === lastProcessedText) {
       console.log('Clipboard text is duplicate (len):', clipboardText.length);
+      if (ipCandidate) {
+        if (!securityAlertWindowId) {
+          console.log('Duplicate IP detected, re-running handleNewIP because popup is closed');
+          handleNewIP(ipCandidate).catch(err => console.error('handleNewIP error:', err));
+        } else {
+          chrome.windows.update(securityAlertWindowId, { focused: true }).catch(() => {
+            securityAlertWindowId = null;
+            handleNewIP(ipCandidate).catch(err => console.error('handleNewIP error:', err));
+          });
+        }
+      }
       return false;
     }
     if (clipboardText.includes('IP:') && clipboardText.includes('Account:') && clipboardText.includes('Email:')) {
       lastProcessedText = clipboardText;
       return false;
     }
-    const ipCandidate = extractIPv4(clipboardText);
     const emailMatch = clipboardText.match(emailRegex);
     const emailCandidate = emailMatch ? emailMatch[0] : null;
 

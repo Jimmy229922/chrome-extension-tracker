@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const ipMessage = params.get('ipMessage') || '';
     const country = params.get('country') || '';
     const type = params.get('type') || '';
-
+    const isDuplicate = params.get('isDuplicate') === 'true';
+    const lastSentAt = params.get('lastSentAt') || '';
     // Parse IP for display
     let ip = 'Unknown';
     if (ipMessage) {
@@ -11,6 +12,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (match) ip = match[0];
     } else {
         ip = 'N/A';
+    }
+
+    // Show duplicate notice if previously sent/reported
+    const duplicateNotice = document.getElementById('duplicateNotice');
+    const updateDuplicateNotice = (sentTime) => {
+        if (!duplicateNotice) return;
+        duplicateNotice.classList.remove('hidden');
+        if (sentTime) {
+            duplicateNotice.textContent = `⚠️ تنبيه: تم إرسال تقرير لهذا الـ IP مسبقاً بتاريخ ${sentTime}`;
+        } else {
+            duplicateNotice.textContent = `⚠️ تنبيه: تم نسخ / إرسال تقرير لهذا الـ IP مسبقاً`;
+        }
+    };
+
+    if (isDuplicate || lastSentAt) {
+        updateDuplicateNotice(lastSentAt);
+    } else if (ip && ip !== 'Unknown' && ip !== 'N/A') {
+        chrome.storage.local.get(['sentSecurityAlerts'], (res) => {
+            let foundSentTime = '';
+            if (res.sentSecurityAlerts && res.sentSecurityAlerts.ips && res.sentSecurityAlerts.ips[ip]) {
+                const rec = res.sentSecurityAlerts.ips[ip];
+                if (rec.lastSentAt) {
+                    try {
+                        foundSentTime = new Date(rec.lastSentAt).toLocaleString('ar-EG', {
+                            year: 'numeric', month: '2-digit', day: '2-digit',
+                            hour: '2-digit', minute: '2-digit', hour12: true
+                        });
+                    } catch (e) {
+                        foundSentTime = new Date(rec.lastSentAt).toLocaleString();
+                    }
+                }
+            }
+            if (foundSentTime) {
+                updateDuplicateNotice(foundSentTime);
+            }
+        });
     }
 
     const ipDisplay = document.getElementById('ipDisplay');
@@ -157,6 +194,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const reportText = `رقم الحساب: \`${accountNumber}\`\nالبريد الإلكتروني للعميل: ${formattedEmail}\nنوع الجروب: ${groupType}\nIP: \`${ip}\` // ${telegramDisplayCountry}\n${employeeName}`;
 
                 navigator.clipboard.writeText(reportText).then(() => {
+                    // Mark IP as sent in persistent storage
+                    if (ip && ip !== 'Unknown' && ip !== 'N/A') {
+                        try {
+                            chrome.runtime.sendMessage({
+                                type: 'MARK_IP_AS_SENT',
+                                ip: ip,
+                                accountNumber: accountNumber,
+                                groupType: groupType
+                            });
+                        } catch (e) {
+                            console.warn('Failed to send MARK_IP_AS_SENT message:', e);
+                        }
+                    }
+
                     const originalText = copyBtn.textContent;
                     copyBtn.textContent = '✅ تم النسخ وسيتم الإغلاق';
                     setTimeout(() => {
